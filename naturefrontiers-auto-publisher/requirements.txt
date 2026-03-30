@@ -1,0 +1,30 @@
+# Core dependencies
+google-api-python-client==2.154.0
+google-auth==2.37.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+
+# RSS parsing
+feedparser==6.0.11
+
+# HTTP requests
+requests==2.32.3
+
+# Twitter/X
+tweepy==4.14.0
+
+# YouTube video download (for TikTok fallback)
+yt-dlp==2024.12.23
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Qwen/DashScope
+dashscope==1.21.0
+
+# Utilities
+python-dateutil==2.9.0.post0
+tenacity==9.0.0
+
+# Logging enhancement
+colorama==0.4.6
