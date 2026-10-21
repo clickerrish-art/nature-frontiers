@@ -2,6 +2,12 @@ name: Nature Frontiers publishing (gated)
 
 on:
   workflow_dispatch:
+    inputs:
+      live_publish_authorized:
+        description: "Explicitly authorize one live publishing run after all launch checks (leave false for checks/dry runs)."
+        required: true
+        type: boolean
+        default: false
   pull_request:
     paths:
       - "scripts/publish-facebook.mjs"
@@ -51,7 +57,7 @@ jobs:
           node-version: "24"
       - name: Run gated Facebook Page adapter
         env:
-          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED || 'false' }} # Safe default: disabled unless deliberately configured
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }} # Requires both repository opt-in and explicit per-run authorization; scheduled runs are always disabled
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }} # Safe default: dry-run unless deliberately configured
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
