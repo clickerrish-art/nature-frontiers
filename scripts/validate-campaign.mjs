@@ -81,6 +81,9 @@ if (!Array.isArray(campaigns)) {
     } else if (!campaign.caption.includes(product.url)) {
       errors.push(`${label}: caption URL does not match the current catalogue URL for "${product.id}".`);
     }
+    if (typeof campaign?.caption === "string" && !campaign.caption.includes("Disclosure: This is a promotional post for a paid digital product.")) {
+      errors.push(`${label}: caption must include a clear paid-product promotional disclosure.`);
+    }
     if (campaign?.status === "approved") {
       if (campaign.link_verified !== true) errors.push(`${label}: cannot be approved without human-confirmed link_verified=true.`);
       if (product.status !== "approved") errors.push(`${label}: approved campaign's product "${product.id}" is not approved.`);
