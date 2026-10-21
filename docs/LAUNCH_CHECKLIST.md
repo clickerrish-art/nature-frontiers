@@ -22,18 +22,30 @@ Current catalogue prices are recorded in `data/products.json`; they can change a
 
 ## 2. Campaign review
 
-Initial copy review completed on 21 October 2026 for all six draft captions: each caption was checked for cautious wording, avoidance of guaranteed-income/results claims, and whether its destination matches the corresponding catalogue URL. The three creator-focused offers are directly aligned with the channel; the three general online-business guides are included at the owner's direction and should be described as general educational resources, not wildlife products.
+Final editorial review completed on 21 October 2026 for all six draft captions. Captions and catalogue URLs were cross-checked; wording was reviewed for clarity, unsupported claims, pressure tactics, fake endorsements, and guaranteed results. The three creator-focused offers are the strongest audience fit. The other three are general online-business/marketing resources, not wildlife products; their copy now says so explicitly, and Cash Smasher Secrets remains deliberately cautious because its full contents have not been independently verified.
 
-This is an editorial pre-review only, not product approval or permission to publish. The owner-confirmed checks established page access, title, and displayed price; product contents/deliverables, checkout flow, disclosures/affiliate status, Meta Page permissions, and live publisher readiness remain unverified. All six product statuses remain `review-required`, and all six campaigns remain `draft`.
+Editorial disposition by campaign:
 
-For each draft in `data/campaigns.json`:
+| Product | Editorial finding | Launch recommendation |
+| --- | --- | --- |
+| Complete YouTube Wildlife Creator's Vault | Strong Nature Frontiers fit; cautious copy; destination matches catalogue | Ready for owner review after checkout/content and disclosure checks |
+| Video Creation Prompt Pack Premium Edition | Strong creator fit; copy describes the workflow recorded in the catalogue; destination matches | Ready for owner review after checkout/content and disclosure checks |
+| YouTube Success Blueprint | Creator fit; no guaranteed-growth claim; destination matches | Ready for owner review after checkout/content and disclosure checks |
+| Internet Marketing Bible | General marketing education, not wildlife content; copy labels it accordingly | Hold from launch unless owner confirms mixed-topic promotions are intentional |
+| Online Money Practical Guide | General online-income education, not wildlife content; no income promise | Hold from launch unless owner confirms mixed-topic promotions are intentional |
+| Cash Smasher Secrets | General online-business offer; contents remain unverified and caption avoids unsupported detail | Hold pending product-content verification and owner confirmation of channel fit |
 
-- [ ] Review the complete caption for factual accuracy, clarity, grammar, and fit with the product.
-- [ ] Confirm the product URL in the caption matches the current catalogue URL.
-- [ ] Remove unsupported claims, guaranteed results, fake endorsements, pressure tactics, or unverified product features.
-- [ ] Confirm the caption is suitable for the Nature Frontiers audience and does not imply that unrelated online-income products are wildlife education products.
-- [ ] Confirm relevant affiliate/commercial disclosures and platform requirements.
-- [ ] Approve only the specific product and campaign after the above checks are complete.
+This is an editorial review, not product approval or permission to publish. Owner-confirmed checks established page access, title, and displayed price only. Product contents/deliverables, checkout flow, currency and discount details, affiliate/commercial relationship and required disclosures, Meta Page permissions, and live publisher readiness remain unverified. All six product statuses remain `review-required`, and all six campaigns remain `draft`.
+
+Completed in this review:
+- [x] Review all six captions for clarity, cautious wording, and unsupported or guaranteed-results claims.
+- [x] Confirm each caption contains the matching catalogue URL.
+- [x] Make the general-business nature of the last three offers explicit; keep Cash Smasher Secrets cautious pending verification.
+- [x] Keep all six campaigns in `draft` and all products in `review-required`.
+- [ ] Confirm product contents/deliverables and checkout details before approval.
+- [ ] Confirm affiliate/commercial relationship and required disclosures.
+- [ ] Confirm Meta Page permissions and publishing configuration.
+- [ ] Obtain owner approval for each specific product/campaign before any status change or publication.
 
 Do not mark a product `approved`, a campaign `approved`, or a link verified unless the human checks were actually completed and documented.
 
