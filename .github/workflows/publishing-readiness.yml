@@ -15,7 +15,7 @@ on:
     - cron: "30 7 * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: nature-frontiers-publishing
@@ -38,6 +38,8 @@ jobs:
 
   facebook-publisher:
     if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
     needs: safety-tests
     runs-on: ubuntu-latest
     steps:
