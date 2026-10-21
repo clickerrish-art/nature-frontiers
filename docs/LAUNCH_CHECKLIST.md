@@ -18,22 +18,40 @@ Current catalogue prices are recorded in `data/products.json`; they can change a
 ### Owner-confirmed Selar page checks (21 October 2026)
 
 - [x] The owner opened all six Selar product pages and confirmed that each page opened and its product title and displayed price matched the catalogue: Wildlife Creator's Vault (R999), Video Creation Prompt Pack Premium Edition (R570), YouTube Success Blueprint (R599), Internet Marketing Bible (R299), Online Money Practical Guide (R150), and Cash Smasher Secrets (R161.60).
-- [ ] Checkout flow, currency, product format, included deliverables, and any crossed-out/discount pricing have not been independently verified in this review. No test purchase was made.
+- [x] Wildlife Creator's Vault: owner supplied the live listing text showing ZAR, R999, a downloadable Premium Combo PDF, and a described field-to-feed wildlife content system for ideas, storytelling, captions, educational content, and consistent publishing. The listing describes intended benefits but does not expose the actual PDF files for independent inspection.
+- [x] Video Creation Prompt Pack Premium Edition: owner supplied the listing text showing title, R570 displayed against R750, 20 ready-to-use AI prompts across six connected stages (research/angle, scripting, thumbnail, title/metadata, production support, posting/optimization), and workflow guidance. The text does not independently verify the actual downloadable files or checkout flow; recheck the crossed-out price before promotion.
+- [x] YouTube Success Blueprint: owner supplied the listing text showing title, R599, and a described 90-day creator system covering channel setup, niche/audience, ideas, video creation, packaging, analytics, growth, monetization, AI workflows, checklists, and a 30/60/90-day plan. The text does not independently verify the actual deliverable files or checkout flow.
+- [x] Internet Marketing Bible: owner supplied the live listing text showing title, displayed price R299, and a 105-page guide described as covering social media/networking, customer acquisition and retention, and internet-marketing approaches. The supplied text does not independently verify the ebook file or checkout flow.
+- [x] Online Money Practical Guide: owner supplied the live listing text showing title, displayed price R150, and a beginner-focused digital guide described as covering online income opportunities, work-from-home ideas, additional income streams, starting with limited resources, and assessing opportunities against skills and goals. The listing explicitly says it does not guarantee income, profits, employment, or financial results; the actual ebook file and checkout flow remain unverified.
+- [x] Cash Smasher Secrets: owner supplied the live listing text showing title, displayed price R161.60, and a guide described as covering online business, affiliate marketing, digital products, freelancing, e-commerce, entrepreneurship, income diversification, and scaling/systemizing income. The actual ebook file and checkout flow remain unverified; the listing text does not establish evidence for any income outcomes.
+- [ ] Checkout flow has not been tested for any product; no test purchase was made. Any discount/crossed-out price should be rechecked before promotion.
 
 ## 2. Campaign review
 
-Initial copy review completed on 21 October 2026 for all six draft captions: each caption was checked for cautious wording, avoidance of guaranteed-income/results claims, and whether its destination matches the corresponding catalogue URL. The three creator-focused offers are directly aligned with the channel; the three general online-business guides are included at the owner's direction and should be described as general educational resources, not wildlife products.
+Final editorial review completed on 21 October 2026 for all six draft captions. Captions and catalogue URLs were cross-checked; wording was reviewed for clarity, unsupported claims, pressure tactics, fake endorsements, and guaranteed results. The three creator-focused offers are the strongest audience fit. The other three are general online-business/marketing resources, not wildlife products; their copy now says so explicitly, and Cash Smasher Secrets remains deliberately cautious because its full contents have not been independently verified.
 
-This is an editorial pre-review only, not product approval or permission to publish. The owner-confirmed checks established page access, title, and displayed price; product contents/deliverables, checkout flow, disclosures/affiliate status, Meta Page permissions, and live publisher readiness remain unverified. All six product statuses remain `review-required`, and all six campaigns remain `draft`.
+Editorial disposition by campaign:
 
-For each draft in `data/campaigns.json`:
+| Product | Editorial finding | Launch recommendation |
+| --- | --- | --- |
+| Complete YouTube Wildlife Creator's Vault | Strong Nature Frontiers fit; cautious copy; destination matches catalogue | Ready for owner review after checkout/content and disclosure checks |
+| Video Creation Prompt Pack Premium Edition | Strong creator fit; copy describes the workflow recorded in the catalogue; destination matches | Ready for owner review after checkout/content and disclosure checks |
+| YouTube Success Blueprint | Creator fit; no guaranteed-growth claim; destination matches | Ready for owner review after checkout/content and disclosure checks |
+| Internet Marketing Bible | General marketing education, not wildlife content; copy labels it accordingly | Hold out of the first Nature Frontiers campaign wave |
+| Online Money Practical Guide | General online-income education, not wildlife content; no income promise | Hold out of the first Nature Frontiers campaign wave |
+| Cash Smasher Secrets | General online-business offer; contents remain unverified and caption avoids unsupported detail | Hold out of the first campaign wave pending product-content verification |
 
-- [ ] Review the complete caption for factual accuracy, clarity, grammar, and fit with the product.
-- [ ] Confirm the product URL in the caption matches the current catalogue URL.
-- [ ] Remove unsupported claims, guaranteed results, fake endorsements, pressure tactics, or unverified product features.
-- [ ] Confirm the caption is suitable for the Nature Frontiers audience and does not imply that unrelated online-income products are wildlife education products.
-- [ ] Confirm relevant affiliate/commercial disclosures and platform requirements.
-- [ ] Approve only the specific product and campaign after the above checks are complete.
+Working launch decision for this review: prioritise the three creator-focused products for the first campaign wave and keep Internet Marketing Bible, Online Money Practical Guide, and Cash Smasher Secrets on hold as separate general-business offers. This does not approve any product or authorise publishing. This is an editorial review, not product approval or permission to publish. For Wildlife Creator's Vault, the owner also supplied the listing description, downloadable format, and ZAR currency as visible page evidence; the actual PDF contents and checkout flow remain unverified. For the other five products, owner-confirmed checks established page access, title, and displayed price only. Actual downloadable files/deliverable contents and checkout flow remain unverified for all six products. For Cash Smasher Secrets, the supplied listing describes an ebook/guide but its actual file and claims remain unverified. Internet Marketing Bible is described on the owner-supplied listing as a 105-page guide, but the ebook file itself has not been inspected. The Video Creation Prompt Pack page showed R570 against R750, so that comparison must be rechecked before promotion. Affiliate/commercial relationship and required disclosures, Meta Page permissions, and live publisher readiness remain unverified. All six product statuses remain `review-required`, and all six campaigns remain `draft`.
+
+Completed in this review:
+- [x] Review all six captions for clarity, cautious wording, and unsupported or guaranteed-results claims.
+- [x] Confirm each caption contains the matching catalogue URL.
+- [x] Make the general-business nature of the last three offers explicit; keep Cash Smasher Secrets cautious pending verification.
+- [x] Keep all six campaigns in `draft` and all products in `review-required`.
+- [ ] Confirm product contents/deliverables and checkout details before approval.
+- [ ] Confirm affiliate/commercial relationship and required disclosures.
+- [ ] Confirm Meta Page permissions and publishing configuration.
+- [ ] Obtain owner approval for each specific product/campaign before any status change or publication.
 
 Do not mark a product `approved`, a campaign `approved`, or a link verified unless the human checks were actually completed and documented.
 
