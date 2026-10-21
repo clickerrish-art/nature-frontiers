@@ -48,8 +48,11 @@ A green workflow is not authorisation to publish. Do not enable live publishing 
 - [ ] Confirm the YouTube channel link and all affiliate/product destinations are correct.
 - [ ] Check the site's privacy, affiliate disclosure, and contact information pages.
 - [ ] Verify analytics/measurement is configured only where consent and platform rules allow.
+- [ ] Replace the visible homepage placeholder headline `THE ONLY ONE` with approved brand copy.
+- [ ] Replace the placeholder phone number `(+1) 23456789` with a verified business contact or remove it.
+- [ ] Repair or remove the newsletter form while it reports `Subscription form is not available at the moment`.
 
-These checks require opening the live website and platform accounts; they are not proven by the GitHub catalogue validator.
+The public homepage was inspected on 21 October 2026 and showed the three visible issues above. Attempts to open several internal pages timed out, so their current status remains unverified. These checks require WordPress/platform access and are not proven by the GitHub catalogue validator.
 
 ## 5. First-week operating routine
 
@@ -61,8 +64,9 @@ These checks require opening the live website and platform accounts; they are no
 
 ## Current known status (21 October 2026)
 
-- Catalogue validation run #9: successful on `main`, commit `5eba2a7`.
+- Catalogue validation run #10: successful on `main`, commit `9a9fa33` after PR #5 was merged.
+- PR #5 updated the GitHub Actions workflows to Node.js 24-compatible checkout/setup-node actions and scoped write permission to the gated publisher job.
 - Six products exist and all have catalogue URLs; all remain `review-required`.
 - Six Facebook campaigns exist and all remain `draft`.
 - Live publishing must remain disabled until explicit human launch approval.
-- The GitHub Actions runner emitted Node.js 20 deprecation notices. The proposed workflow maintenance update switches to the Node.js 24-compatible major versions of checkout/setup-node; review its pull request and CI result before merging.
+- The public WordPress homepage has visible placeholder/contact/newsletter issues; internal page checks timed out and need verification in WordPress.
