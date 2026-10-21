@@ -1,0 +1,10 @@
+{
+  "name": "nature-frontiers-automation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate-campaign.mjs",
+    "test:publishing": "node scripts/test-publishing-safety.mjs",
+    "publish:facebook": "node scripts/publish-facebook.mjs"
+  }
+}
