@@ -69,17 +69,18 @@ A green workflow is not authorisation to publish. Do not enable live publishing 
 
 ## 4. Website and channel checks
 
-- [ ] Open the live WordPress site and check the home page, Videos, About, Shop, Blog, Affiliate Recommendations, and Contact pages.
-- [ ] Fix any page-not-found errors and test all primary navigation links on desktop and mobile.
-- [ ] Confirm embedded social feeds work without exposing private tokens.
-- [ ] Confirm the YouTube channel link and all affiliate/product destinations are correct.
-- [ ] Check the site's privacy, affiliate disclosure, and contact information pages.
-- [ ] Verify analytics/measurement is configured only where consent and platform rules allow.
-- [ ] Replace the visible homepage placeholder headline `THE ONLY ONE` with approved brand copy.
-- [ ] Replace the placeholder phone number `(+1) 23456789` with a verified business contact or remove it.
-- [ ] Repair or remove the newsletter form while it reports `Subscription form is not available at the moment`.
+Public homepage checked on 21 October 2026 at `https://naturefrontieers.com/`:
 
-The public homepage was inspected on 21 October 2026 and showed the three visible issues above. Attempts to open several internal pages timed out, so their current status remains unverified. These checks require WordPress/platform access and are not proven by the GitHub catalogue validator.
+- [x] Homepage is reachable and displays current wildlife-focused branding: “Learn. Wonder. Protect.” and “Where the Wild Still Holds Secrets.”
+- [x] Homepage exposes navigation for Videos, Wildlife Animals, Wildlife Photography, About, Shop, Educational Bundles, Teacher Resources, Blog, Conservation, Affiliate Recommendations, and Contact.
+- [x] Homepage shows the contact email `naturefrontiers@gmail.com`; no placeholder phone number was visible in the inspected page output.
+- [x] Homepage links to wildlife resources and video content.
+- [ ] Open About, Shop, Blog, Affiliate Recommendations, and Contact in a normal browser and confirm each page, primary links, and mobile layout. A crawler timeout or inability to open a guessed URL is not proof that a page is broken.
+- [ ] Confirm embedded YouTube feed plays in a normal browser on desktop and mobile; text extraction alone cannot verify playback.
+- [ ] Check the site's privacy and affiliate-disclosure wording and confirm any required disclosures appear before promotional links.
+- [ ] Verify analytics/measurement is configured only where consent and platform rules allow.
+
+The owner previously confirmed the newsletter works and asked that the website be left as-is. The text-only homepage inspection displayed a newsletter fallback message, which conflicts with the owner's browser check; do not change the form or site based on that extracted message alone. No website edits are authorised by this checklist. Re-test in the owner's normal browser only if the issue reappears.
 
 ## 5. First-week operating routine
 
@@ -96,4 +97,4 @@ The public homepage was inspected on 21 October 2026 and showed the three visibl
 - Six products exist and all have catalogue URLs; all remain `review-required`.
 - Six Facebook campaigns exist and all remain `draft`.
 - Live publishing must remain disabled until explicit human launch approval.
-- The public WordPress homepage has visible placeholder/contact/newsletter issues; internal page checks timed out and need verification in WordPress.
+- The public homepage is reachable and displays current wildlife-focused branding and a contact email. Several internal pages, mobile layout, embedded YouTube playback, disclosure/privacy wording, and live checkout remain unverified. The owner reports the newsletter works; leave the site unchanged.
