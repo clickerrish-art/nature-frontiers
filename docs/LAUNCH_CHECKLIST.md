@@ -18,7 +18,9 @@ Current catalogue prices are recorded in `data/products.json`; they can change a
 ### Owner-confirmed Selar page checks (21 October 2026)
 
 - [x] The owner opened all six Selar product pages and confirmed that each page opened and its product title and displayed price matched the catalogue: Wildlife Creator's Vault (R999), Video Creation Prompt Pack Premium Edition (R570), YouTube Success Blueprint (R599), Internet Marketing Bible (R299), Online Money Practical Guide (R150), and Cash Smasher Secrets (R161.60).
-- [ ] Checkout flow, currency, product format, included deliverables, and any crossed-out/discount pricing have not been independently verified in this review. No test purchase was made.
+- [x] Wildlife Creator's Vault: owner supplied the live listing text showing ZAR, R999, a downloadable Premium Combo PDF, and a described field-to-feed wildlife content system for ideas, storytelling, captions, educational content, and consistent publishing. The listing describes intended benefits but does not expose the actual PDF files for independent inspection. The page does not show a crossed-out price in the supplied text.
+- [ ] For the other five products, verify currency, format, and deliverables from their live listings.
+- [ ] Checkout flow has not been tested for any product; no test purchase was made. Any discount/crossed-out price should be rechecked before promotion.
 
 ## 2. Campaign review
 
@@ -35,7 +37,7 @@ Editorial disposition by campaign:
 | Online Money Practical Guide | General online-income education, not wildlife content; no income promise | Hold out of the first Nature Frontiers campaign wave |
 | Cash Smasher Secrets | General online-business offer; contents remain unverified and caption avoids unsupported detail | Hold out of the first campaign wave pending product-content verification |
 
-Working launch decision for this review: prioritise the three creator-focused products for the first campaign wave and keep Internet Marketing Bible, Online Money Practical Guide, and Cash Smasher Secrets on hold as separate general-business offers. This does not approve any product or authorise publishing. This is an editorial review, not product approval or permission to publish. Owner-confirmed checks established page access, title, and displayed price only. Product contents/deliverables, checkout flow, currency and discount details, affiliate/commercial relationship and required disclosures, Meta Page permissions, and live publisher readiness remain unverified. All six product statuses remain `review-required`, and all six campaigns remain `draft`.
+Working launch decision for this review: prioritise the three creator-focused products for the first campaign wave and keep Internet Marketing Bible, Online Money Practical Guide, and Cash Smasher Secrets on hold as separate general-business offers. This does not approve any product or authorise publishing. This is an editorial review, not product approval or permission to publish. For Wildlife Creator's Vault, the owner also supplied the listing description, downloadable format, and ZAR currency as visible page evidence; the actual PDF contents and checkout flow remain unverified. For the other five products, owner-confirmed checks established page access, title, and displayed price only. Product contents/deliverables, checkout flow, currency and discount details, affiliate/commercial relationship and required disclosures, Meta Page permissions, and live publisher readiness remain unverified. All six product statuses remain `review-required`, and all six campaigns remain `draft`.
 
 Completed in this review:
 - [x] Review all six captions for clarity, cautious wording, and unsupported or guaranteed-results claims.
