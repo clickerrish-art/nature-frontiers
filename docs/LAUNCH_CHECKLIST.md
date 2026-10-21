@@ -69,18 +69,27 @@ A green workflow is not authorisation to publish. Do not enable live publishing 
 
 ## 4. Website and channel checks
 
-Public homepage checked on 21 October 2026 at `https://naturefrontieers.com/`:
+Public site navigation was checked on 21 October 2026 via the homepage's actual menu links (not guessed slugs):
 
-- [x] Homepage is reachable and displays current wildlife-focused branding: “Learn. Wonder. Protect.” and “Where the Wild Still Holds Secrets.”
-- [x] Homepage exposes navigation for Videos, Wildlife Animals, Wildlife Photography, About, Shop, Educational Bundles, Teacher Resources, Blog, Conservation, Affiliate Recommendations, and Contact.
-- [x] Homepage shows the contact email `naturefrontiers@gmail.com`; no placeholder phone number was visible in the inspected page output.
-- [x] Homepage links to wildlife resources and video content.
-- [ ] Open About, Shop, Blog, Affiliate Recommendations, and Contact in a normal browser and confirm each page, primary links, and mobile layout. A crawler timeout or inability to open a guessed URL is not proof that a page is broken.
-- [ ] Confirm embedded YouTube feed plays in a normal browser on desktop and mobile; text extraction alone cannot verify playback.
-- [ ] Check the site's privacy and affiliate-disclosure wording and confirm any required disclosures appear before promotional links.
+- [x] Homepage loads and displays current wildlife-focused branding: “Learn. Wonder. Protect.” and “Where the Wild Still Holds Secrets.”
+- [x] Videos page loads and displays the wildlife introduction and `[youtube-feed feed=1]` embed. Actual video playback still requires a normal browser.
+- [x] About page loads and displays wildlife-focused purpose and editorial positioning.
+- [x] Shop page loads and displays nine products with prices and add-to-cart controls.
+- [x] Educational Bundles and Teacher Resources pages load and display relevant resources.
+- [x] Conservation page loads and displays conservation-focused content.
+- [x] Affiliate Recommendations page loads and displays wildlife recommendations and product links.
+- [x] Contact page loads and displays a contact form and the email `naturefrontiers@gmail.com`.
+- [ ] Blog page timed out during the public content check; recheck in a normal browser before treating it as broken.
+- [ ] Contact page displays the apparent placeholder address `Example avenue 100, example country`; replace it with a verified address or remove the address section in WordPress before launch.
+- [ ] Shop page footer displays the apparent placeholder phone number `(+1) 23456789`; replace it with a verified business number or remove it in WordPress before launch.
+- [ ] Confirm privacy-policy link and policy content, including the contact form's consent statement, in a normal browser.
+- [ ] Confirm affiliate/commercial disclosure is clear and appears where needed before users follow affiliate links.
+- [ ] Confirm embedded YouTube feed plays in a normal browser on desktop and mobile; text extraction cannot verify playback.
+- [ ] Test cart/checkout up to the point before payment; do not place a purchase.
+- [ ] Test mobile layout and primary navigation on an actual mobile-sized browser.
 - [ ] Verify analytics/measurement is configured only where consent and platform rules allow.
 
-The owner previously confirmed the newsletter works and asked that the website be left as-is. The text-only homepage inspection displayed a newsletter fallback message, which conflicts with the owner's browser check; do not change the form or site based on that extracted message alone. No website edits are authorised by this checklist. Re-test in the owner's normal browser only if the issue reappears.
+The owner previously confirmed the newsletter works and asked that the website be left as-is. The public text extraction shows a newsletter fallback message, which conflicts with the owner's browser check; do not change the newsletter based on text extraction alone. This checklist records the observed placeholders but does not authorise website edits. No WordPress write access was available during this review.
 
 ## 5. First-week operating routine
 
@@ -97,4 +106,4 @@ The owner previously confirmed the newsletter works and asked that the website b
 - Six products exist and all have catalogue URLs; all remain `review-required`.
 - Six Facebook campaigns exist and all remain `draft`.
 - Live publishing must remain disabled until explicit human launch approval.
-- The public homepage is reachable and displays current wildlife-focused branding and a contact email. Several internal pages, mobile layout, embedded YouTube playback, disclosure/privacy wording, and live checkout remain unverified. The owner reports the newsletter works; leave the site unchanged.
+- Homepage, Videos, About, Shop, Educational Bundles, Teacher Resources, Conservation, Affiliate Recommendations, and Contact pages were reached through the live site's navigation. The Blog page timed out in the content check. Contact page shows an apparent placeholder address; Shop footer shows an apparent placeholder phone number. Mobile layout, embedded YouTube playback, privacy/affiliate disclosures, and checkout remain unverified. The owner reports the newsletter works; do not change it based on crawler output.
