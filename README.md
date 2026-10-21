@@ -4,7 +4,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 
 ## Current status
 
-- **Catalogue validation:** passed on `main` at commit `5eba2a7` (manual run #9 on 21 October 2026).
+- **Catalogue validation:** passed on `main` at commit `9a9fa33` (run #10 on 21 October 2026; [view run](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39601467955)).
 - **Catalogue:** six products with canonical HTTPS Selar links.
 - **Campaign queue:** six Facebook drafts, each linked to a catalogue product.
 - **Approval:** all products remain `review-required`; all campaigns remain `draft`.
