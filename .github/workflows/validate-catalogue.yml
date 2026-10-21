@@ -1,0 +1,29 @@
+name: Validate Nature Frontiers catalogue
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - automation-starter
+    paths:
+      - "data/products.json"
+      - "scripts/validate-campaign.mjs"
+      - ".github/workflows/validate-catalogue.yml"
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate fixed catalogue
+        run: node scripts/validate-campaign.mjs
