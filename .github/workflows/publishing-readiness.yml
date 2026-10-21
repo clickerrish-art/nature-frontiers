@@ -1,13 +1,19 @@
-name: Publishing readiness (diagnostic only)
+name: Nature Frontiers publishing (gated)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "30 7 * * *"
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: nature-frontiers-publishing
+  cancel-in-progress: false
 
 jobs:
-  readiness:
+  safety-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -16,17 +22,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Check credential presence without printing values
+      - name: Test fail-closed publishing controls
+        run: node scripts/test-publishing-safety.mjs
+
+  facebook-publisher:
+    needs: safety-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run gated Facebook Page adapter
         env:
+          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED || 'false' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
-          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
-          PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
-          TIKTOK_ACCESS_TOKEN: ${{ secrets.TIKTOK_ACCESS_TOKEN }}
-          TIKTOK_OPEN_ID: ${{ secrets.TIKTOK_OPEN_ID }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
-        run: node scripts/check-publishing-readiness.mjs
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-facebook.mjs
