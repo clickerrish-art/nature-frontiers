@@ -22,6 +22,10 @@ Current catalogue prices are recorded in `data/products.json`; they can change a
 
 ## 2. Campaign review
 
+Initial copy review completed on 21 October 2026 for all six draft captions: each caption was checked for cautious wording, avoidance of guaranteed-income/results claims, and whether its destination matches the corresponding catalogue URL. The three creator-focused offers are directly aligned with the channel; the three general online-business guides are included at the owner's direction and should be described as general educational resources, not wildlife products.
+
+This is an editorial pre-review only, not product approval or permission to publish. The owner-confirmed checks established page access, title, and displayed price; product contents/deliverables, checkout flow, disclosures/affiliate status, Meta Page permissions, and live publisher readiness remain unverified. All six product statuses remain `review-required`, and all six campaigns remain `draft`.
+
 For each draft in `data/campaigns.json`:
 
 - [ ] Review the complete caption for factual accuracy, clarity, grammar, and fit with the product.
