@@ -33,7 +33,13 @@ if (!Array.isArray(products) || products.length === 0) {
     }
 
     const text = `${product?.title ?? ""} ${product?.promotion_angle ?? ""}`.toLowerCase();
-    if (/guaranteed income|guaranteed earnings|make money fast|risk[- ]free income/.test(text)) {
+    // Remove explicit cautionary wording before checking for claims. A warning such as
+    // "never imply guaranteed income" is not itself a promise of guaranteed income.
+    const claimText = text.replace(
+      /\b(?:do not|don't|never|without)\b[^.!?]{0,120}\b(?:guarantee(?:d)?|promise(?:d)?|claim(?:ed)?)\b[^.!?]{0,80}[.!?]?/gi,
+      ""
+    );
+    if (/guaranteed income|guaranteed earnings|make money fast|risk[- ]free income/.test(claimText)) {
       errors.push(`${label}: contains a prohibited guaranteed-income style claim.`);
     }
   }
