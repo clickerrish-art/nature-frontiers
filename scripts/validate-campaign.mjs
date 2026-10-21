@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 
-const file = new URL("../data/products.json", import.meta.url);
-const products = JSON.parse(await readFile(file, "utf8"));
+const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
+const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const errors = [];
 const warnings = [];
 
@@ -21,20 +21,21 @@ if (!Array.isArray(products) || products.length === 0) {
 
     try {
       const url = new URL(product.url);
-      if (url.protocol !== "https:" || url.hostname !== "selar.com") {
-        errors.push(`${label}: URL must be an HTTPS Selar link.`);
+      if (url.protocol !== "https:" || url.hostname !== "selar.com" || product.url !== url.href) {
+        errors.push(`${label}: URL must be a canonical HTTPS Selar checkout link.`);
       }
     } catch {
       errors.push(`${label}: invalid URL.`);
     }
 
-    if (product?.status !== "review-required") {
-      warnings.push(`${label}: status is not review-required; human review is still required.`);
+    if (product?.status !== "review-required" && product?.status !== "approved") {
+      errors.push(`${label}: unsupported product status "${product?.status}".`);
+    }
+    if (product?.status !== "approved") {
+      warnings.push(`${label}: product remains review-required; it cannot be published.`);
     }
 
     const text = `${product?.title ?? ""} ${product?.promotion_angle ?? ""}`.toLowerCase();
-    // Remove explicit cautionary wording before checking for claims. A warning such as
-    // "never imply guaranteed income" is not itself a promise of guaranteed income.
     const claimText = text.replace(
       /\b(?:do not|don't|never|without)\b[^.!?]{0,120}\b(?:guarantee(?:d)?|promise(?:d)?|claim(?:ed)?)\b[^.!?]{0,80}[.!?]?/gi,
       ""
@@ -49,9 +50,43 @@ if (!Array.isArray(products) || products.length === 0) {
     if (!product?.url) continue;
     const previous = urls.get(product.url);
     if (previous) {
-      warnings.push(`Shared checkout URL used by "${previous}" and "${product.id}". Verify each link resolves to the intended product before promotion.`);
+      warnings.push(`Shared checkout URL used by "${previous}" and "${product.id}". Human verification is required before approval.`);
     } else {
       urls.set(product.url, product.id);
+    }
+  }
+}
+
+if (!Array.isArray(campaigns)) {
+  errors.push("Campaign queue must be a JSON array.");
+} else {
+  const campaignIds = new Set();
+  for (const [index, campaign] of campaigns.entries()) {
+    const label = campaign?.id || `campaign ${index + 1}`;
+    if (typeof campaign?.id !== "string" || !campaign.id.trim()) errors.push(`${label}: missing stable campaign id.`);
+    if (campaign?.id && campaignIds.has(campaign.id)) errors.push(`Duplicate campaign id: ${campaign.id}`);
+    if (campaign?.id) campaignIds.add(campaign.id);
+
+    if (campaign?.network !== "facebook") warnings.push(`${label}: network is not facebook; this validator only checks Facebook campaigns.`);
+    if (!["draft", "approved", "publishing", "published"].includes(campaign?.status)) {
+      errors.push(`${label}: unsupported campaign status "${campaign?.status}".`);
+    }
+    const product = products.find((item) => item.id === campaign?.product_id);
+    if (!product) {
+      errors.push(`${label}: references unknown product "${campaign?.product_id}".`);
+      continue;
+    }
+    if (typeof campaign?.caption !== "string" || !campaign.caption.trim()) {
+      errors.push(`${label}: caption is missing.`);
+    } else if (!campaign.caption.includes(product.url)) {
+      errors.push(`${label}: caption URL does not match the current catalogue URL for "${product.id}".`);
+    }
+    if (campaign?.status === "approved") {
+      if (campaign.link_verified !== true) errors.push(`${label}: cannot be approved without human-confirmed link_verified=true.`);
+      if (product.status !== "approved") errors.push(`${label}: approved campaign's product "${product.id}" is not approved.`);
+      if (campaign.review_note?.toLowerCase().includes("hold")) errors.push(`${label}: review note indicates a hold; resolve it before approval.`);
+    } else if (campaign?.status === "draft") {
+      warnings.push(`${label}: remains a draft and will not be published.`);
     }
   }
 }
@@ -66,5 +101,5 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Catalogue validation passed for ${products.length} fixed products.`);
-console.log("Publishing remains disabled; this script does not publish or schedule content.");
+console.log(`Catalogue and campaign validation passed: ${products.length} products, ${campaigns.length} campaigns.`);
+console.log("This validator does not publish content; live publishing remains separately gated.");

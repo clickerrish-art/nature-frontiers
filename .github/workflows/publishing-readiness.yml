@@ -49,8 +49,8 @@ jobs:
           node-version: "20"
       - name: Run gated Facebook Page adapter
         env:
-          PUBLISH_ENABLED: 'false' # Hard lock: keep live publishing disabled
-          PUBLISH_DRY_RUN: 'true' # Hard lock: dry-run only
+          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED || 'false' }} # Safe default: disabled unless deliberately configured
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }} # Safe default: dry-run unless deliberately configured
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
