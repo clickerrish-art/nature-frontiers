@@ -58,7 +58,10 @@ if (pending.length !== 1) {
 
 const campaign = pending[0];
 const product = products.find((p) => p.id === campaign.product_id);
-const message = `${campaign.caption.trim()}\n\n${product.url}`;
+const trimmedCaption = campaign.caption.trim();
+const message = trimmedCaption.includes(product.url)
+  ? trimmedCaption
+  : `${trimmedCaption}\n\n${product.url}`;
 
 if (dryRun) {
   console.log(`DRY RUN: campaign ${campaign.id} passed local approval and link checks.`);
