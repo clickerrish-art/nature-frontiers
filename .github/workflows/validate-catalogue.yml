@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - automation-starter
+      - main
     paths:
       - "data/products.json"
       - "scripts/validate-campaign.mjs"
