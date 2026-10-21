@@ -4,12 +4,17 @@ const cases = [
   {
     name: "publishing disabled by default",
     env: { PUBLISH_ENABLED: "false", PUBLISH_DRY_RUN: "true" },
-    expected: "PUBLISH_ENABLED is not true."
+    expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
   },
   {
-    name: "dry run remains safe even when enabled",
+    name: "enabled workflow does nothing without approved campaigns",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true" },
-    expected: "PUBLISH_DRY_RUN is not false; dry-run mode is active."
+    expected: "No explicitly approved Facebook campaigns exist."
+  },
+  {
+    name: "live mode still does nothing without approved campaigns",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    expected: "No explicitly approved Facebook campaigns exist."
   }
 ];
 
