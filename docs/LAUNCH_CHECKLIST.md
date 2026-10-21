@@ -15,6 +15,11 @@ For each of the six entries in `data/products.json`:
 
 Current catalogue prices are recorded in `data/products.json`; they can change and must not be treated as independently live-verified by the validator.
 
+### Owner-confirmed Selar page checks (21 October 2026)
+
+- [x] The owner opened all six Selar product pages and confirmed that each page opened and its product title and displayed price matched the catalogue: Wildlife Creator's Vault (R999), Video Creation Prompt Pack Premium Edition (R570), YouTube Success Blueprint (R599), Internet Marketing Bible (R299), Online Money Practical Guide (R150), and Cash Smasher Secrets (R161.60).
+- [ ] Checkout flow, currency, product format, included deliverables, and any crossed-out/discount pricing have not been independently verified in this review. No test purchase was made.
+
 ## 2. Campaign review
 
 For each draft in `data/campaigns.json`:
