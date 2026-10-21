@@ -15,7 +15,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 
 - Validates required product fields, canonical Selar URLs, unique IDs, campaign-to-product links, campaign states, and risky income claims.
 - Runs fail-closed publishing safety tests.
-- Has a gated Facebook Page adapter. The adapter requires an explicitly approved campaign and product, human-verified links, a valid Page configuration, and durable state reservation before a live post attempt.
+- Has a gated Facebook Page adapter. The adapter requires an explicitly approved campaign and product, human-verified links, a paid-product disclosure, a valid Page configuration, and durable state reservation before a live post attempt. Live publishing additionally requires repository opt-in and a separate manual per-run authorization; scheduled runs cannot publish.
 - Does not automatically discover products or approve product pages/campaign copy.
 
 ## Before launch
@@ -27,6 +27,7 @@ Follow [the launch checklist](docs/LAUNCH_CHECKLIST.md). Each product's live che
 - Never commit passwords, access tokens, API keys, or other secrets.
 - Store credentials only as GitHub Actions secrets after access and permissions are confirmed.
 - Do not enable live publishing merely because tests pass.
+- Include a clear paid-product promotional disclosure; add a separate affiliate-commission disclosure wherever commissions apply.
 - Avoid guaranteed-income claims, fake endorsements, misleading scarcity, repetitive spam, and copyrighted media without permission.
 - If a live publishing attempt has an ambiguous result, inspect the Page and persisted campaign state before any retry to avoid duplicate posts.
 

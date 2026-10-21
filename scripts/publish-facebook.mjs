@@ -43,6 +43,9 @@ for (const campaign of pending) {
   if (!campaign.caption.includes(product.url)) {
     throw new Error(`Campaign ${campaign.id} caption must contain the exact catalogue URL.`);
   }
+  if (!campaign.caption.includes("Disclosure: This is a promotional post for a paid digital product.")) {
+    throw new Error(`Campaign ${campaign.id} is missing the required paid-product promotional disclosure.`);
+  }
   const parsedUrl = new URL(product.url);
   if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== "selar.com" || product.url !== parsedUrl.href) {
     throw new Error(`Product ${product.id} has an invalid checkout URL.`);
