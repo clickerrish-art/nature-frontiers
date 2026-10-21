@@ -7,6 +7,9 @@ on:
       - "scripts/publish-facebook.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "data/campaigns.json"
+      - "data/products.json"
+      - "scripts/validate-campaign.mjs"
+      - "package.json"
       - ".github/workflows/publishing-readiness.yml"
   schedule:
     - cron: "30 7 * * *"
@@ -28,6 +31,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Validate product catalogue
+        run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
 
