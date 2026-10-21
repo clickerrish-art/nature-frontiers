@@ -105,5 +105,7 @@ The owner previously confirmed the newsletter works and asked that the website b
 - PR #5 updated the GitHub Actions workflows to Node.js 24-compatible checkout/setup-node actions and scoped write permission to the gated publisher job.
 - Six products exist and all have catalogue URLs; all remain `review-required`.
 - Six Facebook campaigns exist and all remain `draft`.
+- GitHub Pages deployment for commit `4b95f6700f277deb8ff1ea7641f928f2c8b063e6bc` succeeded on 21 October 2026 (Actions run [39626441552](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39626441552); build, deploy, and status-report jobs all succeeded).
+- Publishing safety workflow run [39617135121](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39617135121) passed safety tests and skipped the Facebook publisher; this did not publish any campaign.
 - Live publishing must remain disabled until explicit human launch approval.
 - Homepage, Videos, About, Shop, Educational Bundles, Teacher Resources, Conservation, Affiliate Recommendations, and Contact pages were reached through the live site's navigation. The Blog page timed out in the content check. Contact page shows an apparent placeholder address; Shop footer shows an apparent placeholder phone number. Mobile layout, embedded YouTube playback, privacy/affiliate disclosures, and checkout remain unverified. The owner reports the newsletter works; do not change it based on crawler output.
