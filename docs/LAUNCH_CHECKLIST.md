@@ -49,7 +49,8 @@ Completed in this review:
 - [x] Make the general-business nature of the last three offers explicit; keep Cash Smasher Secrets cautious pending verification.
 - [x] Keep all six campaigns in `draft` and all products in `review-required`.
 - [ ] Confirm product contents/deliverables and checkout details before approval.
-- [ ] Confirm affiliate/commercial relationship and required disclosures.
+- [x] Add a clear paid-product promotional disclosure to all six draft captions and enforce it in catalogue validation and the publisher's fail-closed checks.
+- [ ] Confirm whether any separate affiliate commission relationship applies; if so, add an explicit affiliate-commission disclosure before approval.
 - [ ] Confirm Meta Page permissions and publishing configuration.
 - [ ] Obtain owner approval for each specific product/campaign before any status change or publication.
 
@@ -57,9 +58,10 @@ Do not mark a product `approved`, a campaign `approved`, or a link verified unle
 
 ## 3. Publishing safety
 
+- [x] Add a per-run live-publishing authorization input that defaults to false; scheduled runs cannot enable live publishing, and repository `PUBLISH_ENABLED=true` alone is insufficient.
 - [ ] Confirm GitHub repository variables remain `PUBLISH_ENABLED=false` and `PUBLISH_DRY_RUN=true`.
 - [ ] Confirm the Meta Page ID and access token are valid, least-privilege credentials stored only in GitHub Actions secrets.
-- [ ] Confirm the requested Meta permissions and the current Graph API version are supported for the intended Page.
+- [ ] Confirm the requested Meta permissions and the current Graph API version are supported for the intended Page; repository code cannot verify live token permissions without a secure authorized API test.
 - [ ] Review the publisher workflow and the one-campaign-per-run restriction.
 - [ ] Run catalogue validation and publishing safety tests; inspect the actual job logs.
 - [ ] Confirm no campaign is left in `publishing` after an ambiguous result; manually reconcile the Page and GitHub state before retrying.
@@ -82,8 +84,9 @@ Public site navigation was checked on 21 October 2026 via the homepage's actual 
 - [ ] Blog page timed out during the public content check; recheck in a normal browser before treating it as broken.
 - [ ] Contact page displays the apparent placeholder address `Example avenue 100, example country`; replace it with a verified address or remove the address section in WordPress before launch.
 - [ ] Shop page footer displays the apparent placeholder phone number `(+1) 23456789`; replace it with a verified business number or remove it in WordPress before launch.
-- [ ] Confirm privacy-policy link and policy content, including the contact form's consent statement, in a normal browser.
-- [ ] Confirm affiliate/commercial disclosure is clear and appears where needed before users follow affiliate links.
+- [ ] Confirm privacy-policy link and policy content, including the contact form's consent statement, in a normal browser. This remains an external WordPress/browser check and was not changed here.
+- [x] Confirm the repository's six promotional campaign drafts now include a paid-product disclosure.
+- [ ] Confirm the live website's affiliate/commercial disclosure is clear and appears where needed before users follow affiliate links; this requires a live-site browser check.
 - [ ] Confirm embedded YouTube feed plays in a normal browser on desktop and mobile; text extraction cannot verify playback.
 - [ ] Test cart/checkout up to the point before payment; do not place a purchase.
 - [ ] Test mobile layout and primary navigation on an actual mobile-sized browser.
@@ -107,5 +110,7 @@ The owner previously confirmed the newsletter works and asked that the website b
 - Six Facebook campaigns exist and all remain `draft`.
 - GitHub Pages deployment for commit `4b95f6700f277deb8ff1ea7641f928f2c8b063e6bc` succeeded on 21 October 2026 (Actions run [39626441552](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39626441552); build, deploy, and status-report jobs all succeeded).
 - Publishing safety workflow run [39617135121](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39617135121) passed safety tests and skipped the Facebook publisher; this did not publish any campaign.
+- The publishing workflow now requires both repository opt-in and a separate per-run manual authorization; scheduled runs are forced off. The repository's actual secret/variable values and Meta Page permissions remain unverified.
+- All six draft captions now include a paid-product promotional disclosure, enforced by both catalogue validation and the publisher adapter. A separate affiliate-commission disclosure is still needed if these links earn commissions.
 - Live publishing must remain disabled until explicit human launch approval.
 - Homepage, Videos, About, Shop, Educational Bundles, Teacher Resources, Conservation, Affiliate Recommendations, and Contact pages were reached through the live site's navigation. The Blog page timed out in the content check. Contact page shows an apparent placeholder address; Shop footer shows an apparent placeholder phone number. Mobile layout, embedded YouTube playback, privacy/affiliate disclosures, and checkout remain unverified. The owner reports the newsletter works; do not change it based on crawler output.
