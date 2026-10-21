@@ -15,7 +15,7 @@ on:
     - cron: "30 7 * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: nature-frontiers-publishing
@@ -26,11 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
@@ -38,15 +38,17 @@ jobs:
 
   facebook-publisher:
     if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
     needs: safety-tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
       - name: Run gated Facebook Page adapter
         env:
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED || 'false' }} # Safe default: disabled unless deliberately configured

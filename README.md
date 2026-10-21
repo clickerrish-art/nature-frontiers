@@ -1,31 +1,38 @@
-# Nature Frontiers — Free Automation Starter
+# Nature Frontiers — Marketing Automation
 
-This branch prepares a free, review-first foundation for promoting the fixed Selar product catalogue.
+This repository maintains a fixed catalogue of Selar digital products, review-first Facebook campaign drafts, and GitHub Actions checks for campaign data quality and gated publishing.
 
-## Safety status
+## Current status
 
-- **Publishing is disabled.** This starter does not publish, schedule, or send messages to any social platform.
-- No Zapier, paid Metricool API plan, new Supabase project, or paid service is required to run the catalogue validation.
-- The catalogue is fixed in `data/products.json`; it does not discover or add new Selar products automatically.
-- Product links and descriptions must be checked before public campaigns are approved.
-- Never add passwords, access tokens, API keys, or other secrets to files or commits.
+- **Catalogue validation:** passed on `main` at commit `5eba2a7` (manual run #9 on 21 October 2026).
+- **Catalogue:** six products with canonical HTTPS Selar links.
+- **Campaign queue:** six Facebook drafts, each linked to a catalogue product.
+- **Approval:** all products remain `review-required`; all campaigns remain `draft`.
+- **Publishing:** keep `PUBLISH_ENABLED=false` and `PUBLISH_DRY_RUN=true`. Do not enable live publishing until the human launch checklist is complete.
+- **Website and social accounts:** check these separately; a passing repository validator does not verify the live website, current checkout price, Meta permissions, or published social posts.
 
-## What currently runs
+## What the automation does
 
-A GitHub Actions workflow validates the product catalogue on a schedule and when catalogue/workflow files change. It only checks data quality and safe campaign rules. It does not contact social networks or Selar.
+- Validates required product fields, canonical Selar URLs, unique IDs, campaign-to-product links, campaign states, and risky income claims.
+- Runs fail-closed publishing safety tests.
+- Has a gated Facebook Page adapter. The adapter requires an explicitly approved campaign and product, human-verified links, a valid Page configuration, and durable state reservation before a live post attempt.
+- Does not automatically discover products or approve product pages/campaign copy.
 
-## Before any publishing automation is considered
+## Before launch
 
-1. Verify every Selar link opens the intended product and price.
-2. Confirm which free, officially supported APIs are actually available for each social account.
-3. Review each platform's current rules, media requirements, disclosure requirements, and rate limits.
-4. Add credentials only as GitHub Actions repository secrets after access has been verified.
-5. Keep publishing disabled until an explicit human review approves the exact workflow and a test plan.
+Follow [the launch checklist](docs/LAUNCH_CHECKLIST.md). Each product's live checkout page and price must be reviewed by a human. Review the exact public copy and disclosure requirements before approving any campaign.
 
-## Current supported promotion approach
+## Safety and credentials
 
-Create useful, search-intent-led educational content around the problems each product addresses. Avoid spam, repetitive cross-posting, misleading scarcity, guaranteed-income claims, fake endorsements, and copyrighted media without permission. Use clear descriptions and the correct product checkout link.
+- Never commit passwords, access tokens, API keys, or other secrets.
+- Store credentials only as GitHub Actions secrets after access and permissions are confirmed.
+- Do not enable live publishing merely because tests pass.
+- Avoid guaranteed-income claims, fake endorsements, misleading scarcity, repetitive spam, and copyrighted media without permission.
+- If a live publishing attempt has an ambiguous result, inspect the Page and persisted campaign state before any retry to avoid duplicate posts.
 
-## Review this branch
+## Workflows
 
-This work is on the `automation-starter` branch, not the default branch. No posts have been published or scheduled by these files.
+- **Validate Nature Frontiers catalogue:** manual run, pushes to relevant catalogue files on `main`, and a weekly schedule.
+- **Nature Frontiers publishing (gated):** pull-request safety tests, manual run, and a daily scheduled gated check.
+
+A successful validation means the data passed automated rules. It is not approval to publish.
