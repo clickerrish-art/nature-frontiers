@@ -63,7 +63,7 @@ Do not mark a product `approved`, a campaign `approved`, or a link verified unle
 - [ ] Confirm the Meta Page ID and access token are valid, least-privilege credentials stored only in GitHub Actions secrets.
 - [ ] Confirm the requested Meta permissions and the current Graph API version are supported for the intended Page; repository code cannot verify live token permissions without a secure authorized API test.
 - [ ] Review the publisher workflow and the one-campaign-per-run restriction.
-- [ ] Run catalogue validation and publishing safety tests; inspect the actual job logs.
+- [x] Catalogue validation passed after PR #10 merged (run [39627608263](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39627608263)); publishing safety tests passed on PR run [39627261595](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39627261595), with the live publisher skipped.
 - [ ] Confirm no campaign is left in `publishing` after an ambiguous result; manually reconcile the Page and GitHub state before retrying.
 - [ ] Authorise a specific first live post only after all reviews and a dry-run plan are complete.
 
@@ -81,7 +81,7 @@ Public site navigation was checked on 21 October 2026 via the homepage's actual 
 - [x] Conservation page loads and displays conservation-focused content.
 - [x] Affiliate Recommendations page loads and displays wildlife recommendations and product links.
 - [x] Contact page loads and displays a contact form and the email `naturefrontiers@gmail.com`.
-- [ ] Blog page timed out during the public content check; recheck in a normal browser before treating it as broken.
+- [x] Blog index now verified through the homepage's actual Blog navigation link on 22 October 2026; it displays two latest-post entries.
 - [ ] Contact page displays the apparent placeholder address `Example avenue 100, example country`; replace it with a verified address or remove the address section in WordPress before launch.
 - [ ] Shop page footer displays the apparent placeholder phone number `(+1) 23456789`; replace it with a verified business number or remove it in WordPress before launch.
 - [ ] Confirm privacy-policy link and policy content, including the contact form's consent statement, in a normal browser. This remains an external WordPress/browser check and was not changed here.
@@ -102,15 +102,15 @@ The owner previously confirmed the newsletter works and asked that the website b
 - [ ] Keep a simple record of campaign, date, destination, clicks, sales, and lessons learned.
 - [ ] Recheck product URLs and prices before reusing campaign copy.
 
-## Current known status (21 October 2026)
+## Current known status (22 October 2026)
 
-- Catalogue validation run #10: successful on `main`, commit `9a9fa33` after PR #5 was merged.
+- Catalogue validation run #11: successful on `main`, commit `003622d59c039fdc4a70f7a50c9952b3bdd30f3b` after PR #10 was merged.
 - PR #5 updated the GitHub Actions workflows to Node.js 24-compatible checkout/setup-node actions and scoped write permission to the gated publisher job.
 - Six products exist and all have catalogue URLs; all remain `review-required`.
 - Six Facebook campaigns exist and all remain `draft`.
-- GitHub Pages deployment for commit `4b95f6700f277deb8ff1ea7641f928f2c8b063e6bc` succeeded on 21 October 2026 (Actions run [39626441552](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39626441552); build, deploy, and status-report jobs all succeeded).
-- Publishing safety workflow run [39617135121](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39617135121) passed safety tests and skipped the Facebook publisher; this did not publish any campaign.
+- GitHub Pages deployment for commit `003622d59c039fdc4a70f7a50c9952b3bdd30f3b` succeeded (Actions run [39627607612](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39627607612); build, deploy, and status-report jobs all succeeded).
+- Publishing safety workflow run [39627261595](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39627261595) passed safety tests and skipped the Facebook publisher; this did not publish any campaign.
 - The publishing workflow now requires both repository opt-in and a separate per-run manual authorization; scheduled runs are forced off. The repository's actual secret/variable values and Meta Page permissions remain unverified.
 - All six draft captions now include a paid-product promotional disclosure, enforced by both catalogue validation and the publisher adapter. A separate affiliate-commission disclosure is still needed if these links earn commissions.
 - Live publishing must remain disabled until explicit human launch approval.
-- Homepage, Videos, About, Shop, Educational Bundles, Teacher Resources, Conservation, Affiliate Recommendations, and Contact pages were reached through the live site's navigation. The Blog page timed out in the content check. Contact page shows an apparent placeholder address; Shop footer shows an apparent placeholder phone number. Mobile layout, embedded YouTube playback, privacy/affiliate disclosures, and checkout remain unverified. The owner reports the newsletter works; do not change it based on crawler output.
+- Homepage, Videos, About, Shop, Educational Bundles, Teacher Resources, Conservation, Affiliate Recommendations, Contact, and Blog pages were reached through the live site's navigation. The Blog index displays two posts. Contact page shows an apparent placeholder address; Shop footer shows an apparent placeholder phone number. Mobile layout and embedded YouTube playback remain unverified. The contact form references a Privacy Policy, but policy content could not be verified in the available public extraction. The Affiliate Recommendations page's extracted content did not show a clear affiliate/commercial disclosure; treat this as a launch blocker until checked and corrected in WordPress. Checkout remains unverified and is intentionally outside this review. The owner reports the newsletter works; do not change it based on crawler output.
