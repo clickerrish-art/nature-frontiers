@@ -114,3 +114,8 @@ The owner previously confirmed the newsletter works and asked that the website b
 - All six draft captions now include a paid-product promotional disclosure, enforced by both catalogue validation and the publisher adapter. A separate affiliate-commission disclosure is still needed if these links earn commissions.
 - Live publishing must remain disabled until explicit human launch approval.
 - Homepage, Videos, About, Shop, Educational Bundles, Teacher Resources, Conservation, Affiliate Recommendations, Contact, and Blog pages were reached through the live site's navigation. The Blog index displays two posts. Contact page shows an apparent placeholder address; Shop footer shows an apparent placeholder phone number. Mobile layout and embedded YouTube playback remain unverified. The contact form references a Privacy Policy, but policy content could not be verified in the available public extraction. The Affiliate Recommendations page's extracted content did not show a clear affiliate/commercial disclosure; treat this as a launch blocker until checked and corrected in WordPress. Checkout remains unverified and is intentionally outside this review. The owner reports the newsletter works; do not change it based on crawler output.
+
+
+## Deployment follow-up (22 October 2026)
+
+- [x] The checklist-only GitHub Pages deployment completed successfully: Actions run [39724958455](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39724958455); build, deploy, and status-report jobs all succeeded. This confirms deployment of the repository checklist update, not the completion of external WordPress, Meta, browser, or Selar checks.
