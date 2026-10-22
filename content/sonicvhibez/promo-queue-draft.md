@@ -6,6 +6,15 @@ Cadence target: Up to 2 Shorts per week, approximately 55 seconds each.
 **Mandatory spacing:** At least 72 full hours between every two promotional video publication timestamps. Never publish two videos on the same calendar day. Before assigning dates, inspect actual published and queued timestamps, use Africa/Johannesburg time, and calculate the gap. If destination schedule/history cannot be inspected, do not schedule; mark spacing UNVERIFIED.
 **Safety:** Never schedule or publish promotional content to Nature Frontiers. Keep posts as drafts with auto-publishing disabled until every release gate passes.
 
+## Metricool audit — 22 October 2026
+- Read-only brand settings returned one brand labelled **Nature Frontiers**, brand ID 7545638, timezone Africa/Johannesburg, with YouTube channel ID `UCSlkuPfHH78oGC1o418HV4w`.
+- The user identifies that YouTube channel ID as SonicVhibez. The Metricool brand label remains inconsistent with that identity; no destination changes were made.
+- Scheduled-post inspection from 22 October through 30 November found 12 draft posts in the returned set. All returned posts showed `draft: true` and `autoPublish: false`.
+- One YouTube promotional Short draft is listed at 22 October 2026, 17:00 SAST: “How to Make Better Wildlife Videos for YouTube.” It has an MP4 URL in Metricool, but its actual duration and the complete published/private/unlisted channel history were not verified in this audit.
+- Existing social drafts are on Facebook and/or Instagram. They have not been published or edited in this audit.
+- **Release decision: HOLD.** Do not schedule or publish the existing YouTube draft or new Shorts until the destination identity, actual MP4 duration, disclosure, thumbnail, and full 72-hour spacing check are verified. This audit does not establish that a video is 55 seconds or that a 72-hour gap is satisfied.
+- No posts were created, updated, deleted, published, or rescheduled in Metricool during this audit.
+
 ## SEO and keyword research standard
 - Research current YouTube keyword demand, competition, related queries and rising searches using vidIQ or another available source before finalizing each package.
 - Put the primary, accurate search phrase near the start of the title; naturally include it in the opening description lines and use closely related terms/hashtags without stuffing.
@@ -63,7 +72,6 @@ Proposed publication timestamp: NOT ASSIGNED — keep at least 72 full hours aft
 - Include appropriate paid-promotion/affiliate disclosure as applicable.
 - Keep posts as drafts until all gates pass; no automatic publishing until a destination-safe test succeeds.
 - Do not claim a 95+/100 score unless a defined scoring rubric has actually been applied and recorded.
-
 
 ## Production-ready narration drafts (not rendered or approved)
 
