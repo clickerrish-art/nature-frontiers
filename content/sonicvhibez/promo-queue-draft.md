@@ -63,3 +63,37 @@ Proposed publication timestamp: NOT ASSIGNED — keep at least 72 full hours aft
 - Include appropriate paid-promotion/affiliate disclosure as applicable.
 - Keep posts as drafts until all gates pass; no automatic publishing until a destination-safe test succeeds.
 - Do not claim a 95+/100 score unless a defined scoring rubric has actually been applied and recorded.
+
+
+## Production-ready narration drafts (not rendered or approved)
+
+### Item 002 — full voiceover draft (~55 seconds at a measured, conversational pace)
+**Voice:** warm, friendly adult American male; calm documentary delivery, not exaggerated.
+**0–4s:** “Want better wildlife videos? Start with the story—not the effects.”
+**4–13s:** “Before you edit, ask one question: what should the viewer discover about this animal?”
+**13–23s:** “Open with the most relevant moment, then give just enough context to understand what we're seeing.”
+**23–33s:** “Build a simple sequence: the hook, the behaviour, the detail people might miss, and a clear takeaway.”
+**33–43s:** “Make the title and thumbnail promise the same thing your footage actually delivers. Keep captions readable on a phone.”
+**43–49s:** “And verify your facts. Never disturb wildlife to get a shot.”
+**49–55s:** “For a wildlife-creator resource, review the Complete YouTube Wildlife Creator's Vault at Selar. Check the page for current details.”
+**On-screen disclosure:** “Paid promotion” (visible near CTA).
+**Thumbnail concept:** one authentic animal close-up, uncluttered background, 2–4 words maximum: “TELL A CLEAR STORY”. Do not composite an animal into a scene it wasn't in.
+
+### Item 003 — full voiceover draft (~55 seconds at a measured, conversational pace)
+**Voice:** warm, friendly adult American male; calm documentary delivery, not exaggerated.
+**0–4s:** “Great wildlife footage can still get overlooked. Check these three thumbnail mistakes.”
+**4–16s:** “First: too many words. Use a short phrase people can read on a phone.”
+**16–28s:** “Second: the animal is too small. Make the real subject easy to spot, without cropping away the important behaviour.”
+**28–40s:** “Third: the thumbnail promises something the video doesn't show. That may earn a click, but it breaks trust.”
+**40–48s:** “Choose one clear focal point, strong contrast, and a title that accurately matches the footage.”
+**48–55s:** “Want a wildlife-creator resource? Review the Complete YouTube Wildlife Creator's Vault on Selar, and check its page for current details.”
+**On-screen disclosure:** “Paid promotion” (visible near CTA).
+**Thumbnail concept:** a genuine wildlife subject occupying the frame; simple visual hierarchy; 2–4 words maximum: “3 THUMBNAIL MISTAKES”. Any before/after examples must be labelled illustrative and must not imply fabricated wildlife events.
+
+### Edit and export checklist for both
+- 9:16 vertical; target 50–59 seconds after final voiceover and edit; verify actual duration.
+- Use licensed/owned wildlife footage only; retain source/permission notes.
+- Burn in accurate captions; review names and animal facts; keep text away from UI-safe areas.
+- Mix voice clearly above natural ambience; no fake animal sounds or fabricated scene audio.
+- End card and description must include the supplied Selar URL exactly: https://selar.com/0u19v8u99l
+- Final thumbnail and rendered MP4 still require human review; these text drafts do not count as rendered assets.
