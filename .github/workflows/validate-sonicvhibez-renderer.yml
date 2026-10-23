@@ -1,0 +1,30 @@
+name: Validate SonicVhibez renderer
+
+on:
+  push:
+    paths:
+      - "scripts/render_sonicvhibez_short.py"
+      - ".github/workflows/validate-sonicvhibez-renderer.yml"
+  pull_request:
+    paths:
+      - "scripts/render_sonicvhibez_short.py"
+      - ".github/workflows/validate-sonicvhibez-renderer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile renderer
+        run: python -m py_compile scripts/render_sonicvhibez_short.py
+      - name: Check command-line help
+        run: python scripts/render_sonicvhibez_short.py --help
