@@ -140,3 +140,14 @@ Proposed publication timestamp: NOT ASSIGNED — keep at least 72 full hours aft
   1. https://cdn.leonardo.ai/users/b1ecb90b-2fad-4cfc-940c-5b0bbc052382/generations/1f1ceb7f-7b4b-6bf0-87b3-018ec31894d8/lucid-origin_Photorealistic_African_leopard_on_golden-hour_savanna_cinematic_wildlife_documen-0.jpg?w=1875
   2. https://cdn.leonardo.ai/users/b1ecb90b-2fad-4cfc-940c-5b0bbc052382/generations/1f1ceb77-3737-6700-b0a2-b49d5aabb412/lucid-origin_Photorealistic_vertical_wildlife_documentary_key_visual_anatomically_accurate_Af-0.jpg?w=1875
 - Leonardo run reports free tier, 134 tokens remaining after 8 tokens used; no purchase/subscription made. The images are generated and direct URLs are available; local download is not yet confirmed.
+
+
+## First Leonardo visual — production handoff (23 October 2026)
+- Generation completed in Leonardo AI Free tier; two synthetic leopard stills generated, 8 tokens consumed, 134 tokens reported remaining by the browser run.
+- Still A: https://cdn.leonardo.ai/users/b1ecb90b-2fad-4cfc-940c-5b0bbc052382/generations/1f1ceb7f-7b4b-6bf0-87b3-018ec31894d8/lucid-origin_Photorealistic_African_leopard_on_golden-hour_savanna_cinematic_wildlife_documen-0.jpg?w=1875
+- Still B: https://cdn.leonardo.ai/users/b1ecb90b-2fad-4cfc-940c-5b0bbc052382/generations/1f1ceb77-3737-6700-b0a2-b49d5aabb412/lucid-origin_Photorealistic_vertical_wildlife_documentary_key_visual_anatomically_accurate_Af-0.jpg?w=1875
+- Local copies/downloads: not confirmed; keep links as source references until downloaded and inspected.
+- Suggested cut plan for Item 002 (55-second target): 0–4s hook; 4–13s question/story setup; 13–23s opening moment/context; 23–33s sequence behaviour/detail/takeaway; 33–43s title/thumbnail/captions advice; 43–49s verify facts/do not disturb wildlife; 49–55s disclosed CTA. Use multiple distinct verified wildlife shots or subtle motion clips; do not stretch one still to pretend to be documentary footage.
+- Voiceover and timed script remain in this file. Rendered video, captions, and thumbnail are not yet produced. Do not publish until they exist and are reviewed.
+- AI disclosure copy to adapt per platform: **“AI-generated wildlife visuals; AI-assisted narration. This is an illustrative educational scene, not footage of a documented animal encounter. Paid promotion.”** Keep the paid-promotion label visible at the CTA; use each platform's native AI-content disclosure control when applicable.
+- Platform release gate: YouTube target only (SonicVhibez). Do not cross-post to Facebook/Instagram/Nature Frontiers. At publish time, confirm the YouTube altered-content setting, visible disclosure in description, title/description/link correctness, captions, and the >=72-hour spacing audit.
