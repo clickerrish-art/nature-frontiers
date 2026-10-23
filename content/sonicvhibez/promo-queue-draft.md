@@ -116,3 +116,16 @@ Proposed publication timestamp: NOT ASSIGNED — keep at least 72 full hours aft
 - Licensing reference: https://www.pexels.com/legal-pages/license/ — Pexels says content may be used and modified for free, including commercial projects, subject to its restrictions. Do not imply the creator endorses the Selar product; retain source and creator attribution in internal asset notes.
 - Download status: **NOT DOWNLOADED**. A browser download attempt was blocked by persistent Pexels Cloudflare verification; no local media file was created. Do not mark the video rendered or the asset downloaded.
 - Next production gate: obtain the clip through the normal free download button, then assemble multiple licensed/owned wildlife segments with the approved voiceover and captions to reach 50–59 seconds. Verify each additional clip separately before use.
+
+
+## Leonardo AI key visual — generated 23 October 2026
+- Status: **GENERATED AND DOWNLOADED**; this is one key visual, not a finished Short or thumbnail package.
+- Model: Leonardo Lucid Origin.
+- Image dimensions: 832 × 1248 pixels (portrait 2:3; crop/resize for final 9:16 export).
+- Seed: 1108330474.
+- Prompt: “Photorealistic vertical wildlife documentary key visual: anatomically accurate African leopard in detailed natural fur, golden-hour African savanna background, realistic documentary photography style, clear subject, dramatic lighting, no text, no logo, no watermark”.
+- Asset URL: https://cdn.leonardo.ai/users/b1ecb90b-2fad-4cfc-940c-5b0bbc052382/generations/1f1ceb77-3737-6700-b0a2-b49d5aabb412/lucid-origin_Photorealistic_vertical_wildlife_documentary_key_visual_anatomically_accurate_Af-0.jpg
+- Leonardo free token balance reported after generation: 142. No paid upgrade/trial.
+- AI disclosure: record as AI-generated. When used in a published package, include a clear viewer-facing disclosure (e.g., “AI-generated visuals”) and use the platform's native AI/altered-content disclosure controls where applicable. Do not assume embedded metadata alone satisfies platform disclosure requirements.
+- Note: the generation page briefly showed a username-style watermark that may have been a UI artifact; inspect the downloaded file before use. No public post or platform setting was changed.
+- Next gate: inspect the actual downloaded file for watermark/artifacts, crop to 9:16, pair with licensed motion footage, approved ~55-second narration, accurate captions, paid-promotion disclosure and verified product link. Full video not yet rendered.
