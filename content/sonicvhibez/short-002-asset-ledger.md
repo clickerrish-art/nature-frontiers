@@ -11,7 +11,7 @@
 | Google Nano Banana leopard still | Production prompt/handoff committed at https://github.com/clickerrish-art/nature-frontiers/blob/main/content/sonicvhibez/short-002-google-nano-banana-asset-handoff.md. No generated/downloaded image file verified in this workspace yet. | Not an available asset until the actual image file is saved and inspected. |
 | Pexels leopard clip | Source page reviewed: https://www.pexels.com/video/majestic-leopard-walking-in-kenyan-savanna-30260143/; creator listed as Bharath Kumar Venkatesh; source page listed 2160×4096, 11 seconds, 30 FPS, free licence. Download attempt was blocked by site verification. Pexels general licence page reviewed: https://www.pexels.com/legal-pages/license/. | Not available as a local file; do not represent as downloaded or edited. Re-download through the normal source page if possible and retain source notes. |
 | Voiceover | Approved text draft exists in the production queue. A HeyGen public-voice speech request failed due to an engine/workspace compatibility error. No newly synthesized audio asset verified for this item. | Do not retry generation automatically; request user approval before another attempt. |
-| Captions | SRT draft created at short-002-better-wildlife-video-workflow.srt; timing is a draft aligned to intended 55-second script, not verified against a final audio track. | Retiming and proofreading required after actual narration is available. |
+| Captions | Caption SRT draft was updated to remove the previously overlapping time ranges. It now spans 00:00–00:55 without overlapping cue times, but timing remains provisional because there is no final narration track to sync against. | After actual narration is available, retime to the audio and proofread for reading speed and line breaks. |
 | Thumbnail | Concept text: “TELL A CLEAR STORY”. No final image file verified. | Not ready to upload. |
 | MP4 | No finished/rendered MP4 verified for Short #002. | Must be rendered to 50–59 seconds, 9:16, then reviewed end-to-end. |
 
@@ -32,7 +32,7 @@ The supplied link https://selar.com/0u19v8u99l currently resolves to **Complete 
    - “Illustrative educational scene, not footage of a documented animal encounter.” where synthetic wildlife scenes appear.
    - “Paid promotion” and clear paid-product disclosure for the Selar promotion.
    - Complete YouTube's altered/synthetic content setting when applicable.
-8. Recheck the exact Selar link and live product details; verify destination is SonicVhibez, not Nature Frontiers; inspect full publication/queue history and confirm at least 72 full hours between promotional releases.
+8. Recheck the exact Selar URL and live product details; verify destination is SonicVhibez, not Nature Frontiers; inspect full publication/queue history and confirm at least 72 full hours between promotional releases.
 9. Keep in draft until every release gate passes. No auto-publishing, no cross-posting, and no paid upgrade without explicit authorization.
 
 ## Known output links
