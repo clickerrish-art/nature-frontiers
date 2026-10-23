@@ -129,3 +129,14 @@ Proposed publication timestamp: NOT ASSIGNED — keep at least 72 full hours aft
 - AI disclosure: record as AI-generated. When used in a published package, include a clear viewer-facing disclosure (e.g., “AI-generated visuals”) and use the platform's native AI/altered-content disclosure controls where applicable. Do not assume embedded metadata alone satisfies platform disclosure requirements.
 - Note: the generation page briefly showed a username-style watermark that may have been a UI artifact; inspect the downloaded file before use. No public post or platform setting was changed.
 - Next gate: inspect the actual downloaded file for watermark/artifacts, crop to 9:16, pair with licensed motion footage, approved ~55-second narration, accurate captions, paid-promotion disclosure and verified product link. Full video not yet rendered.
+
+
+## AI-content disclosure standard — confirmed by user (23 October 2026)
+- User explicitly requires every AI-made production to be identified as AI-generated on every platform where it is published.
+- For YouTube uploads containing realistic synthetic/altered visuals or audio, complete YouTube's altered-content disclosure setting whenever applicable; also add a plain-language description disclosure, e.g. **"AI-generated visuals; AI-assisted narration."**
+- For other platforms, use their native AI/synthetic-media label when available and a clear caption/description disclosure. Check the current platform requirements at publishing time.
+- Do not publish until all required disclosures are present and verified in the preview. Never imply generated wildlife footage depicts a real documented encounter; label illustrative synthetic scenes where necessary.
+- Leonardo AI key visuals successfully generated 23 October 2026, two portrait 768×1344 JPGs:
+  1. https://cdn.leonardo.ai/users/b1ecb90b-2fad-4cfc-940c-5b0bbc052382/generations/1f1ceb7f-7b4b-6bf0-87b3-018ec31894d8/lucid-origin_Photorealistic_African_leopard_on_golden-hour_savanna_cinematic_wildlife_documen-0.jpg?w=1875
+  2. https://cdn.leonardo.ai/users/b1ecb90b-2fad-4cfc-940c-5b0bbc052382/generations/1f1ceb77-3737-6700-b0a2-b49d5aabb412/lucid-origin_Photorealistic_vertical_wildlife_documentary_key_visual_anatomically_accurate_Af-0.jpg?w=1875
+- Leonardo run reports free tier, 134 tokens remaining after 8 tokens used; no purchase/subscription made. The images are generated and direct URLs are available; local download is not yet confirmed.
