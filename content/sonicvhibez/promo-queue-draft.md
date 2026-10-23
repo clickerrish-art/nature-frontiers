@@ -105,3 +105,14 @@ Proposed publication timestamp: NOT ASSIGNED — keep at least 72 full hours aft
 - Mix voice clearly above natural ambience; no fake animal sounds or fabricated scene audio.
 - End card and description must include the supplied Selar URL exactly: https://selar.com/0u19v8u99l
 - Final thumbnail and rendered MP4 still require human review; these text drafts do not count as rendered assets.
+
+
+## Pexels footage source — verified candidate (23 October 2026)
+- Selected clip: **Majestic Leopard Walking in Kenyan Savanna**
+- Source page: https://www.pexels.com/video/majestic-leopard-walking-in-kenyan-savanna-30260143/
+- Creator shown on the source page: Bharath Kumar Venkatesh.
+- Source-page technical details: 2160 × 4096 pixels; portrait aspect ratio 135:256; 11 seconds; 30 FPS; page labels the licence “Free”.
+- Suitability: portrait 4K footage is suitable for a 9:16 Short crop. The clip is a candidate source segment, not a complete 55-second video.
+- Licensing reference: https://www.pexels.com/legal-pages/license/ — Pexels says content may be used and modified for free, including commercial projects, subject to its restrictions. Do not imply the creator endorses the Selar product; retain source and creator attribution in internal asset notes.
+- Download status: **NOT DOWNLOADED**. A browser download attempt was blocked by persistent Pexels Cloudflare verification; no local media file was created. Do not mark the video rendered or the asset downloaded.
+- Next production gate: obtain the clip through the normal free download button, then assemble multiple licensed/owned wildlife segments with the approved voiceover and captions to reach 50–59 seconds. Verify each additional clip separately before use.
