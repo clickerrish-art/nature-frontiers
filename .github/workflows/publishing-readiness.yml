@@ -8,6 +8,25 @@ on:
         required: true
         type: boolean
         default: false
+  push:
+    branches:
+      - "codex/facebook-reels-publisher"
+    paths:
+      - "scripts/check-meta-readiness.mjs"
+      - "scripts/publish-facebook.mjs"
+      - "scripts/facebook-feed-guards.mjs"
+      - "scripts/test-facebook-feed-guards.mjs"
+      - "scripts/publish-facebook-reel.mjs"
+      - "scripts/facebook-reel-guards.mjs"
+      - "scripts/facebook-reel-media.mjs"
+      - "scripts/test-facebook-reel-media.mjs"
+      - "scripts/test-facebook-reel-guards.mjs"
+      - "scripts/test-publishing-safety.mjs"
+      - "data/campaigns.json"
+      - "data/products.json"
+      - "scripts/validate-campaign.mjs"
+      - "package.json"
+      - ".github/workflows/publishing-readiness.yml"
   pull_request:
     paths:
       - "scripts/check-meta-readiness.mjs"
@@ -67,7 +86,7 @@ jobs:
   facebook-publisher:
     # Publishing writes durable campaign state to the dispatch ref. Never permit
     # this job to write to main; use a dedicated non-main release branch.
-    if: github.event_name != 'pull_request' && github.ref != 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
     permissions:
       contents: write
     needs: safety-tests
