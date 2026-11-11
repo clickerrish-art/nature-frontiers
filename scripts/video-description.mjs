@@ -22,7 +22,7 @@ export const PRODUCT_DISCLOSURE =
   "Product disclosure: These links lead to third-party paid digital products. Check each seller page for current details, price, contents and terms before purchasing.";
 
 export const AFFILIATE_DISCLOSURE =
-  "Disclosure: Some links are affiliate links. If you book through them, Nature Frontiers may earn a commission at no extra cost to you.";
+  "Disclosure: Some links are affiliate links. Nature Frontiers may earn a commission if you make a booking through them.";
 
 export function buildLongFormVideoDescription({
   seriesTitle,
