@@ -62,7 +62,7 @@ for (const [field, value] of [
   ["status", "draft"],
   ["facebook_type", "REEL"],
   ["campaign_type", "promotion"],
-  ["duration_seconds", 299],
+  ["duration_seconds", 179],
   ["duration_seconds", 481],
   ["media_url", "http://cdn.example.org/video.mp4"],
   ["media_sha256", "missing"],
@@ -134,7 +134,7 @@ test("accepts a three-minute episode and keeps the opening hook before the first
   const threeMinute = {
     ...valid,
     duration_seconds: 180,
-    retention_beats_seconds: [55, 115, 150],
+    retention_beats_seconds: [55, 115, 155],
     editorial_ad_breaks_seconds: [120],
     editorial_ad_break_notes: ["After the opening hook and the first natural story transition."]
   };
