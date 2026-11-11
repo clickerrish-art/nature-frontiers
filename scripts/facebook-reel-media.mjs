@@ -104,8 +104,8 @@ async function inspectReelVideo(filePath, probeImpl) {
   if (width < 540 || height < 960 || Math.abs(width / height - 9 / 16) > 0.005) {
     throw new Error("Facebook Reel must be portrait 9:16 and at least 540x960 pixels.");
   }
-  if (!Number.isFinite(duration) || duration < 4 || duration > 60) {
-    throw new Error("Facebook Reel duration must be between 4 and 60 seconds.");
+  if (!Number.isFinite(duration) || duration < 25 || duration > 35) {
+    throw new Error("Nature Frontiers discovery Reels must be between 25 and 35 seconds (approximately 30 seconds).");
   }
   if (!Number.isFinite(frameRate) || frameRate < 23) {
     throw new Error("Facebook Reel frame rate must be at least 23 fps.");
