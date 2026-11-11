@@ -1,5 +1,5 @@
-import { readFile, createReadStream } from "node:fs";
-import { readFile as readUtf8 } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 
@@ -26,7 +26,7 @@ if (typeof graphVersion !== "string" || !graphVersion.startsWith("v") || version
 if (!pageId || !accessToken) throw new Error("Meta Page ID and Page access token are required.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
 
-const campaigns = JSON.parse(await readUtf8(new URL("../data/campaigns.json", import.meta.url), "utf8"));
+const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = campaigns.filter((item) => item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
 if (approved.length === 0) stop("No explicitly approved Facebook Reel campaigns exist.");
 if (approved.length !== 1) throw new Error("Exactly one approved Reel is allowed per manual run.");
@@ -70,7 +70,9 @@ try {
 // "publishing" and is never retried automatically.
 const before = await getState();
 const live = before.campaigns.find((item) => item.id === campaign.id);
-if (!live || live.status !== "approved" || live.facebook_type !== "REEL") stop("Live campaign state is not approved for Reel publication.");
+if (!live || live.status !== "approved" || live.facebook_type !== "REEL") {
+  throw new Error("SAFE STOP: live campaign state is not approved for Reel publication.");
+}
 const reserved = before.campaigns.map((item) => item.id === campaign.id
   ? { ...item, status: "publishing", publishing_started_at: new Date().toISOString() }
   : item);
