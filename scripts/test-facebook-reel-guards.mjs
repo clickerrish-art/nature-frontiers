@@ -20,7 +20,16 @@ const valid = {
   media_sha256: "a".repeat(64),
   related_longform_campaign_id: "nf-video-001",
   full_video_url: "https://www.facebook.com/watch/?v=123456789",
-  synthetic_visuals: false
+  synthetic_visuals: false,
+  ai_generated_video: false,
+  stock_footage_used: false,
+  media_origin: "original_camera_recording",
+  source_recording_id: "camera-original-001",
+  original_camera_file_sha256: "b".repeat(64),
+  original_recording_retained: true,
+  provenance_review_passed: true,
+  provenance_reviewer: "wildlife-editor",
+  provenance_reviewed_at: "2026-11-11T10:00:00Z"
 };
 
 test("accepts only a fully reviewed, rights-cleared, technically checked Reel", () => {
