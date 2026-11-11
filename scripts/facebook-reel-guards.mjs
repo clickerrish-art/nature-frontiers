@@ -1,3 +1,5 @@
+import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE } from "./video-description.mjs";
+
 export function validateReelCampaign(campaign) {
   const errors = [];
   if (!campaign || campaign.network !== "facebook") errors.push("campaign must target Facebook.");
@@ -39,6 +41,29 @@ export function validateReelCampaign(campaign) {
   if (campaign?.provenance_review_passed !== true) errors.push("original camera provenance must pass human review before release.");
   if (typeof campaign?.provenance_reviewer !== "string" || !campaign.provenance_reviewer.trim()) errors.push("a named provenance reviewer is required.");
   if (typeof campaign?.provenance_reviewed_at !== "string" || !Number.isFinite(Date.parse(campaign.provenance_reviewed_at))) errors.push("a valid provenance review timestamp is required.");
+  if (typeof campaign?.caption !== "string" || !campaign.caption.includes(NATURE_FRONTIERS_YOUTUBE_URL)) {
+    errors.push("every Reel description must include the Nature Frontiers YouTube channel link.");
+  }
+  if (!Array.isArray(campaign?.product_links) ||
+      REQUIRED_PRODUCT_LINKS.some((item) => !campaign.product_links.includes(item.url)) ||
+      REQUIRED_PRODUCT_LINKS.some((item) => !campaign.caption.includes(item.url))) {
+    errors.push("every Reel description must include all six catalogue Selar product URLs verbatim.");
+  }
+  if (!Array.isArray(campaign?.affiliate_links) ||
+      APPROVED_AFFILIATE_LINKS.some((link) => !campaign.affiliate_links.includes(link)) ||
+      APPROVED_AFFILIATE_LINKS.some((link) => !campaign.caption.includes(link))) {
+    errors.push("every Reel description must include all five owner-supplied Safari.com affiliate URLs with a=GM26 tracking intact.");
+  }
+  if (campaign?.affiliate_links_verified !== true ||
+      typeof campaign?.affiliate_verification_note !== "string" || !campaign.affiliate_verification_note.trim()) {
+    errors.push("Reel affiliate URLs require human verification evidence.");
+  }
+  if (campaign?.affiliate_disclosure !== AFFILIATE_DISCLOSURE || !campaign.caption.includes(AFFILIATE_DISCLOSURE)) {
+    errors.push("every Reel description must include the standard affiliate disclosure verbatim.");
+  }
+  if (campaign?.product_disclosure !== PRODUCT_DISCLOSURE || !campaign.caption.includes(PRODUCT_DISCLOSURE)) {
+    errors.push("every Reel description must include the standard paid-product disclosure verbatim.");
+  }
   if (campaign?.caption?.length > 60000) errors.push("caption exceeds the platform-safe input limit.");
   if (campaign?.title?.length > 255) errors.push("title exceeds the platform-safe input limit.");
   return errors;
