@@ -124,7 +124,7 @@ export function validateLongFormVideoCampaign(campaign) {
   const breaks = campaign?.editorial_ad_breaks_seconds;
   const expectedCount = Number.isFinite(campaign?.duration_seconds) && campaign.duration_seconds >= 420 ? 2 : 1;
   if (!Array.isArray(breaks) || breaks.length !== expectedCount ||
-      breaks.some((value) => !Number.isFinite(value) || value < 140 || value > campaign.duration_seconds - 45) ||
+      breaks.some((value) => !Number.isFinite(value) || value < 90 || value > campaign.duration_seconds - 45) ||
       breaks.some((value, index, values) => index > 0 && (value <= values[index - 1] || value - values[index - 1] < 120)) ||
       (Array.isArray(breaks) && breaks.length > 0 && (!Number.isFinite(campaign?.hook_duration_seconds) || breaks[0] < campaign.hook_duration_seconds + 60 || breaks[0] < 90))) {
     errors.push("editorial ad-break markers must be one for 3–6:59 videos or two for 7–8 minute videos, placed at natural transitions after the opening hook and at least 120 seconds apart.");
