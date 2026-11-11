@@ -9,9 +9,18 @@ const valid = {
   status: "approved",
   facebook_type: "VIDEO",
   title: "How Crocodiles Wait for the Perfect Moment",
-  caption: "Original wildlife documentary narration and episode description.",
+  caption: "Original wildlife documentary narration and episode description. Follow the series: https://www.youtube.com/@naturefrontiers-life\\nExplore the Wildlife Creator’s Vault: https://selar.com/0u19v8u99l\\nSafari partner offer: https://affiliate.example.org/click?aid=123&src=naturefrontiers\\nDisclosure: Some links are affiliate links. If you book through them, Nature Frontiers may earn a commission at no extra cost to you.",
   hook_0_3s: "It has barely moved. It has not stopped watching.",
-  script_text: Array(700).fill("wildlife").join(" "),
+  hook_duration_seconds: 30,
+  series_id: "crocodile-behaviour",
+  series_title: "Wild Encounters: Crocodile Behaviour",
+  episode_number: 1,
+  episode_title: "The Patient Ambush",
+  series_arc: "A multi-episode exploration of crocodile senses, ambush behaviour, hunting ecology and conservation.",
+  next_episode_teaser: "Next episode explores how a crocodile detects movement below the waterline.",
+  affiliate_links: ["https://affiliate.example.org/click?aid=123&src=naturefrontiers"],
+  affiliate_disclosure: "Disclosure: Some links are affiliate links. If you book through them, Nature Frontiers may earn a commission at no extra cost to you.",
+  script_text: "It has barely moved. It has not stopped watching. " + Array(700).fill("wildlife").join(" "),
   duration_seconds: 360,
   media_url: "https://cdn.example.org/sha256/wildlife.mp4",
   media_sha256: "a".repeat(64),
@@ -45,7 +54,7 @@ const valid = {
   editorial_ad_break_notes: ["After the first explanation of ambush posture, before the underwater sensory reveal."]
 };
 
-test("accepts an approved, reviewed 5–8 minute original landscape-video campaign manifest", () => {
+test("accepts an approved, reviewed 3–8 minute original landscape-video series episode manifest", () => {
   assert.deepEqual(validateLongFormVideoCampaign(valid), []);
 });
 
@@ -97,8 +106,8 @@ test("rejects synthetic wildlife video even when fully disclosed", () => {
   assert.ok(errors.some((e) => e.includes("AI-generated or synthetic wildlife visuals are prohibited")));
 });
 
-test("requires at least 500 words of original narration and evidence links", () => {
-  assert.ok(validateLongFormVideoCampaign({ ...valid, script_text: "too short" }).some((e) => e.includes("500–1,500 words")));
+test("requires at least 300 words of original narration, a hook-first script and evidence links", () => {
+  assert.ok(validateLongFormVideoCampaign({ ...valid, script_text: "too short" }).some((e) => e.includes("300–1,500 words")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, fact_check_sources: [] }).some((e) => e.includes("fact-check source")));
 });
 
@@ -107,7 +116,7 @@ test("requires curiosity beats no more than 75 seconds apart and a next-episode 
   assert.ok(validateLongFormVideoCampaign({ ...valid, next_episode_cta: "" }).some((e) => e.includes("next episode")));
 });
 
-test("requires one proposed break marker for 5–6:59 minute videos and two for 7–8 minute videos", () => {
+test("requires one proposed break marker for 3–6:59 minute videos and two for 7–8 minute videos", () => {
   assert.deepEqual(validateLongFormVideoCampaign({ ...valid, duration_seconds: 420, retention_beats_seconds: [55, 115, 175, 235, 295, 355], editorial_ad_breaks_seconds: [180, 360], editorial_ad_break_notes: ["After story beat one.", "Before the final explanation."] }), []);
   assert.ok(validateLongFormVideoCampaign({ ...valid, editorial_ad_breaks_seconds: [180, 250], editorial_ad_break_notes: ["One.", "Two."] }).some((e) => e.includes("one for 5–6:59")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, duration_seconds: 420, retention_beats_seconds: [55, 115, 175, 235, 295, 355], editorial_ad_breaks_seconds: [180], editorial_ad_break_notes: ["After the first story beat."] }).some((e) => e.includes("one for 5–6:59")));
@@ -118,6 +127,32 @@ test("rejects ad-break markers too close together or too close to the ending", (
   assert.ok(validateLongFormVideoCampaign(sevenMinute).some((e) => e.includes("120 seconds apart")));
   const nearEnd = { ...valid, editorial_ad_breaks_seconds: [320] };
   assert.ok(validateLongFormVideoCampaign(nearEnd).some((e) => e.includes("editorial ad-break markers")));
+});
+
+
+test("accepts a three-minute episode and keeps the opening hook before the first ad break", () => {
+  const threeMinute = {
+    ...valid,
+    duration_seconds: 180,
+    retention_beats_seconds: [55, 115, 150],
+    editorial_ad_breaks_seconds: [120],
+    editorial_ad_break_notes: ["After the opening hook and the first natural story transition."]
+  };
+  assert.deepEqual(validateLongFormVideoCampaign(threeMinute), []);
+  assert.ok(validateLongFormVideoCampaign({ ...threeMinute, editorial_ad_breaks_seconds: [60] }).some((e) => e.includes("after the opening hook")));
+});
+
+test("requires the series identity, channel destination, product link, affiliate URL and disclosure in every description", () => {
+  assert.ok(validateLongFormVideoCampaign({ ...valid, series_id: "" }).some((e) => e.includes("named series")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://www.youtube.com/@naturefrontiers-life", "") }).some((e) => e.includes("YouTube channel link")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://selar.com/0u19v8u99l", "") }).some((e) => e.includes("approved Wildlife Creator")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_links: [] }).some((e) => e.includes("affiliate tracking URL")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://affiliate.example.org/click?aid=123&src=naturefrontiers", "") }).some((e) => e.includes("embedded verbatim")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_disclosure: "" }).some((e) => e.includes("explicit affiliate disclosure")));
+});
+
+test("requires the opening narration to start with the documented hook", () => {
+  assert.ok(validateLongFormVideoCampaign({ ...valid, script_text: "Welcome back. " + valid.script_text }).some((e) => e.includes("begin with the approved first-three-second hook")));
 });
 
 test("converts editorial mid-roll timestamps to Meta Page Videos ad_breaks milliseconds", async () => {
