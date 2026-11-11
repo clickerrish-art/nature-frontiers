@@ -96,7 +96,7 @@ jobs:
       - name: Test Facebook Reel release guards and media integrity
         run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
       - name: Test long-form video guards and media integrity
-        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs
+        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs scripts/test-series-scripts.mjs
       - name: Test Johannesburg daily publishing limits
         run: node --test scripts/test-publishing-cadence.mjs
 
