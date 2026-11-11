@@ -15,6 +15,8 @@ export function validateFeedRelease(campaign) {
   if (campaign?.policy_review_passed !== true) errors.push("the exact post must pass human Meta policy review.");
   if (campaign?.content_accuracy_confirmed !== true) errors.push("all factual and product claims must be human-verified.");
   if (campaign?.brand_fit_confirmed !== true) errors.push("the post must be confirmed appropriate for the Nature Frontiers audience.");
+  if (campaign?.campaign_type === "organic" && campaign?.wildlife_welfare_confirmed !== true) errors.push("wildlife content must confirm no baiting, harassment, handling, staging or disturbance of animals.");
+  if (campaign?.campaign_type === "organic" && campaign?.non_graphic_review_passed !== true) errors.push("wildlife content must pass a human non-graphic imagery review.");
   if (campaign?.media?.length || campaign?.media_url) {
     if (campaign?.media_rights_confirmed !== true) errors.push("all attached media must have human-confirmed rights clearance.");
     if (campaign?.media_originality_confirmed !== true) errors.push("all attached media must pass human originality review.");
