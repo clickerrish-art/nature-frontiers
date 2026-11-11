@@ -29,7 +29,7 @@ Every video description must include:
 - Nature Frontiers YouTube channel: https://www.youtube.com/@naturefrontiers-life
 - All six owner-catalogued Selar product links, including the Wildlife Creator’s Vault: see `scripts/video-description.mjs`.
 - All five owner-supplied Safari.com affiliate URLs, embedded verbatim with their `a=GM26` tracking parameters intact.
-- The explicit affiliate disclosure.
+- A clear paid-product disclosure and the explicit affiliate disclosure.
 
 **Product-link handling:** all six catalogue links are included because the owner explicitly requested them in every description. The five products other than the Wildlife Creator’s Vault remain marked `review-required`; descriptions provide links only and make no unverified product claims. Check each seller page for current details before making product-specific claims.
 
