@@ -92,7 +92,7 @@ jobs:
           node-version: "24"
       - name: Check Meta Page access without publishing
         env:
-          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ID: "1090224080838313"
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           META_GRAPH_API_VERSION: "v27.0"
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
@@ -119,7 +119,7 @@ jobs:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
-          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ID: "1090224080838313"
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -130,7 +130,7 @@ jobs:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
-          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ID: "1090224080838313"
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
