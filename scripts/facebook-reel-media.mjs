@@ -22,9 +22,13 @@ function isPublicIPv4(address) {
 function isPublicIPv6(address) {
   const value = address.toLowerCase().split("%")[0];
   if (value === "::" || value === "::1") return false;
-  if (/^(fc|fd|fe[89ab]|ff)/i.test(value)) return false;
-  const mapped = value.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  if (mapped) return isPublicIPv4(mapped[1]);
+  const first = Number.parseInt(value.split(":")[0] || "0", 16);
+  const second = Number.parseInt(value.split(":")[1] || "0", 16);
+  // Only global-unicast 2000::/3 is accepted. This excludes loopback,
+  // link-local, ULA, multicast, IPv4-mapped and other special-purpose ranges.
+  if (!Number.isFinite(first) || first < 0x2000 || first > 0x3fff) return false;
+  if (first === 0x2002 || (first === 0x2001 && second <= 0x01ff)) return false;
+  if (value.startsWith("2001:db8:")) return false;
   return true;
 }
 
