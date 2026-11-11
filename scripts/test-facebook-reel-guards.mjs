@@ -39,8 +39,10 @@ test("blocks synthetic media without explicit disclosure", () => {
   assert.ok(validateReelCampaign({ ...valid, synthetic_visuals: true }).some((e) => e.includes("disclosure")));
 });
 
-test("recognizes only a completed/ready publication phase", () => {
+test("requires Meta to confirm completed publishing, not merely ready media", () => {
   assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete" } } }), true);
+  assert.equal(isReelPublished({ status: { video_status: "published" } }), true);
+  assert.equal(isReelPublished({ status: { video_status: "ready" } }), false);
   assert.equal(isReelPublished({ status: { video_status: "processing" } }), false);
   assert.equal(isReelPublished({ status: { publishing_phase: { status: "not_started" } } }), false);
 });
