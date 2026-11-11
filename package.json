@@ -4,10 +4,11 @@
   "type": "module",
   "scripts": {
     "validate": "node scripts/validate-campaign.mjs",
-    "test:publishing": "node scripts/test-publishing-safety.mjs && node --test scripts/test-facebook-feed-guards.mjs scripts/test-publishing-cadence.mjs",
+    "test:publishing": "node scripts/test-publishing-safety.mjs && node --test scripts/test-facebook-feed-guards.mjs scripts/test-publishing-cadence.mjs && node --test scripts/test-youtube-content.mjs",
     "test:facebook-reels": "node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs",
     "test:facebook-videos": "node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs",
     "test:cadence": "node --test scripts/test-publishing-cadence.mjs",
+    "test:youtube-content": "node --test scripts/test-youtube-content.mjs",
     "publish:facebook": "node scripts/publish-facebook.mjs",
     "publish:facebook-video": "node scripts/publish-facebook-video.mjs",
     "publish:facebook-reel": "node scripts/publish-facebook-reel.mjs",

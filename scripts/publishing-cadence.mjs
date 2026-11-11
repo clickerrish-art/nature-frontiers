@@ -62,7 +62,7 @@ export function assertDailyReleaseCapacity(campaigns, contentType, now = new Dat
     throw new Error("Daily publishing ceiling reached: Nature Frontiers allows no more than three total releases per Johannesburg calendar day.");
   }
   if (contentType === "VIDEO" && counts.longForm >= MAX_LONG_FORM_PER_DAY) {
-    throw new Error("Daily long-form limit reached: Nature Frontiers allows no more than two 5–8 minute videos per Johannesburg calendar day.");
+    throw new Error("Daily long-form limit reached: Nature Frontiers allows no more than two 3–8 minute videos per Johannesburg calendar day.");
   }
   if (contentType === "REEL" && counts.reels >= MAX_REELS_PER_DAY) {
     throw new Error("Daily discovery Reel limit reached: Nature Frontiers allows no more than one approximately 30-second Reel per Johannesburg calendar day.");

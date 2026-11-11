@@ -1,0 +1,82 @@
+{
+  "seriesId": "wild-encounters",
+  "seriesName": "Wild Encounters",
+  "seasonNumber": 1,
+  "status": "concept_only",
+  "format": "16:9",
+  "durationSeconds": {
+    "minimum": 180,
+    "maximum": 480
+  },
+  "episodes": [
+    {
+      "episodeNumber": 1,
+      "title": "The Signals Animals Give Before They Move",
+      "hookPrompt": "Before an animal takes a step, what might its posture and attention already be telling us?",
+      "storyQuestion": "How can viewers observe behaviour without inventing meaning or disturbing the animal?",
+      "nextEpisodeTease": "Next, we look at the role patience can play in predator behaviour.",
+      "status": "concept_only",
+      "researchAndFootageGate": "Use verified species-specific sources and original camera footage showing the behaviour discussed. Do not generalise one species' signals to all animals."
+    },
+    {
+      "episodeNumber": 2,
+      "title": "Why Predators Wait",
+      "hookPrompt": "A wildlife encounter is not always defined by the chase. Sometimes the pause is the story.",
+      "storyQuestion": "What can observation, habitat and energy use explain about waiting behaviour in the featured species?",
+      "nextEpisodeTease": "Next, we explore what happens when different animals share the same water source.",
+      "status": "concept_only",
+      "researchAndFootageGate": "Research the featured species and context. Do not stage, provoke or imply a hunt that the original footage does not show."
+    },
+    {
+      "episodeNumber": 3,
+      "title": "The Hidden Rules of the Waterhole",
+      "hookPrompt": "A waterhole can bring very different animals into the same frame. What should we notice?",
+      "storyQuestion": "How do habitat, timing and species-specific behaviour shape visits to shared water sources?",
+      "nextEpisodeTease": "Next, we follow the early learning that helps young animals navigate their environment.",
+      "status": "concept_only",
+      "researchAndFootageGate": "Use local ecological research and original recordings. Avoid implying a fixed hierarchy or interaction without evidence."
+    },
+    {
+      "episodeNumber": 4,
+      "title": "How Young Animals Learn the Wild",
+      "hookPrompt": "The first months of an animal's life can be full of lessons. Which moments can we actually observe?",
+      "storyQuestion": "What is known about learning, development and care in the featured species?",
+      "nextEpisodeTease": "Next, we explore how wildlife behaves after the light fades.",
+      "status": "concept_only",
+      "researchAndFootageGate": "Use verified developmental research and naturally recorded footage. Do not approach nests, dens or dependent young to obtain shots."
+    },
+    {
+      "episodeNumber": 5,
+      "title": "Life After Dark",
+      "hookPrompt": "When daylight disappears, the wildlife story does not necessarily end. What changes after dark?",
+      "storyQuestion": "How do the senses and behaviours of the featured nocturnal or crepuscular species support its activity?",
+      "nextEpisodeTease": "Next, we look at the quiet survival value of camouflage.",
+      "status": "concept_only",
+      "researchAndFootageGate": "Use footage recorded without disturbing animals and disclose any unusual recording equipment or lighting where relevant. Never fabricate night sounds."
+    },
+    {
+      "episodeNumber": 6,
+      "title": "The Quiet Work of Camouflage",
+      "hookPrompt": "Sometimes the most remarkable animal in a scene is the one you almost missed.",
+      "storyQuestion": "How does camouflage work for the featured species in its actual habitat?",
+      "nextEpisodeTease": "Season two will follow a new set of species and habitats.",
+      "status": "concept_only",
+      "researchAndFootageGate": "Use species-specific evidence and genuine habitat footage. Do not digitally alter the animal or background in a way that misrepresents the encounter."
+    }
+  ],
+  "episodeStandard": {
+    "openingSeconds": "0-15",
+    "hookBeforeAnyMidroll": true,
+    "targetRuntime": "3-8 minutes",
+    "storyBeats": [
+      "hook",
+      "story_setup",
+      "main_story",
+      "takeaway",
+      "next_episode_tease",
+      "cta"
+    ],
+    "closingCta": "Invite viewers to watch the next episode and explore the Nature Frontiers channel."
+  },
+  "releaseStatus": "No episode is production-ready until original footage, source rights, research, narration, edit, thumbnail, captions and human approval are verified."
+}
