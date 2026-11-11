@@ -15,7 +15,7 @@ const valid = {
     episodeTitle: "The Patient Ambush — Reel",
     episodeDescription: "A responsible wildlife education Reel.",
     nextEpisodeTeaser: "Watch the full episode for the complete story."
-  }) + "\\nWatch the full episode: https://www.facebook.com/watch/?v=123456789",
+  }) + "\nWatch the full episode: https://www.facebook.com/watch/?v=123456789",
   product_links: REQUIRED_PRODUCT_LINKS.map((item) => item.url),
   affiliate_links: [...APPROVED_AFFILIATE_LINKS],
   affiliate_links_verified: true,
