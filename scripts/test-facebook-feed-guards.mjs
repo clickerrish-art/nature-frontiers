@@ -6,6 +6,7 @@ const approved = {
   id: "nf-feed-001",
   network: "facebook",
   campaign_type: "organic",
+  facebook_type: "POST",
   status: "approved",
   policy_review_passed: true,
   content_accuracy_confirmed: true,
@@ -14,6 +15,12 @@ const approved = {
 
 test("accepts an explicitly approved organic wildlife feed post", () => {
   assert.deepEqual(validateFeedRelease(approved), []);
+});
+
+test("blocks missing or unsupported Facebook publication types", () => {
+  assert.ok(validateFeedRelease({ ...approved, facebook_type: undefined }).some((e) => e.includes("facebook POST")));
+  assert.ok(validateFeedRelease({ ...approved, facebook_type: "STORY" }).some((e) => e.includes("facebook POST")));
+  assert.ok(validateFeedRelease({ ...approved, facebook_type: "REEL" }).some((e) => e.includes("facebook POST")));
 });
 
 test("blocks missing or unsupported campaign types", () => {
