@@ -38,6 +38,8 @@ Follow Nature Frontiers on YouTube for the next episode of Wild Encounters.
 
 ## Footage and editorial requirements
 
+- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+
 - No nest disturbance, handling, baiting, close approach or location disclosure that could expose a nest.
 - Use only original, non-invasive footage with documented permissions.
 - Clearly distinguish the Lake St Lucia research from any other filmed location.
