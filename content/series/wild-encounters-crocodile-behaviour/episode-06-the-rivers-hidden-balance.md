@@ -32,7 +32,7 @@ The best wildlife footage can help audiences care about an animal. But footage a
 
 The series began with a crocodile waiting in apparently still water. We have looked at its sensory system, hunting behaviour, early life and changing habitat. Now we can see why the story matters: the animal is part of a much larger natural system, and our understanding must be based on evidence rather than assumptions.
 
-Thank you for following Wild Encounters. Continue exploring original wildlife stories on the Nature Frontiers YouTube channel.
+Thank you for following Wild Encounters. Follow Nature Frontiers on YouTube to continue exploring original wildlife stories.
 
 ## Footage and editorial requirements
 
