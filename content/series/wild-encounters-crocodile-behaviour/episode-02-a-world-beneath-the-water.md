@@ -1,10 +1,10 @@
 # Episode 2 — A World Beneath the Water
 
 **Series:** Wild Encounters: Crocodile Behaviour  
-**Target length:** 5–6 minutes  
+**Target length:** 3–8 minutes (this draft is paced for approximately four minutes; measure the final narration)  
 **Status:** SCRIPT DRAFT — not approved for recording or publication  
 **Opening hook:** “Under the surface, a crocodile is responding to details we can barely see.”  
-**First ad-break marker:** 03:00, after the sensory explanation
+**First ad-break marker:** 02:30, after the sensory explanation
 
 ## Narration draft
 
@@ -26,7 +26,7 @@ The important point is not that a crocodile has a magical sixth sense. It is tha
 
 Think about what happens when something touches the surface. A moving animal, a falling object or a passing current can disturb the water. Some of those disturbances may be detected by sensory structures around the crocodile. The animal still has to interpret information in context. A scientific study showing a receptor response is not proof that a particular crocodile identified a particular object in the wild.
 
-**[META AD BREAK — 03:00 — place after the explanation of the research and before the practical observation section.]**
+**[META AD BREAK — 02:30 — place after the explanation of the research and before the practical observation section.]**
 
 When watching original footage, pay attention to the relationship between the animal and its surroundings. A crocodile may turn its head, adjust its position or move toward a disturbance. Those are visible actions. The reason for each action may not be visible, so narration must not invent an explanation.
 
