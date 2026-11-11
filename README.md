@@ -21,7 +21,7 @@ Every video description must include:
 - All five owner-supplied Safari.com affiliate URLs, embedded verbatim with their `a=GM26` tracking parameters intact.
 - The explicit affiliate disclosure.
 
-**Affiliate-link handling:** the owner-supplied Safari.com tracking URLs are recorded in `scripts/video-description.mjs`: Sabi Sand, Kruger National Park, Destinations, Singita Boulders and the 4-day Londolozi Varty Camp fly-in safari. The `a=GM26` tracking parameter is preserved. The release guard requires all five URLs, their exact presence in the description, and a human verification note; a generic Safari.com homepage is not substituted.
+**Affiliate-link handling:** the owner-supplied Safari.com tracking URLs are recorded in `scripts/video-description.mjs`: Sabi Sand, Kruger National Park, Destinations, Singita Boulders and the 4-day Londolozi Varty Camp fly-in safari. The `a=GM26` tracking parameter is preserved. These are owner-supplied URLs; their current destination availability and booking flow have not been live-tested. The release guard requires all five URLs, their exact presence in the description, and a human verification note; a generic Safari.com homepage is not substituted.
 
 ## What the automation does
 
