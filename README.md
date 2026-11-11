@@ -19,6 +19,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 - Result: success. Reel guard/media and description-link tests 41/41; long-form guard/media, six episode scripts and all six description-manifest checks 63/63; Johannesburg cadence 7/7; catalogue and fail-closed checks passed.
 - Meta read-only check: exact Page ID and Page name verified. Publishing permission is not established by this read check.
 - Live publisher job skipped; no public Facebook post or video upload was made.
+- This repository publishes to the connected Meta Page only. The Nature Frontiers YouTube URL is a traffic destination in descriptions and spoken CTAs; this branch does not authenticate to or upload videos to YouTube.
 - Six sourced narration drafts and six complete descriptions exist, but no approved original-camera footage, final media exports, rights packages or final human approvals exist yet. Live publishing remains disabled.
 
 ## Long-form series and description requirements
