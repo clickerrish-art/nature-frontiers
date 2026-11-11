@@ -74,11 +74,12 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
       { type: "next_episode_tease", startSeconds: 390, endSeconds: 440 },
       { type: "cta", startSeconds: 440, endSeconds: 480 }
     ],
-    adBreaks: [{ atSeconds: 240, naturalBreakpoint: true }]
+    adBreaks: [{ atSeconds: 300, naturalBreakpoint: true }]
   };
   assert.deepEqual(validateEpisodePlan(plan), []);
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 30, naturalBreakpoint: true }] }).some((error) => error.includes("after the opening hook")));
-  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 240, naturalBreakpoint: false }] }).some((error) => error.includes("natural narrative breakpoint")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 300, naturalBreakpoint: false }] }).some((error) => error.includes("natural narrative breakpoint")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 240, naturalBreakpoint: true }] }).some((error) => error.includes("between story segments")));
 });
 
 test("approval is blocked unless original footage, rights and factual review are verified", () => {

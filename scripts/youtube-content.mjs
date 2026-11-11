@@ -155,7 +155,12 @@ export function validateEpisodePlan(plan) {
       if (Number.isInteger(ad?.atSeconds) && ad.atSeconds < Math.max(policy.opening.minimumSecondsBeforeAnyMidroll, hookEnd ?? 0)) {
         errors.push("Every mid-roll must occur after the opening hook and at least 60 seconds into the episode.");
       }
-      if (ad?.naturalBreakpoint !== true) errors.push("Every mid-roll must be placed at a reviewed natural narrative breakpoint.");
+      const boundaries = (plan.segments ?? []).slice(0, -1).filter((segment, segmentIndex) =>
+        segment?.endSeconds === plan.segments[segmentIndex + 1]?.startSeconds
+      ).map((segment) => segment.endSeconds);
+      if (ad?.naturalBreakpoint !== true || !boundaries.includes(ad?.atSeconds)) {
+        errors.push("Every mid-roll must be placed at a reviewed natural narrative breakpoint between story segments.");
+      }
       if (isNonEmptyString(ad?.interrupts) && policy.midroll.prohibitedInterruptions.includes(ad.interrupts)) {
         errors.push("A mid-roll cannot interrupt " + ad.interrupts + ".");
       }
