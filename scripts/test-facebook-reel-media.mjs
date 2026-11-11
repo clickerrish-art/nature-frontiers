@@ -8,8 +8,10 @@ const bytes = Buffer.from("original wildlife video bytes");
 const digest = createHash("sha256").update(bytes).digest("hex");
 const publicLookup = async () => [{ address: "93.184.216.34", family: 4 }];
 const validMetadata = {
-  streams: [{ codec_type: "video", width: 1080, height: 1920, avg_frame_rate: "30000/1001", r_frame_rate: "30/1" }],
-  format: { duration: "12.5", format_name: "mov,mp4,m4a,3gp,3g2,mj2" }
+  media: { track: [
+    { "@type": "General", Format: "MPEG-4", Duration: "12.5" },
+    { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "29.970", Duration: "12.5" }
+  ] }
 };
 const validProbe = async () => ({ stdout: JSON.stringify(validMetadata) });
 
@@ -36,7 +38,7 @@ test("stages exact hash-verified bytes and confirms Facebook Reel technical requ
     assert.equal(result.bytes, bytes.length);
     assert.equal(result.sha256, digest);
     assert.deepEqual(await readFile(result.filePath), bytes);
-    assert.deepEqual(result.videoMetadata, { width: 1080, height: 1920, duration: 12.5, frameRate: 30000 / 1001, formatName: "mov,mp4,m4a,3gp,3g2,mj2" });
+    assert.deepEqual(result.videoMetadata, { width: 1080, height: 1920, duration: 12.5, frameRate: 29.97, formatName: "MPEG-4" });
   } finally {
     await result.cleanup();
   }
@@ -51,11 +53,11 @@ test("rejects a changed remote file before video inspection", async () => {
 
 test("rejects video that is landscape, too small, too short, too long or below 23 fps", async () => {
   const invalid = [
-    { streams: [{ codec_type: "video", width: 1920, height: 1080, avg_frame_rate: "30/1" }], format: { duration: "12", format_name: "mp4" } },
-    { streams: [{ codec_type: "video", width: 480, height: 854, avg_frame_rate: "30/1" }], format: { duration: "12", format_name: "mp4" } },
-    { streams: [{ codec_type: "video", width: 1080, height: 1920, avg_frame_rate: "30/1" }], format: { duration: "3.9", format_name: "mp4" } },
-    { streams: [{ codec_type: "video", width: 1080, height: 1920, avg_frame_rate: "30/1" }], format: { duration: "60.1", format_name: "mp4" } },
-    { streams: [{ codec_type: "video", width: 1080, height: 1920, avg_frame_rate: "20/1" }], format: { duration: "12", format_name: "mp4" } }
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "12" }, { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "30", Duration: "12" }] } },
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "12" }, { "@type": "Video", Width: "480", Height: "854", FrameRate: "30", Duration: "12" }] } },
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "3.9" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "3.9" }] } },
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "60.1" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "60.1" }] } },
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "12" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "20", Duration: "12" }] } }
   ];
   for (const metadata of invalid) {
     await assert.rejects(
@@ -67,11 +69,11 @@ test("rejects video that is landscape, too small, too short, too long or below 2
 
 test("rejects missing video streams and unsupported containers", async () => {
   await assert.rejects(
-    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify({ streams: [], format: { duration: "12", format_name: "mp4" } }) })),
+    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify({ media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "12" }] } }) })),
     /video stream/
   );
   await assert.rejects(
-    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify({ streams: [{ codec_type: "video", width: 1080, height: 1920, avg_frame_rate: "30/1" }], format: { duration: "12", format_name: "avi" } }) })),
+    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify({ media: { track: [{ "@type": "General", Format: "AVI", Duration: "12" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "12" }] } }) })),
     /MP4\/MOV/
   );
 });
@@ -111,10 +113,10 @@ test("checks the final redirect host and refuses private redirect targets", asyn
   await assert.rejects(verifyRemoteMedia("https://cdn.example.org/video.mp4", digest, async () => response({ url: "https://127.0.0.1/redirected.mp4" }), publicLookup), /non-public/);
 });
 
-test("fails closed when ffprobe is unavailable", async () => {
+test("fails closed when MediaInfo is unavailable", async () => {
   await assert.rejects(
-    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => { throw new Error("ffprobe missing"); }),
-    /ffprobe must be available/
+    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => { throw new Error("MediaInfo missing"); }),
+    /MediaInfo must be available/
   );
 });
 
