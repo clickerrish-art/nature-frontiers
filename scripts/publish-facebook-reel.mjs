@@ -63,7 +63,9 @@ async function saveState(sha, items, message) {
 // Verify the actual remote bytes and digest before reserving campaign state or
 // contacting Meta. A missing, changed, or non-video asset must fail before any upload.
 const mediaCheck = await verifyRemoteMedia(campaign.media_url, campaign.media_sha256);
-console.log("Reel media preflight passed: " + mediaCheck.bytes + " bytes; " + mediaCheck.contentType + "; SHA-256 verified.");
+console.log("Reel media preflight passed: " + mediaCheck.bytes + " bytes; " + mediaCheck.contentType + "; SHA-256 verified; " +
+  mediaCheck.videoMetadata.width + "x" + mediaCheck.videoMetadata.height + "; " +
+  mediaCheck.videoMetadata.duration + "s; " + mediaCheck.videoMetadata.frameRate + "fps.");
 
 try {
 // Reserve durably before the first Meta request. An ambiguous result remains
