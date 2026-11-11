@@ -1,0 +1,49 @@
+name: Validate Nature Frontiers YouTube content
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "codex/nature-frontiers-youtube-series"
+    paths:
+      - "data/youtube-content-policy.json"
+      - "data/youtube-series-season-1.json"
+      - "data/products.json"
+      - "scripts/youtube-content.mjs"
+      - "scripts/test-youtube-content.mjs"
+      - "package.json"
+      - ".github/workflows/validate-youtube-content.yml"
+  pull_request:
+    paths:
+      - "data/youtube-content-policy.json"
+      - "data/youtube-series-season-1.json"
+      - "data/products.json"
+      - "scripts/youtube-content.mjs"
+      - "scripts/test-youtube-content.mjs"
+      - "package.json"
+      - ".github/workflows/validate-youtube-content.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nature-frontiers-youtube-content-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-youtube-content:
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Validate policy and series JSON
+        run: node -e "JSON.parse(require('node:fs').readFileSync('data/youtube-content-policy.json', 'utf8')); JSON.parse(require('node:fs').readFileSync('data/youtube-series-season-1.json', 'utf8')); JSON.parse(require('node:fs').readFileSync('data/products.json', 'utf8'));"
+      - name: Check module and test syntax
+        run: node --check scripts/youtube-content.mjs && node --check scripts/test-youtube-content.mjs
+      - name: Run YouTube description, series, duration and ad-break regression tests
+        run: npm run test:youtube-content
