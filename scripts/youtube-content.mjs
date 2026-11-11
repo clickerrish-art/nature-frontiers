@@ -77,13 +77,11 @@ export function buildYouTubeDescription({
   if (isNonEmptyString(previousEpisodeUrl)) lines.push("Previous episode: " + previousEpisodeUrl.trim());
   if (isNonEmptyString(nextEpisodeUrl)) lines.push("Next episode: " + nextEpisodeUrl.trim());
 
-  lines.push("", "CREATOR RESOURCES & PRODUCTS");
+  lines.push("", "CREATOR RESOURCES & PRODUCTS", policy.description.productNotice);
   for (const product of links.products) lines.push(product.title + ": " + product.url);
-  lines.push(policy.description.productNotice);
 
-  lines.push("", "SAFARI PLANNING LINKS");
+  lines.push("", "SAFARI PLANNING LINKS", policy.description.affiliateDisclosure);
   for (const affiliate of links.affiliates) lines.push(affiliate.label + ": " + affiliate.url);
-  lines.push(policy.description.affiliateDisclosure);
 
   if (sources.length) {
     lines.push("", "SOURCES & FURTHER READING");

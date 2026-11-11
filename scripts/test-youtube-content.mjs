@@ -39,6 +39,8 @@ test("description builder embeds the Nature Frontiers channel, every catalogue p
   assert.ok(description.includes(links.channel));
   for (const product of links.products) assert.ok(description.includes(product.url), product.id);
   for (const affiliate of links.affiliates) assert.ok(description.includes(affiliate.url), affiliate.label);
+  assert.ok(description.indexOf("Affiliate disclosure:") < description.indexOf(links.affiliates[0].url));
+  assert.ok(description.indexOf("Product links below lead to paid digital resources.") < description.indexOf(links.products[0].url));
   assert.deepEqual(validateYouTubeDescription(description), []);
 });
 
