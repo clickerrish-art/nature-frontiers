@@ -11,7 +11,7 @@ const products = JSON.parse(await readFile(new URL("../data/products.json", impo
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 
 function stop(message) {
-  console.log(`SAFE STOP: ${message}`);
+  console.log("SAFE STOP: " + message);
   process.exit(0);
 }
 
@@ -21,56 +21,67 @@ if (!Array.isArray(products) || !Array.isArray(campaigns)) {
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
 
 const pending = campaigns.filter((c) => c?.network === "facebook" && c?.status === "approved" && c?.facebook_type !== "REEL");
-if (pending.length === 0) stop("No explicitly approved Facebook campaigns exist.");
+if (pending.length === 0) stop("No explicitly approved Facebook feed campaigns exist.");
 
 const seenCampaignIds = new Set();
 for (const campaign of pending) {
   if (typeof campaign.id !== "string" || !campaign.id.trim()) {
     throw new Error("Every campaign requires a stable id.");
   }
-  if (seenCampaignIds.has(campaign.id)) throw new Error(`Duplicate campaign id: ${campaign.id}`);
+  if (seenCampaignIds.has(campaign.id)) throw new Error("Duplicate campaign id: " + campaign.id);
   seenCampaignIds.add(campaign.id);
-  if (campaign.link_verified !== true) {
-    throw new Error(`Campaign ${campaign.id} has not been marked link_verified by a human.`);
-  }
+
   const releaseErrors = validateFeedRelease(campaign);
-  if (releaseErrors.length) throw new Error(`Campaign ${campaign.id} failed release checks: ${releaseErrors.join(" ")}`);
-  const product = products.find((p) => p.id === campaign.product_id);
-  if (!product) throw new Error(`Campaign ${campaign.id} references an unknown product.`);
-  if (product.status !== "approved") {
-    throw new Error(`Product ${product.id} is not approved; current status: ${product.status}`);
+  if (releaseErrors.length) throw new Error("Campaign " + campaign.id + " failed release checks: " + releaseErrors.join(" "));
+
+  if (campaign.media?.length || campaign.media_url) {
+    throw new Error("Campaign " + campaign.id + " includes media, but this feed adapter only supports text/link posts.");
   }
-  if (!campaign.caption || typeof campaign.caption !== "string" || campaign.caption.length > 60000) {
-    throw new Error(`Campaign ${campaign.id} needs a valid caption.`);
+  if (typeof campaign.caption !== "string" || !campaign.caption.trim() || campaign.caption.length > 60000) {
+    throw new Error("Campaign " + campaign.id + " needs a valid caption.");
   }
-  if (!campaign.caption.includes(product.url)) {
-    throw new Error(`Campaign ${campaign.id} caption must contain the exact catalogue URL.`);
-  }
-  if (!campaign.caption.includes("Disclosure: This is a promotional post for a paid digital product.")) {
-    throw new Error(`Campaign ${campaign.id} is missing the required paid-product promotional disclosure.`);
-  }
-  const parsedUrl = new URL(product.url);
-  if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== "selar.com" || product.url !== parsedUrl.href) {
-    throw new Error(`Product ${product.id} has an invalid checkout URL.`);
-  }
-  const allWithUrl = products.filter((p) => p.url === product.url);
-  if (allWithUrl.length > 1 && campaign.shared_url_confirmed !== true) {
-    throw new Error(`Product ${product.id} shares its checkout URL with another product; human confirmation is required.`);
+
+  if (campaign.campaign_type === "promotion") {
+    if (campaign.link_verified !== true) {
+      throw new Error("Campaign " + campaign.id + " has not been marked link_verified by a human.");
+    }
+    const product = products.find((p) => p.id === campaign.product_id);
+    if (!product) throw new Error("Campaign " + campaign.id + " references an unknown product.");
+    if (product.status !== "approved") {
+      throw new Error("Product " + product.id + " is not approved; current status: " + product.status);
+    }
+    if (!campaign.caption.includes(product.url)) {
+      throw new Error("Campaign " + campaign.id + " caption must contain the exact catalogue URL.");
+    }
+    if (!campaign.caption.includes("Disclosure: This is a promotional post for a paid digital product.")) {
+      throw new Error("Campaign " + campaign.id + " is missing the required paid-product promotional disclosure.");
+    }
+    const parsedUrl = new URL(product.url);
+    if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== "selar.com" || product.url !== parsedUrl.href) {
+      throw new Error("Product " + product.id + " has an invalid checkout URL.");
+    }
+    const allWithUrl = products.filter((p) => p.url === product.url);
+    if (allWithUrl.length > 1 && campaign.shared_url_confirmed !== true) {
+      throw new Error("Product " + product.id + " shares its checkout URL with another product; human confirmation is required.");
+    }
+  } else if (campaign.campaign_type === "organic") {
+    if (campaign.product_id) {
+      throw new Error("Organic campaign " + campaign.id + " must not reference a product.");
+    }
+  } else {
+    throw new Error("Campaign " + campaign.id + " must declare campaign_type=organic or campaign_type=promotion.");
   }
 }
+
 if (pending.length !== 1) {
   throw new Error("This initial adapter permits one campaign per run to reduce duplicate-post risk.");
 }
 
 const campaign = pending[0];
-const product = products.find((p) => p.id === campaign.product_id);
-const trimmedCaption = campaign.caption.trim();
-const message = trimmedCaption.includes(product.url)
-  ? trimmedCaption
-  : `${trimmedCaption}\n\n${product.url}`;
+const message = campaign.caption.trim();
 
 if (dryRun) {
-  console.log(`DRY RUN: campaign ${campaign.id} passed local approval and link checks.`);
+  console.log("DRY RUN: campaign " + campaign.id + " passed local approval and release checks.");
   console.log("No platform API request was sent.");
   process.exit(0);
 }
@@ -83,16 +94,16 @@ if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPOSITORY || !process.env.
   throw new Error("GitHub state persistence is required to prevent duplicate publication.");
 }
 
-const apiBase = `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/contents/data/campaigns.json`;
+const apiBase = "https://api.github.com/repos/" + process.env.GITHUB_REPOSITORY + "/contents/data/campaigns.json";
 const ghHeaders = {
   Accept: "application/vnd.github+json",
-  Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+  Authorization: "Bearer " + process.env.GITHUB_TOKEN,
   "X-GitHub-Api-Version": "2022-11-28"
 };
 
 async function getState() {
-  const response = await fetch(`${apiBase}?ref=${encodeURIComponent(process.env.GITHUB_REF_NAME)}`, { headers: ghHeaders });
-  if (!response.ok) throw new Error(`Could not read campaign state from GitHub (HTTP ${response.status}).`);
+  const response = await fetch(apiBase + "?ref=" + encodeURIComponent(process.env.GITHUB_REF_NAME), { headers: ghHeaders });
+  if (!response.ok) throw new Error("Could not read campaign state from GitHub (HTTP " + response.status + ").");
   const data = await response.json();
   const decoded = Buffer.from(data.content.replace(/\s/g, ""), "base64").toString("utf8");
   return { sha: data.sha, campaigns: JSON.parse(decoded) };
@@ -103,14 +114,9 @@ async function saveState(sha, nextCampaigns, messageText) {
   const response = await fetch(apiBase, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: messageText,
-      content,
-      sha,
-      branch: process.env.GITHUB_REF_NAME
-    })
+    body: JSON.stringify({ message: messageText, content, sha, branch: process.env.GITHUB_REF_NAME })
   });
-  if (!response.ok) throw new Error(`Could not persist campaign state to GitHub (HTTP ${response.status}). No further post attempt should be made until state is inspected.`);
+  if (!response.ok) throw new Error("Could not persist campaign state to GitHub (HTTP " + response.status + "). No further post attempt should be made until state is inspected.");
   return response.json();
 }
 
@@ -118,15 +124,15 @@ async function saveState(sha, nextCampaigns, messageText) {
 // fails after reservation, it will not auto-retry this campaign and risk a duplicate.
 const initial = await getState();
 const liveCampaign = initial.campaigns.find((c) => c.id === campaign.id);
-if (!liveCampaign || liveCampaign.status !== "approved") {
-  stop("The live GitHub campaign state is not approved; no post was sent.");
+if (!liveCampaign || liveCampaign.status !== "approved" || liveCampaign.campaign_type !== campaign.campaign_type) {
+  stop("The live GitHub campaign state is not approved or its campaign type changed; no post was sent.");
 }
 const reservation = initial.campaigns.map((c) =>
   c.id === campaign.id ? { ...c, status: "publishing", publishing_started_at: new Date().toISOString() } : c
 );
-await saveState(initial.sha, reservation, `Reserve campaign ${campaign.id} before Facebook publication`);
+await saveState(initial.sha, reservation, "Reserve campaign " + campaign.id + " before Facebook publication");
 
-const endpoint = `https://graph.facebook.com/${graphVersion}/${encodeURIComponent(pageId)}/feed`;
+const endpoint = "https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(pageId) + "/feed";
 const body = new URLSearchParams({ message, access_token: accessToken });
 const response = await fetch(endpoint, { method: "POST", body });
 const responseText = await response.text();
@@ -136,7 +142,7 @@ try { payload = JSON.parse(responseText); } catch { payload = {}; }
 if (!response.ok || payload.error || !payload.id) {
   const errorCode = payload?.error?.code ?? "unknown";
   const errorType = payload?.error?.type ?? "unknown";
-  throw new Error(`Facebook publish failed or returned an ambiguous result (HTTP ${response.status}, code ${errorCode}, type ${errorType}). State remains 'publishing' to prevent accidental duplicate retries; inspect the Page before manual recovery.`);
+  throw new Error("Facebook publish failed or returned an ambiguous result (HTTP " + response.status + ", code " + errorCode + ", type " + errorType + "). State remains 'publishing' to prevent accidental duplicate retries; inspect the Page before manual recovery.");
 }
 
 const after = await getState();
@@ -145,5 +151,5 @@ const completed = after.campaigns.map((c) =>
     ? { ...c, status: "published", published_at: new Date().toISOString(), platform_post_id: payload.id }
     : c
 );
-await saveState(after.sha, completed, `Record Facebook publication for campaign ${campaign.id}`);
-console.log(`Published campaign ${campaign.id}. Platform post id: ${payload.id}`);
+await saveState(after.sha, completed, "Record Facebook publication for campaign " + campaign.id);
+console.log("Published campaign " + campaign.id + ". Platform post id: " + payload.id);
