@@ -16,9 +16,15 @@ if (pageId === expectedPageId && pageToken && validVersion) {
       signal: AbortSignal.timeout(15000)
     });
     const payload = await response.json().catch(() => ({}));
-    tokenPageCheck = response.ok && payload.id === expectedPageId
-      ? "PASS: Page token is valid for read access to the configured Nature Frontiers Page"
-      : "BLOCKED: Meta rejected the read-only Page check (HTTP " + response.status + ", code " + (payload?.error?.code ?? "unknown") + ", subcode " + (payload?.error?.error_subcode ?? "none") + ", type " + (payload?.error?.type ?? "unknown") + ")";
+    if (response.ok && payload.id === expectedPageId) {
+      tokenPageCheck = "PASS: Page token is valid for read access to the configured Nature Frontiers Page";
+    } else {
+      const code = payload?.error?.code ?? "unknown";
+      const subcode = payload?.error?.error_subcode ?? "none";
+      tokenPageCheck = code === 190 && subcode === 467
+        ? "BLOCKED: Meta says this Page token is invalid or revoked; a fresh authorization is required (HTTP " + response.status + ")."
+        : "BLOCKED: Meta rejected the read-only Page check (HTTP " + response.status + ", code " + code + ", subcode " + subcode + ", type " + (payload?.error?.type ?? "unknown") + ").";
+    }
   } catch (error) {
     tokenPageCheck = "BLOCKED: read-only Meta Page check failed (" + (error?.name ?? "network error") + ")";
   }
@@ -28,7 +34,7 @@ const checks = [
   ["Meta Page ID", pageId.length > 0 ? (pageId === expectedPageId ? "PASS: matches the connected Nature Frontiers Page" : "BLOCKED: configured Page ID does not match the connected Nature Frontiers Page") : "BLOCKED: secret is not configured"],
   ["Meta Page access token", pageToken.length > 0 ? "PRESENT: value withheld" : "BLOCKED: secret is not configured"],
   ["Meta Page token read access", tokenPageCheck],
-  ["Meta Graph API version", validVersion ? "CONFIGURED: version syntax is valid; Meta support is not yet verified" : "BLOCKED: repository variable is missing or malformed"],
+  ["Meta Graph API version", validVersion ? "CONFIGURED: version syntax is valid; Meta support is not yet verified" : "BLOCKED: workflow configuration is missing or malformed"],
   ["Live publishing opt-in", publishEnabled ? "ENABLED: requires a separate one-shot workflow authorization" : "SAFE: repository opt-in is disabled"],
   ["Dry-run mode", dryRun ? "SAFE: dry-run is enabled" : "WARNING: dry-run is disabled"]
 ];
