@@ -1,10 +1,10 @@
 # Episode 1 — The Stillness Before the Strike
 
 **Series:** Wild Encounters: Crocodile Behaviour  
-**Target length:** 5–6 minutes (3–8 minute release range)  
+**Target length:** 3–8 minutes (this draft is paced for approximately four minutes; measure the final narration) (3–8 minute release range)  
 **Status:** SCRIPT DRAFT — not approved for recording or publication  
 **Opening hook:** “The river looks empty — until the surface moves.”  
-**First ad-break marker:** 03:00, only after the hook and the first complete explanation
+**First ad-break marker:** 02:30, only after the hook and the first complete explanation
 
 ## Narration draft
 
@@ -28,7 +28,7 @@ The stillness is part of the story. A crocodile may remain in one position for a
 
 The research is especially interesting because crocodilians combine tough, protective skin with remarkable mechanical sensitivity. The small sensory organs are one reason their armoured appearance can be misleading. The surface is protected, but it is not simply insensitive.
 
-**[META AD BREAK — 03:00 — place only at a genuine scene transition after the sensory explanation. Never interrupt an animal action, a sentence, or a key observation.]**
+**[META AD BREAK — 02:30 — place only at a genuine scene transition after the sensory explanation. Never interrupt an animal action, a sentence, or a key observation.]**
 
 And this is where the opening image becomes more interesting. The river may look empty to us, but the crocodile is not waiting in a world without information. It is responding to a living environment.
 
