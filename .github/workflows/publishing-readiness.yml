@@ -11,6 +11,8 @@ on:
   pull_request:
     paths:
       - "scripts/publish-facebook.mjs"
+      - "scripts/facebook-feed-guards.mjs"
+      - "scripts/test-facebook-feed-guards.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
@@ -46,6 +48,8 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed feed publishing controls
         run: node scripts/test-publishing-safety.mjs
+      - name: Test human review requirements for feed posts
+        run: node --test scripts/test-facebook-feed-guards.mjs
       - name: Check Facebook publishing script syntax
         run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-reel.mjs
       - name: Test Facebook Reel release guards and media integrity
