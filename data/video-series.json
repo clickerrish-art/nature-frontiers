@@ -25,7 +25,7 @@
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        150
+        120
       ],
       "next_episode_teaser": "Next: how a crocodile detects and responds to a world beneath the water.",
       "editorial_ad_break_notes": [
@@ -47,7 +47,7 @@
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        150
+        120
       ],
       "next_episode_teaser": "Next: the mechanics of the strike — and why the waiting matters.",
       "editorial_ad_break_notes": [
@@ -69,7 +69,7 @@
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        150
+        120
       ],
       "next_episode_teaser": "Next: the hidden story of nests, hatchlings and early survival.",
       "editorial_ad_break_notes": [
@@ -91,7 +91,7 @@
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        150
+        120
       ],
       "next_episode_teaser": "Next: what happens when changing water levels reshape a crocodile's habitat.",
       "editorial_ad_break_notes": [
@@ -113,7 +113,7 @@
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        150
+        120
       ],
       "next_episode_teaser": "Final episode: what crocodiles reveal about the health of the river ecosystem.",
       "editorial_ad_break_notes": [
@@ -135,7 +135,7 @@
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        150
+        120
       ],
       "next_episode_teaser": "The next Wild Encounters series follows another species through its real habitat and behaviour.",
       "editorial_ad_break_notes": [
