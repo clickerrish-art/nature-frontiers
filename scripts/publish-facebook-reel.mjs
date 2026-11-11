@@ -1,6 +1,6 @@
 import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
+import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 
@@ -34,6 +34,7 @@ if (approved.length !== 1) throw new Error("Exactly one approved Reel is allowed
 const campaign = approved[0];
 const validation = validateReelCampaign(campaign);
 if (validation.length) throw new Error("Reel campaign failed release checks: " + validation.join(" "));
+assertApprovedPostingWindow();
 
 const stateUrl = "https://api.github.com/repos/" + repo + "/contents/data/campaigns.json";
 const ghHeaders = {
