@@ -102,3 +102,15 @@ test("rejects ad-break markers too close together or too close to the ending", (
   const nearEnd = { ...valid, editorial_ad_breaks_seconds: [320] };
   assert.ok(validateLongFormVideoCampaign(nearEnd).some((e) => e.includes("editorial ad-break markers")));
 });
+
+test("converts editorial mid-roll timestamps to Meta Page Videos ad_breaks milliseconds", async () => {
+  const { toMetaAdBreakOffsetsMilliseconds } = await import("./facebook-video-guards.mjs");
+  assert.deepEqual(toMetaAdBreakOffsetsMilliseconds(valid), [180000]);
+  const long = {
+    ...valid,
+    duration_seconds: 480,
+    editorial_ad_breaks_seconds: [180, 360],
+    editorial_ad_break_notes: ["First natural transition.", "Second natural transition."]
+  };
+  assert.deepEqual(toMetaAdBreakOffsetsMilliseconds(long), [180000, 360000]);
+});
