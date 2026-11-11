@@ -13,10 +13,13 @@ const valid = {
   media_rights_confirmed: true,
   originality_confirmed: true,
   policy_review_passed: true,
+  media_accessibility_confirmed: true,
+  media_technical_review_passed: true,
+  media_sha256: "a".repeat(64),
   synthetic_visuals: false
 };
 
-test("accepts only a fully reviewed, rights-cleared Reel", () => {
+test("accepts only a fully reviewed, rights-cleared, technically checked Reel", () => {
   assert.deepEqual(validateReelCampaign(valid), []);
 });
 
@@ -26,6 +29,9 @@ for (const [field, value] of [
   ["media_rights_confirmed", false],
   ["originality_confirmed", false],
   ["policy_review_passed", false],
+  ["media_accessibility_confirmed", false],
+  ["media_technical_review_passed", false],
+  ["media_sha256", "missing"],
   ["synthetic_visuals", true],
   ["media_url", "http://cdn.example.org/wildlife.mp4"]
 ]) {
@@ -35,8 +41,11 @@ for (const [field, value] of [
   });
 }
 
-test("blocks synthetic media without explicit disclosure", () => {
+test("blocks synthetic media without a matching disclosure in the caption", () => {
   assert.ok(validateReelCampaign({ ...valid, synthetic_visuals: true }).some((e) => e.includes("disclosure")));
+  const disclosure = "Visual disclosure: AI-generated illustrative animation, not documentary footage.";
+  assert.ok(validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure }).some((e) => e.includes("caption")));
+  assert.deepEqual(validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure, caption: `A wildlife fact. ${disclosure}` }), []);
 });
 
 test("requires Meta to confirm completed publishing, not merely ready media", () => {
