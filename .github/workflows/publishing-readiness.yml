@@ -44,6 +44,8 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed feed publishing controls
         run: node scripts/test-publishing-safety.mjs
+      - name: Check Facebook publishing script syntax
+        run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-reel.mjs
       - name: Test Facebook Reel release guards
         run: node --test scripts/test-facebook-reel-guards.mjs
 
