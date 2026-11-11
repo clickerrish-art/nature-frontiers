@@ -76,7 +76,7 @@ jobs:
       - name: Ensure ffprobe is available for Reel media verification
         run: |
           if ! command -v ffprobe >/dev/null 2>&1; then
-            sudo apt-get install -y ffmpeg
+            timeout 180s sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
           fi
           ffprobe -version
       - name: Check Facebook publishing script syntax
