@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { validateLongFormVideoCampaign } from "./facebook-video-guards.mjs";
-import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, buildLongFormVideoDescription } from "./video-description.mjs";
+import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE, buildLongFormVideoDescription } from "./video-description.mjs";
 
 const valid = {
   id: "nf-video-001",
@@ -31,6 +31,7 @@ const valid = {
   affiliate_links_verified: true,
   affiliate_verification_note: "Owner-supplied approved Safari.com tracking URLs; exact a=GM26 parameters preserved.",
   affiliate_disclosure: AFFILIATE_DISCLOSURE,
+  product_disclosure: PRODUCT_DISCLOSURE,
   script_text: "It has barely moved. It has not stopped watching. " + Array(700).fill("wildlife").join(" "),
   duration_seconds: 360,
   media_url: "https://cdn.example.org/sha256/wildlife.mp4",
@@ -88,6 +89,7 @@ test("builds a series description containing the channel, all catalogue products
   for (const item of REQUIRED_PRODUCT_LINKS) assert.ok(description.includes(item.url));
   for (const link of APPROVED_AFFILIATE_LINKS) assert.ok(description.includes(link));
   assert.ok(description.includes(AFFILIATE_DISCLOSURE));
+  assert.ok(description.includes(PRODUCT_DISCLOSURE));
   assert.match(description, /Episode 1: The Patient Ambush/);
   assert.throws(() => buildLongFormVideoDescription({ seriesTitle: "Series", episodeNumber: 0, episodeTitle: "Title", episodeDescription: "Body", nextEpisodeTeaser: "Next" }), /positive integer/);
 });
@@ -188,6 +190,7 @@ test("requires the series identity, channel destination, product link, affiliate
   assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_links_verified: false }).some((e) => e.includes("human-verified")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace(APPROVED_AFFILIATE_LINKS[0], "") }).some((e) => e.includes("all five owner-approved Safari.com affiliate URLs")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_disclosure: "" }).some((e) => e.includes("standard explicit affiliate disclosure")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, product_disclosure: "" }).some((e) => e.includes("standard paid-product disclosure")));
 });
 
 test("requires the opening narration to start with the documented hook", () => {
