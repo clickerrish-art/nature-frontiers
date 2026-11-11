@@ -1,10 +1,10 @@
 # Episode 4 — A Crocodile's Early Life
 
 **Series:** Wild Encounters: Crocodile Behaviour  
-**Target length:** 5–6 minutes  
+**Target length:** 3–8 minutes (this draft is paced for approximately four minutes; measure the final narration)  
 **Status:** SCRIPT DRAFT — not approved for recording or publication  
 **Opening hook:** “For an animal this powerful, life begins in a surprisingly vulnerable place.”  
-**First ad-break marker:** 03:00, after nest defence and before hatchling emergence
+**First ad-break marker:** 02:30, after nest defence and before hatchling emergence
 
 ## Narration draft
 
@@ -24,7 +24,7 @@ The researchers recorded thirteen trips between the nest and the water during th
 
 Nest defence also involves risk. Eggs can be raided by other animals. The female may spend time near the nest, sometimes in nearby shade rather than directly on top of it. The study found that females returned after predation events, and that repeated raids could occur before a nest was abandoned.
 
-**[META AD BREAK — 03:00 — place after the nest-defence explanation and before the hatchling-care section. Do not interrupt footage of an animal guarding, excavating or carrying hatchlings.]**
+**[META AD BREAK — 02:30 — place after the nest-defence explanation and before the hatchling-care section. Do not interrupt footage of an animal guarding, excavating or carrying hatchlings.]**
 
 The story of a crocodile's early life is therefore more complicated than the image of a silent predator. Before a young crocodile ever enters the water, its survival may depend on nest location, environmental conditions, predators and the behaviour of its mother.
 
