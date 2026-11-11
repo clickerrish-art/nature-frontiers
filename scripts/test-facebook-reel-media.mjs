@@ -111,6 +111,13 @@ test("checks the final redirect host and refuses private redirect targets", asyn
   await assert.rejects(verifyRemoteMedia("https://cdn.example.org/video.mp4", digest, async () => response({ url: "https://127.0.0.1/redirected.mp4" }), publicLookup), /non-public/);
 });
 
+test("fails closed when ffprobe is unavailable", async () => {
+  await assert.rejects(
+    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => { throw new Error("ffprobe missing"); }),
+    /ffprobe must be available/
+  );
+});
+
 test("rejects missing digests", async () => {
   await assert.rejects(verifyRemoteMedia("https://cdn.example.org/video.mp4", "not-a-hash", async () => response(), publicLookup), /SHA-256 digest/);
 });
