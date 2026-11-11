@@ -36,6 +36,8 @@ Follow Nature Frontiers on YouTube for the final episode of Wild Encounters.
 
 ## Footage and editorial requirements
 
+- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+
 - Record location, date and camera position for habitat comparisons.
 - Do not label a movement as migration without tracking or published evidence.
 - Do not attribute an observed movement to drought without supporting evidence.
