@@ -9,12 +9,12 @@ const cases = [
   {
     name: "enabled workflow does nothing without approved campaigns",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true" },
-    expected: "No explicitly approved Facebook campaigns exist."
+    expected: "No explicitly approved Facebook feed campaigns exist."
   },
   {
     name: "live mode still does nothing without approved campaigns",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved Facebook campaigns exist."
+    expected: "No explicitly approved Facebook feed campaigns exist."
   }
 ];
 
