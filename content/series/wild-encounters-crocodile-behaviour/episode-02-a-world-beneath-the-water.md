@@ -40,6 +40,8 @@ Follow Nature Frontiers on YouTube for the next original episode of Wild Encount
 
 ## Footage and editorial requirements
 
+- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+
 - Use original recordings of naturally occurring behaviour.
 - Do not stage water disturbances or provoke a crocodile to demonstrate a sensory response.
 - Do not add artificial ripples or fabricated prey events.
