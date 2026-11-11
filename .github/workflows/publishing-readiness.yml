@@ -51,8 +51,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: nature-frontiers-publishing
-  cancel-in-progress: false
+  # Keep live dispatches serialized, but let stale read-only checks be replaced
+  # without a scheduled run on main blocking the release branch's verification.
+  group: nature-frontiers-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   safety-tests:
