@@ -5,7 +5,7 @@
   "scripts": {
     "validate": "node scripts/validate-campaign.mjs",
     "test:publishing": "node scripts/test-publishing-safety.mjs",
-    "test:facebook-reels": "node --test scripts/test-facebook-reel-guards.mjs",
+    "test:facebook-reels": "node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs",
     "publish:facebook": "node scripts/publish-facebook.mjs",
     "publish:facebook-reel": "node scripts/publish-facebook-reel.mjs"
   }
