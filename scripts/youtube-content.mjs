@@ -68,7 +68,7 @@ export function buildYouTubeDescription({
     synopsis.trim(),
     "",
     "NATURE FRONTIERS — " + series.name + " | Season " + seasonNumber + ", Episode " + episodeNumber,
-    "Watch more Nature Frontiers: " + links.channel,
+    "Watch more Nature Frontiers and subscribe for the next episode: " + links.channel,
     "",
     "NEXT EPISODE",
     nextEpisodeTease.trim()
@@ -115,8 +115,16 @@ export function validateEpisodePlan(plan) {
   } else {
     const requiredBeats = policy.opening.requiredStoryBeats;
     const types = plan.segments.map((segment) => segment?.type);
+    let previousBeatIndex = -1;
     for (const beat of requiredBeats) {
-      if (!types.includes(beat)) errors.push("Episode is missing required series story beat: " + beat + ".");
+      const beatIndex = types.indexOf(beat);
+      if (beatIndex < 0) {
+        errors.push("Episode is missing required series story beat: " + beat + ".");
+      } else if (beatIndex <= previousBeatIndex) {
+        errors.push("Series story beats must follow the configured order; " + beat + " is out of sequence.");
+      } else {
+        previousBeatIndex = beatIndex;
+      }
     }
     const hook = plan.segments[0];
     if (policy.opening.hookMustBeFirstSegment && (hook?.type !== "hook" || hook?.startSeconds !== 0)) {

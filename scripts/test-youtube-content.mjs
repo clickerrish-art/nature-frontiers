@@ -37,6 +37,7 @@ test("description builder embeds the Nature Frontiers channel, every catalogue p
   });
   const links = getRequiredDescriptionLinks();
   assert.ok(description.includes(links.channel));
+  assert.ok(description.includes("subscribe for the next episode"));
   for (const product of links.products) assert.ok(description.includes(product.url), product.id);
   for (const affiliate of links.affiliates) assert.ok(description.includes(affiliate.url), affiliate.label);
   assert.ok(description.indexOf("Affiliate disclosure:") < description.indexOf(links.affiliates[0].url));
@@ -55,6 +56,9 @@ test("description validator rejects missing channel, product, affiliate and disc
 test("episode plan requires a 3–8 minute runtime and a hook as the first segment", () => {
   assertEpisodePlanValid(validPlan);
   assert.ok(validateEpisodePlan({ ...validPlan, durationSeconds: 179 }).some((error) => error.includes("between 180 and 480")));
+  assert.ok(validateEpisodePlan({ ...validPlan, durationSeconds: 481 }).some((error) => error.includes("between 180 and 480")));
+  const outOfOrder = { ...validPlan, segments: [validPlan.segments[0], validPlan.segments[2], validPlan.segments[1], ...validPlan.segments.slice(3)] };
+  assert.ok(validateEpisodePlan(outOfOrder).some((error) => error.includes("configured order")));
   const hookMissing = { ...validPlan, segments: [{ ...validPlan.segments[0], type: "intro" }, ...validPlan.segments.slice(1)] };
   assert.ok(validateEpisodePlan(hookMissing).some((error) => error.includes("hook must be the first segment")));
 });
