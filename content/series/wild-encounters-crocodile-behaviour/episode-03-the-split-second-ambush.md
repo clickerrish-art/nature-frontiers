@@ -38,6 +38,8 @@ Follow Nature Frontiers on YouTube for the next episode of Wild Encounters.
 
 ## Footage and editorial requirements
 
+- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+
 - No staged feeding, baiting, provocation or human interaction.
 - Preserve continuous source footage for any claimed hunting sequence.
 - Do not show graphic injury or prolonged suffering.
