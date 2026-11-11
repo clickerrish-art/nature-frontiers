@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE } from "./video-description.mjs";
 
 const root = new URL("../", import.meta.url);
 const plan = JSON.parse(await readFile(new URL("../data/video-series.json", import.meta.url), "utf8"));
@@ -12,6 +13,29 @@ const scriptFiles = [
   "episode-05-when-the-river-changes.md",
   "episode-06-the-rivers-hidden-balance.md"
 ];
+
+
+test("every episode description embeds the channel, all products, all affiliates and both disclosures", async () => {
+  const manifest = JSON.parse(await readFile(new URL("../content/series/wild-encounters-crocodile-behaviour/episode-descriptions.json", import.meta.url), "utf8"));
+  assert.equal(manifest.episodes.length, 6);
+  for (const [index, episode] of manifest.episodes.entries()) {
+    assert.equal(episode.episode_number, index + 1);
+    assert.ok(episode.description.includes(NATURE_FRONTIERS_YOUTUBE_URL));
+    for (const item of REQUIRED_PRODUCT_LINKS) {
+      assert.ok(episode.product_links.includes(item.url));
+      assert.ok(episode.description.includes(item.url));
+    }
+    for (const link of APPROVED_AFFILIATE_LINKS) {
+      assert.ok(episode.affiliate_links.includes(link));
+      assert.ok(episode.description.includes(link));
+    }
+    assert.equal(episode.affiliate_disclosure, AFFILIATE_DISCLOSURE);
+    assert.equal(episode.product_disclosure, PRODUCT_DISCLOSURE);
+    assert.ok(episode.description.includes(AFFILIATE_DISCLOSURE));
+    assert.ok(episode.description.includes(PRODUCT_DISCLOSURE));
+    assert.equal(episode.affiliate_links_verified, true);
+  }
+});
 
 test("the series has six numbered episodes in the requested 3–8 minute range", () => {
   assert.equal(plan.episodes.length, 6);
