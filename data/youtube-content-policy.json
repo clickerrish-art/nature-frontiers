@@ -43,7 +43,8 @@
     "includeEveryCatalogueProduct": true,
     "includeEverySafariAffiliateLink": true,
     "productNotice": "Product links below lead to paid digital resources. Check each seller page for current details, contents, price and availability.",
-    "affiliateDisclosure": "Affiliate disclosure: Nature Frontiers may earn a commission from qualifying bookings made through the Safari.com links below."
+    "affiliateDisclosure": "Affiliate disclosure: Nature Frontiers may earn a commission from qualifying bookings made through the Safari.com links below.",
+    "nativePaidPromotionSetting": "If the video itself contains a paid product placement, sponsorship, endorsement or other paid promotion, enable YouTube's paid promotion declaration in video details. The description disclosure does not replace the native setting."
   },
   "affiliateId": "GM26",
   "affiliateLinks": [
@@ -106,6 +107,7 @@
   "youtubePublishing": {
     "enabled": false,
     "authenticatedChannelIdentityVerified": false,
-    "requiredCheck": "The authenticated YouTube channel ID must be verified against the owner-supplied channel URL before any upload or schedule operation."
+    "requiredCheck": "The authenticated YouTube channel ID must be verified against the owner-supplied channel URL before any upload or schedule operation.",
+    "nativePaidPromotionDeclarationRequiredWhenApplicable": true
   }
 }

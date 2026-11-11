@@ -37,7 +37,9 @@ const validPlan = {
 test("YouTube publishing remains disabled until authenticated channel identity is verified", () => {
   assert.equal(policy.youtubePublishing.enabled, false);
   assert.equal(policy.youtubePublishing.authenticatedChannelIdentityVerified, false);
+  assert.equal(policy.youtubePublishing.nativePaidPromotionDeclarationRequiredWhenApplicable, true);
   assert.ok(policy.youtubePublishing.requiredCheck.includes("authenticated YouTube channel ID"));
+  assert.ok(policy.description.nativePaidPromotionSetting.includes("native setting"));
 });
 
 test("Wild Encounters Season 1 is a complete, sequential concept slate and remains unapproved", () => {

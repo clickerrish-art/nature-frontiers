@@ -36,6 +36,8 @@ Use `buildYouTubeDescription()` from `scripts/youtube-content.mjs` or the `npm r
 
 The description validator fails if any required link or disclosure is missing. Do not shorten, rewrite or remove affiliate tracking parameters.
 
+If the video itself contains a paid product placement, sponsorship, endorsement or other paid promotion, enable YouTube's native paid-promotion declaration in video details as well. A text disclosure in the description does not replace the platform setting. See https://support.google.com/youtube/answer/154235.
+
 ## Content, rights and release gates
 - Use original, naturally realistic wildlife camera recordings only. Stock wildlife compilations, AI-generated wildlife video, synthetic encounters and animation presented as documentary footage are prohibited.
 - Preserve original source files, provenance, ownership/licence evidence and asset hashes.
