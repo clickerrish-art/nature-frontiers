@@ -30,7 +30,7 @@ test("counts today's published releases and ignores drafts, pending items and pr
   });
 });
 
-test("allows up to two long-form videos, one Reel and three total releases per Johannesburg day", () => {
+test("allows up to two 3–8 minute long-form videos, one Reel and three total releases per Johannesburg day", () => {
   const now = new Date("2026-11-11T14:00:00.000Z");
   const current = [
     { status: "published", facebook_type: "VIDEO", published_at: "2026-11-11T08:00:00.000Z" },
