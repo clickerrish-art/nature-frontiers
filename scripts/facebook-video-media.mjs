@@ -11,7 +11,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const MAX_MEDIA_BYTES = 4 * 1024 * 1024 * 1024;
+const MAX_MEDIA_BYTES = 1024 * 1024 * 1024;
 
 function isPublicIPv4(address) {
   const octets = address.split(".").map(Number);
