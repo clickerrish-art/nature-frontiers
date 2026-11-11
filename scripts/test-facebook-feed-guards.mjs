@@ -18,9 +18,9 @@ test("accepts an explicitly approved organic wildlife feed post", () => {
 });
 
 test("blocks missing or unsupported Facebook publication types", () => {
-  assert.ok(validateFeedRelease({ ...approved, facebook_type: undefined }).some((e) => e.includes("facebook POST")));
-  assert.ok(validateFeedRelease({ ...approved, facebook_type: "STORY" }).some((e) => e.includes("facebook POST")));
-  assert.ok(validateFeedRelease({ ...approved, facebook_type: "REEL" }).some((e) => e.includes("facebook POST")));
+  assert.ok(validateFeedRelease({ ...approved, facebook_type: undefined }).some((e) => e.includes("Facebook POST")));
+  assert.ok(validateFeedRelease({ ...approved, facebook_type: "STORY" }).some((e) => e.includes("Facebook POST")));
+  assert.ok(validateFeedRelease({ ...approved, facebook_type: "REEL" }).some((e) => e.includes("Facebook POST")));
 });
 
 test("blocks missing or unsupported campaign types", () => {
