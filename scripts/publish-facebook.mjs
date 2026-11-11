@@ -124,8 +124,8 @@ async function saveState(sha, nextCampaigns, messageText) {
 // fails after reservation, it will not auto-retry this campaign and risk a duplicate.
 const initial = await getState();
 const liveCampaign = initial.campaigns.find((c) => c.id === campaign.id);
-if (!liveCampaign || liveCampaign.status !== "approved" || liveCampaign.campaign_type !== campaign.campaign_type) {
-  stop("The live GitHub campaign state is not approved or its campaign type changed; no post was sent.");
+if (!liveCampaign || JSON.stringify(liveCampaign) !== JSON.stringify(campaign)) {
+  stop("The live GitHub campaign snapshot changed after checkout; no post was sent.");
 }
 const reservation = initial.campaigns.map((c) =>
   c.id === campaign.id ? { ...c, status: "publishing", publishing_started_at: new Date().toISOString() } : c
