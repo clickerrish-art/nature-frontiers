@@ -11,6 +11,7 @@ import {
 } from "./youtube-content.mjs";
 
 const season = JSON.parse(await readFile(new URL("../data/youtube-series-season-1.json", import.meta.url), "utf8"));
+const policy = JSON.parse(await readFile(new URL("../data/youtube-content-policy.json", import.meta.url), "utf8"));
 
 const validPlan = {
   seriesId: "wild-encounters",
@@ -29,6 +30,12 @@ const validPlan = {
   ],
   adBreaks: []
 };
+
+test("YouTube publishing remains disabled until authenticated channel identity is verified", () => {
+  assert.equal(policy.youtubePublishing.enabled, false);
+  assert.equal(policy.youtubePublishing.authenticatedChannelIdentityVerified, false);
+  assert.ok(policy.youtubePublishing.requiredCheck.includes("authenticated YouTube channel ID"));
+});
 
 test("Wild Encounters Season 1 is a complete, sequential concept slate and remains unapproved", () => {
   assert.deepEqual(validateSeasonPlan(season), []);
