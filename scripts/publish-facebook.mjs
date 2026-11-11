@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { validateFeedRelease } from "./facebook-feed-guards.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
@@ -32,6 +33,8 @@ for (const campaign of pending) {
   if (campaign.link_verified !== true) {
     throw new Error(`Campaign ${campaign.id} has not been marked link_verified by a human.`);
   }
+  const releaseErrors = validateFeedRelease(campaign);
+  if (releaseErrors.length) throw new Error(`Campaign ${campaign.id} failed release checks: ${releaseErrors.join(" ")}`);
   const product = products.find((p) => p.id === campaign.product_id);
   if (!product) throw new Error(`Campaign ${campaign.id} references an unknown product.`);
   if (product.status !== "approved") {
