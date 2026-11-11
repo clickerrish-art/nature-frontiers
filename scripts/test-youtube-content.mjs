@@ -91,12 +91,18 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
       { type: "next_episode_tease", startSeconds: 390, endSeconds: 440 },
       { type: "cta", startSeconds: 440, endSeconds: 480 }
     ],
-    adBreaks: [{ atSeconds: 350, naturalBreakpoint: true }]
+    adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }]
   };
   assert.deepEqual(validateEpisodePlan(plan), []);
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 30, naturalBreakpoint: true }] }).some((error) => error.includes("after the opening hook")));
-  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false }] }).some((error) => error.includes("natural narrative breakpoint")));
-  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 300, naturalBreakpoint: true }] }).some((error) => error.includes("between story segments")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("natural narrative breakpoint")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true }] }).some((error) => error.includes("reviewer, review timestamp")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 300, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Incorrect in-segment placement." }] }).some((error) => error.includes("between story segments")));
+});
+
+test("malformed segment containers fail closed without crashing the validator", () => {
+  const errors = validateEpisodePlan({ ...validPlan, segments: { type: "hook" } });
+  assert.ok(errors.some((error) => error.includes("segments must be an array")));
 });
 
 test("approval is blocked unless original footage, rights and factual review are verified", () => {

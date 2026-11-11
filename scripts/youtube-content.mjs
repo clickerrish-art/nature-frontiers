@@ -160,7 +160,8 @@ export function validateEpisodePlan(plan) {
   } else if (adBreaks.length && Number.isInteger(duration) && duration < policy.midroll.minimumEligibleDurationSeconds) {
     errors.push("Mid-rolls are not eligible below 8 minutes; remove ad breaks from this episode.");
   } else {
-    const hookEnd = plan.segments?.[0]?.endSeconds;
+    const segments = Array.isArray(plan.segments) ? plan.segments : [];
+    const hookEnd = segments[0]?.endSeconds;
     let previousAd = -1;
     for (const [index, ad] of adBreaks.entries()) {
       if (!Number.isInteger(ad?.atSeconds) || ad.atSeconds <= previousAd) {
@@ -169,11 +170,15 @@ export function validateEpisodePlan(plan) {
       if (Number.isInteger(ad?.atSeconds) && ad.atSeconds < Math.max(policy.opening.minimumSecondsBeforeAnyMidroll, hookEnd ?? 0)) {
         errors.push("Every mid-roll must occur after the opening hook and at least 60 seconds into the episode.");
       }
-      const boundaries = (plan.segments ?? []).slice(0, -1).filter((segment, segmentIndex) =>
-        segment?.endSeconds === plan.segments[segmentIndex + 1]?.startSeconds
+      const boundaries = segments.slice(0, -1).filter((segment, segmentIndex) =>
+        segment?.endSeconds === segments[segmentIndex + 1]?.startSeconds
       ).map((segment) => segment.endSeconds);
       if (ad?.naturalBreakpoint !== true || !boundaries.includes(ad?.atSeconds)) {
         errors.push("Every mid-roll must be placed at a reviewed natural narrative breakpoint between story segments.");
+      }
+      if (!isNonEmptyString(ad?.reviewedBy) || !isNonEmptyString(ad?.breakpointNote) ||
+          !isNonEmptyString(ad?.reviewedAt) || !Number.isFinite(Date.parse(ad.reviewedAt))) {
+        errors.push("Every mid-roll requires a reviewer, review timestamp and natural-breakpoint note.");
       }
       if (isNonEmptyString(ad?.interrupts) && policy.midroll.prohibitedInterruptions.includes(ad.interrupts)) {
         errors.push("A mid-roll cannot interrupt " + ad.interrupts + ".");
