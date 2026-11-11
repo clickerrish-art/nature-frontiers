@@ -13,6 +13,8 @@ on:
       - "scripts/publish-facebook.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
+      - "scripts/facebook-reel-media.mjs"
+      - "scripts/test-facebook-reel-media.mjs"
       - "scripts/test-facebook-reel-guards.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "data/campaigns.json"
@@ -46,8 +48,8 @@ jobs:
         run: node scripts/test-publishing-safety.mjs
       - name: Check Facebook publishing script syntax
         run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-reel.mjs
-      - name: Test Facebook Reel release guards
-        run: node --test scripts/test-facebook-reel-guards.mjs
+      - name: Test Facebook Reel release guards and media integrity
+        run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
 
   facebook-publisher:
     # Publishing writes durable campaign state to the dispatch ref. Never permit
