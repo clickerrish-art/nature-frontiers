@@ -76,39 +76,29 @@ async function assertPublicHttpsUrl(value, lookupImpl) {
   return url;
 }
 
-function parseFrameRate(value) {
-  if (typeof value !== "string" || !value) return NaN;
-  const [numerator, denominator = "1"] = value.split("/");
-  const n = Number(numerator);
-  const d = Number(denominator);
-  return Number.isFinite(n) && Number.isFinite(d) && d > 0 ? n / d : NaN;
-}
-
 async function inspectReelVideo(filePath, probeImpl) {
   let result;
   try {
-    result = await probeImpl("ffprobe", [
-      "-v", "error",
-      "-select_streams", "v:0",
-      "-show_entries", "stream=codec_type,width,height,avg_frame_rate,r_frame_rate",
-      "-show_entries", "format=duration,format_name",
-      "-of", "json",
-      filePath
-    ], { timeout: 30000, maxBuffer: 1024 * 1024 });
+    result = await probeImpl("mediainfo", ["--Output=JSON", filePath], {
+      timeout: 30000,
+      maxBuffer: 1024 * 1024
+    });
   } catch {
-    throw new Error("Could not inspect Reel video metadata; ffprobe must be available and the media must decode.");
+    throw new Error("Could not inspect Reel video metadata; MediaInfo must be available and the media must decode.");
   }
   let metadata;
   try { metadata = JSON.parse(result.stdout); } catch {
-    throw new Error("ffprobe returned invalid Reel video metadata.");
+    throw new Error("MediaInfo returned invalid Reel video metadata.");
   }
-  const stream = metadata?.streams?.[0];
-  const width = Number(stream?.width);
-  const height = Number(stream?.height);
-  const duration = Number(metadata?.format?.duration);
-  const frameRate = parseFrameRate(stream?.avg_frame_rate) || parseFrameRate(stream?.r_frame_rate);
-  const formatName = String(metadata?.format?.format_name ?? "");
-  if (stream?.codec_type !== "video" || !Number.isFinite(width) || !Number.isFinite(height)) {
+  const tracks = metadata?.media?.track;
+  const stream = Array.isArray(tracks) ? tracks.find((track) => track?.["@type"] === "Video") : null;
+  const general = Array.isArray(tracks) ? tracks.find((track) => track?.["@type"] === "General") : null;
+  const width = Number(stream?.Width);
+  const height = Number(stream?.Height);
+  const duration = Number(stream?.Duration ?? general?.Duration);
+  const frameRate = Number(stream?.FrameRate);
+  const formatName = String(general?.Format ?? "");
+  if (!stream || !Number.isFinite(width) || !Number.isFinite(height)) {
     throw new Error("Reel media must contain a readable video stream.");
   }
   if (width < 540 || height < 960 || Math.abs(width / height - 9 / 16) > 0.005) {
@@ -120,7 +110,7 @@ async function inspectReelVideo(filePath, probeImpl) {
   if (!Number.isFinite(frameRate) || frameRate < 23) {
     throw new Error("Facebook Reel frame rate must be at least 23 fps.");
   }
-  if (!/(mp4|mov|m4v)/i.test(formatName)) {
+  if (!/(mpeg-4|quicktime)/i.test(formatName)) {
     throw new Error("Facebook Reel must use a supported MP4/MOV video container.");
   }
   return { width, height, duration, frameRate, formatName };
