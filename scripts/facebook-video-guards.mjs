@@ -1,4 +1,4 @@
-const MIN_SECONDS = 300;
+const MIN_SECONDS = 180;
 const MAX_SECONDS = 480;
 
 function isHttpsPublicCandidate(value) {
@@ -29,13 +29,45 @@ export function validateLongFormVideoCampaign(campaign) {
   if (typeof campaign?.title !== "string" || !campaign.title.trim() || campaign.title.length > 255) errors.push("campaign needs a title of 1–255 characters.");
   if (typeof campaign?.caption !== "string" || !campaign.caption.trim() || campaign.caption.length > 60000) errors.push("campaign needs a caption of 1–60,000 characters.");
   if (typeof campaign?.hook_0_3s !== "string" || !campaign.hook_0_3s.trim()) errors.push("campaign needs a documented first-three-second hook.");
+  if (!Number.isFinite(campaign?.hook_duration_seconds) || campaign.hook_duration_seconds < 15 || campaign.hook_duration_seconds > 60) {
+    errors.push("the opening hook must have a documented 15–60 second editorial window before any ad break.");
+  }
+  if (typeof campaign?.series_id !== "string" || !campaign.series_id.trim() ||
+      typeof campaign?.series_title !== "string" || !campaign.series_title.trim() ||
+      typeof campaign?.series_arc !== "string" || !campaign.series_arc.trim() ||
+      !Number.isInteger(campaign?.episode_number) || campaign.episode_number < 1) {
+    errors.push("every long-form video must belong to a named series with a positive episode number and a documented series arc.");
+  }
+  if (typeof campaign?.episode_title !== "string" || !campaign.episode_title.trim() ||
+      typeof campaign?.next_episode_teaser !== "string" || !campaign.next_episode_teaser.trim()) {
+    errors.push("every series episode needs its own episode title and a teaser for the next episode.");
+  }
+  const requiredChannelUrl = "https://www.youtube.com/@naturefrontiers-life";
+  const requiredProductUrl = "https://selar.com/0u19v8u99l";
+  if (typeof campaign?.caption !== "string" || !campaign.caption.includes(requiredChannelUrl)) {
+    errors.push("every video description must include the Nature Frontiers YouTube channel link: " + requiredChannelUrl);
+  }
+  if (typeof campaign?.caption !== "string" || !campaign.caption.includes(requiredProductUrl)) {
+    errors.push("every video description must include the approved Wildlife Creator’s Vault product link: " + requiredProductUrl);
+  }
+  if (!Array.isArray(campaign?.affiliate_links) || campaign.affiliate_links.length === 0 ||
+      campaign.affiliate_links.some((link) => typeof link !== "string" || !isHttpsPublicCandidate(link))) {
+    errors.push("every video description must include at least one verified HTTPS affiliate tracking URL; do not substitute a generic merchant homepage.");
+  } else if (campaign.affiliate_links.some((link) => !campaign.caption.includes(link))) {
+    errors.push("every verified affiliate URL must be embedded verbatim in the video description, including its tracking parameters.");
+  }
+  if (typeof campaign?.affiliate_disclosure !== "string" ||
+      !/affiliate/i.test(campaign.affiliate_disclosure) ||
+      !campaign.caption.includes(campaign.affiliate_disclosure)) {
+    errors.push("every video description must include its explicit affiliate disclosure verbatim.");
+  }
   if (typeof campaign?.script_text !== "string") errors.push("campaign needs its complete original narration script.");
   else {
     const words = campaign.script_text.trim().split(/\s+/).filter(Boolean).length;
     if (words < 500 || words > 1500) errors.push("long-form narration script must contain 500–1,500 words for a 5–8 minute production.");
   }
   if (!Number.isFinite(campaign?.duration_seconds) || campaign.duration_seconds < MIN_SECONDS || campaign.duration_seconds > MAX_SECONDS) {
-    errors.push("long-form video duration must be between 300 and 480 seconds (5–8 minutes).");
+    errors.push("long-form video duration must be between 180 and 480 seconds (3–8 minutes).");
   }
   if (typeof campaign?.media_url !== "string" || !isHttpsPublicCandidate(campaign.media_url)) {
     errors.push("media_url must be a public HTTPS URL without credentials, fragments, or non-standard ports.");
@@ -90,8 +122,9 @@ export function validateLongFormVideoCampaign(campaign) {
   const expectedCount = Number.isFinite(campaign?.duration_seconds) && campaign.duration_seconds >= 420 ? 2 : 1;
   if (!Array.isArray(breaks) || breaks.length !== expectedCount ||
       breaks.some((value) => !Number.isFinite(value) || value < 140 || value > campaign.duration_seconds - 45) ||
-      breaks.some((value, index, values) => index > 0 && (value <= values[index - 1] || value - values[index - 1] < 120))) {
-    errors.push("editorial ad-break markers must be one for 5–6:59 videos or two for 7–8 minute videos, placed at natural transitions at least 120 seconds apart.");
+      breaks.some((value, index, values) => index > 0 && (value <= values[index - 1] || value - values[index - 1] < 120)) ||
+      (Array.isArray(breaks) && breaks.length > 0 && (!Number.isFinite(campaign?.hook_duration_seconds) || breaks[0] < campaign.hook_duration_seconds + 60 || breaks[0] < 90))) {
+    errors.push("editorial ad-break markers must be one for 3–6:59 videos or two for 7–8 minute videos, placed at natural transitions after the opening hook and at least 120 seconds apart.");
   }
   if (!Array.isArray(campaign?.editorial_ad_break_notes) ||
       campaign.editorial_ad_break_notes.length !== expectedCount ||
