@@ -68,6 +68,7 @@ if (!Array.isArray(campaigns)) {
     }
 
     if (campaign?.status === "approved") {
+      if (!["POST", "REEL"].includes(campaign.facebook_type)) errors.push(label + ": approved Facebook campaign must explicitly declare facebook_type=POST or REEL.");
       if (campaign.policy_review_passed !== true) errors.push(label + ": exact post must pass human Meta policy review before approval.");
       if (campaign.content_accuracy_confirmed !== true) errors.push(label + ": content accuracy must be human-confirmed before approval.");
       if (campaign.brand_fit_confirmed !== true) errors.push(label + ": Nature Frontiers brand fit must be human-confirmed before approval.");
