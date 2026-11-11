@@ -99,3 +99,16 @@ export function validateLongFormVideoCampaign(campaign) {
 
   return errors;
 }
+
+/**
+ * Meta Page Videos accepts ad_breaks as time offsets in milliseconds.
+ * These are explicit requested offsets, not a guarantee Meta will serve ads.
+ */
+export function toMetaAdBreakOffsetsMilliseconds(campaign) {
+  if (!Array.isArray(campaign?.editorial_ad_breaks_seconds) ||
+      campaign.editorial_ad_breaks_seconds.length === 0 ||
+      campaign.editorial_ad_breaks_seconds.some((value) => !Number.isFinite(value) || value <= 0)) {
+    throw new Error("Valid editorial ad-break offsets are required before creating Meta ad-break markers.");
+  }
+  return campaign.editorial_ad_breaks_seconds.map((seconds) => Math.round(seconds * 1000));
+}
