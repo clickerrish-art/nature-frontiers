@@ -28,7 +28,7 @@ const valid = {
   product_links: REQUIRED_PRODUCT_LINKS.map((item) => item.url),
   affiliate_links: [...APPROVED_AFFILIATE_LINKS],
   affiliate_links_verified: true,
-  affiliate_verification_note: "Owner-confirmed active Safari.com tracking URL; destination and attribution checked."
+  affiliate_verification_note: "Owner-supplied approved Safari.com tracking URLs; exact a=GM26 parameters preserved.",
   affiliate_disclosure: AFFILIATE_DISCLOSURE,
   script_text: "It has barely moved. It has not stopped watching. " + Array(700).fill("wildlife").join(" "),
   duration_seconds: 360,
