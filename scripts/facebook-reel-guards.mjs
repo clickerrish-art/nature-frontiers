@@ -23,5 +23,5 @@ export function validateReelCampaign(campaign) {
 
 export function isReelPublished(payload) {
   const status = payload?.status;
-  return status?.publishing_phase?.status === "complete" || status?.video_status === "published" || status?.video_status === "ready";
+  return status?.publishing_phase?.status === "complete" || status?.video_status === "published";
 }
