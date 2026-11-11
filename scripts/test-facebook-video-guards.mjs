@@ -69,6 +69,8 @@ const valid = {
 
 test("series plan contains six sequential 3–8 minute episodes with hook-first ad-break notes", async () => {
   const plan = JSON.parse(await readFile(new URL("../data/video-series.json", import.meta.url), "utf8"));
+  const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
+  assert.deepEqual(REQUIRED_PRODUCT_LINKS.map((item) => item.url), products.map((item) => item.url));
   assert.equal(plan.episodes.length, 6);
   for (const [index, episode] of plan.episodes.entries()) {
     assert.equal(episode.episode_number, index + 1);
