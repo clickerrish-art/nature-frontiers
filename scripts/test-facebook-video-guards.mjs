@@ -19,6 +19,8 @@ const valid = {
   series_arc: "A multi-episode exploration of crocodile senses, ambush behaviour, hunting ecology and conservation.",
   next_episode_teaser: "Next episode explores how a crocodile detects movement below the waterline.",
   affiliate_links: ["https://affiliate.example.org/click?aid=123&src=naturefrontiers"],
+  affiliate_links_verified: true,
+  affiliate_verification_note: "Owner-confirmed active Safari.com tracking URL; destination and attribution checked."
   affiliate_disclosure: "Disclosure: Some links are affiliate links. If you book through them, Nature Frontiers may earn a commission at no extra cost to you.",
   script_text: "It has barely moved. It has not stopped watching. " + Array(700).fill("wildlife").join(" "),
   duration_seconds: 360,
@@ -147,6 +149,7 @@ test("requires the series identity, channel destination, product link, affiliate
   assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://www.youtube.com/@naturefrontiers-life", "") }).some((e) => e.includes("YouTube channel link")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://selar.com/0u19v8u99l", "") }).some((e) => e.includes("approved Wildlife Creator")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_links: [] }).some((e) => e.includes("affiliate tracking URL")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_links_verified: false }).some((e) => e.includes("human-verified")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://affiliate.example.org/click?aid=123&src=naturefrontiers", "") }).some((e) => e.includes("embedded verbatim")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_disclosure: "" }).some((e) => e.includes("explicit affiliate disclosure")));
 });
