@@ -6,7 +6,7 @@
     "validate": "node scripts/validate-campaign.mjs",
     "test:publishing": "node scripts/test-publishing-safety.mjs && node --test scripts/test-facebook-feed-guards.mjs scripts/test-publishing-cadence.mjs",
     "test:facebook-reels": "node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs",
-    "test:facebook-videos": "node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs",
+    "test:facebook-videos": "node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs scripts/test-series-scripts.mjs",
     "test:cadence": "node --test scripts/test-publishing-cadence.mjs",
     "publish:facebook": "node scripts/publish-facebook.mjs",
     "publish:facebook-video": "node scripts/publish-facebook-video.mjs",
