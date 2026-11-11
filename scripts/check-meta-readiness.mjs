@@ -41,6 +41,8 @@ const checks = [
 
 for (const [name, result] of checks) console.log(name + ": " + result);
 const configured = pageId === expectedPageId && pageToken.length > 0 && validVersion;
-console.log(configured && tokenPageCheck.startsWith("PASS:")
+const readyForFurtherPermissionChecks = configured && tokenPageCheck.startsWith("PASS:");
+console.log(readyForFurtherPermissionChecks
   ? "READINESS: CONFIGURED — Page read access verified; publishing permission is not yet proven."
   : "READINESS: BLOCKED — one or more Meta connection prerequisites are missing or unverified.");
+if (!readyForFurtherPermissionChecks) process.exitCode = 1;
