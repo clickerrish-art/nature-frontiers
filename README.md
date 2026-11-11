@@ -11,11 +11,23 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 - **Publishing:** keep `PUBLISH_ENABLED=false` and `PUBLISH_DRY_RUN=true`. Do not enable live publishing until the human launch checklist is complete.
 - **Website and social accounts:** check these separately; a passing repository validator does not verify the live website, current checkout price, Meta permissions, or published social posts.
 
+## Zero-cost operating policy
+
+Nature Frontiers must not incur new spending to run this workflow.
+
+- The repository is public. Its current workflows use standard GitHub-hosted runners, which are free for public repositories; do not switch to paid larger runners or paid hosted services.
+- Use the existing free GitHub Actions workflows, local/free editing software, and owner-provided original footage. Do not purchase GPU credits, stock footage, subscriptions, API top-ups, or third-party automation.
+- Do not add paid SaaS, paid APIs, paid model endpoints, or paid workflow dependencies without a separate explicit owner decision.
+- Keep scheduled checks read-only. They must not publish, schedule posts, buy services, or change account settings.
+- Keep live publishing disabled until all content, rights, review, and permission gates pass. A zero-cost requirement never overrides those safety gates.
+- If a required capability cannot be provided at zero cost, mark it blocked and offer a free alternative; do not silently incur a charge.
+- This policy does not promise that every external platform will remain free forever. Recheck platform terms and billing before enabling any new integration.
+
 ## Latest branch verification
 
 - Implementation branch: `codex/facebook-reels-publisher`
-- Tested application source SHA: `b24e2e32ebc16c3d83999e596fd310a6a9d1acb1`
-- GitHub Actions run #361: https://github.com/clickerrish-art/nature-frontiers/actions/runs/43104285026
+- Tested application source SHA: `5ac9100fac682c69342be3fff75219fe09bd164a`
+- GitHub Actions run #365: https://github.com/clickerrish-art/nature-frontiers/actions/runs/43104496563
 - Result: success. Reel guard/media and description-link tests 41/41; long-form guard/media, six episode scripts and all six description-manifest checks 63/63; Johannesburg cadence 7/7; catalogue and fail-closed checks passed.
 - Meta read-only check: exact Page ID and Page name verified. Publishing permission is not established by this read check.
 - Live publisher job skipped; no public Facebook post or video upload was made.
