@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { readFile, createReadStream } from "node:fs";
+import { readFile as readUtf8 } from "node:fs/promises";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 
@@ -25,7 +26,7 @@ if (typeof graphVersion !== "string" || !graphVersion.startsWith("v") || version
 if (!pageId || !accessToken) throw new Error("Meta Page ID and Page access token are required.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
 
-const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
+const campaigns = JSON.parse(await readUtf8(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = campaigns.filter((item) => item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
 if (approved.length === 0) stop("No explicitly approved Facebook Reel campaigns exist.");
 if (approved.length !== 1) throw new Error("Exactly one approved Reel is allowed per manual run.");
@@ -64,6 +65,7 @@ async function saveState(sha, items, message) {
 const mediaCheck = await verifyRemoteMedia(campaign.media_url, campaign.media_sha256);
 console.log("Reel media preflight passed: " + mediaCheck.bytes + " bytes; " + mediaCheck.contentType + "; SHA-256 verified.");
 
+try {
 // Reserve durably before the first Meta request. An ambiguous result remains
 // "publishing" and is never retried automatically.
 const before = await getState();
@@ -92,7 +94,14 @@ if (uploadUrl.protocol !== "https:" || uploadUrl.hostname !== "rupload.facebook.
 
 const uploaded = await fetch(uploadUrl, {
   method: "POST",
-  headers: { Authorization: "OAuth " + accessToken, file_url: campaign.media_url }
+  headers: {
+    Authorization: "OAuth " + accessToken,
+    offset: "0",
+    file_size: String(mediaCheck.bytes),
+    "Content-Type": "application/octet-stream"
+  },
+  body: createReadStream(mediaCheck.filePath),
+  duplex: "half"
 });
 const uploadPayload = await uploaded.json().catch(() => ({}));
 if (!uploaded.ok || uploadPayload.success !== true) {
@@ -138,3 +147,6 @@ const completed = after.campaigns.map((item) => item.id === campaign.id && item.
   : item);
 await saveState(after.sha, completed, "Record verified Facebook Reel publication " + campaign.id);
 console.log("Facebook Reel publication verified. Campaign: " + campaign.id + "; video id: " + startPayload.video_id);
+} finally {
+  await mediaCheck.cleanup();
+}
