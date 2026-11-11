@@ -50,6 +50,15 @@ for (const [field, value] of [
   ["related_longform_campaign_id", ""],
   ["full_video_url", "not-a-url"],
   ["synthetic_visuals", true],
+  ["ai_generated_video", true],
+  ["stock_footage_used", true],
+  ["media_origin", "stock_footage"],
+  ["source_recording_id", ""],
+  ["original_camera_file_sha256", "missing"],
+  ["original_recording_retained", false],
+  ["provenance_review_passed", false],
+  ["provenance_reviewer", ""],
+  ["provenance_reviewed_at", "not-a-date"],
   ["media_url", "http://cdn.example.org/wildlife.mp4"]
 ]) {
   test(`blocks unsafe Reel when ${field} is ${String(value)}`, () => {
