@@ -74,6 +74,9 @@ test("rejects private, loopback, link-local and malformed URLs", async () => {
     "https://10.0.0.5/video.mp4",
     "https://169.254.1.2/video.mp4",
     "https://[::1]/video.mp4",
+    "https://[::ffff:7f00:1]/video.mp4",
+    "https://[2002:7f00:1::1]/video.mp4",
+    "https://[2001:db8::1]/video.mp4",
     "https://cdn.example.org/video.mp4#fragment"
   ]) {
     await assert.rejects(
