@@ -56,6 +56,10 @@ export function validateLongFormVideoCampaign(campaign) {
   } else if (campaign.affiliate_links.some((link) => !campaign.caption.includes(link))) {
     errors.push("every verified affiliate URL must be embedded verbatim in the video description, including its tracking parameters.");
   }
+  if (campaign?.affiliate_links_verified !== true ||
+      typeof campaign?.affiliate_verification_note !== "string" || !campaign.affiliate_verification_note.trim()) {
+    errors.push("affiliate tracking links must be human-verified and accompanied by a verification note before release.");
+  }
   if (typeof campaign?.affiliate_disclosure !== "string" ||
       !/affiliate/i.test(campaign.affiliate_disclosure) ||
       !campaign.caption.includes(campaign.affiliate_disclosure)) {
