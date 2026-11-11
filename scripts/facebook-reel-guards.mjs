@@ -14,7 +14,13 @@ export function validateReelCampaign(campaign) {
   if (campaign?.media_rights_confirmed !== true) errors.push("media rights must be explicitly human-confirmed.");
   if (campaign?.originality_confirmed !== true) errors.push("media originality must be explicitly human-confirmed.");
   if (campaign?.policy_review_passed !== true) errors.push("the exact Reel and caption must pass human policy review.");
-  if (campaign?.synthetic_visuals === true && (typeof campaign?.ai_disclosure !== "string" || !campaign.ai_disclosure.trim())) errors.push("synthetic visuals require an explicit AI/illustrative disclosure.");
+  if (campaign?.media_accessibility_confirmed !== true) errors.push("public media URL accessibility must be verified.");
+  if (campaign?.media_technical_review_passed !== true) errors.push("media technical specifications must be reviewed and confirmed.");
+  if (typeof campaign?.media_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(campaign.media_sha256)) errors.push("a verified 64-character SHA-256 media hash is required.");
+  if (campaign?.synthetic_visuals === true) {
+    if (typeof campaign?.ai_disclosure !== "string" || !campaign.ai_disclosure.trim()) errors.push("synthetic visuals require an explicit AI/illustrative disclosure.");
+    else if (!campaign.caption.includes(campaign.ai_disclosure)) errors.push("caption must contain the exact AI/illustrative disclosure.");
+  }
   if (campaign?.synthetic_visuals !== true && campaign?.synthetic_visuals !== false) errors.push("synthetic_visuals must be explicitly true or false.");
   if (campaign?.caption?.length > 60000) errors.push("caption exceeds the platform-safe input limit.");
   if (campaign?.title?.length > 255) errors.push("title exceeds the platform-safe input limit.");
