@@ -1,4 +1,23 @@
 const TIME_ZONE = "Africa/Johannesburg";
+export const APPROVED_POSTING_SLOTS = Object.freeze([{ hour: 11, minute: 0 }, { hour: 16, minute: 0 }]);
+
+export function assertApprovedPostingWindow(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) throw new Error("A valid publication timestamp is required.");
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(date);
+  const fields = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const hour = Number(fields.hour);
+  const minute = Number(fields.minute);
+  if (!APPROVED_POSTING_SLOTS.some((slot) => slot.hour === hour && slot.minute === minute)) {
+    throw new Error("Publication is restricted to 11:00 and 16:00 Africa/Johannesburg (10:00 and 15:00 WAT).");
+  }
+  return { timeZone: TIME_ZONE, hour, minute };
+}
 const MAX_LONG_FORM_PER_DAY = 2;
 const MAX_REELS_PER_DAY = 1;
 const MAX_TOTAL_RELEASES_PER_DAY = 3;
