@@ -9,8 +9,8 @@ const digest = createHash("sha256").update(bytes).digest("hex");
 const publicLookup = async () => [{ address: "93.184.216.34", family: 4 }];
 const validMetadata = {
   media: { track: [
-    { "@type": "General", Format: "MPEG-4", Duration: "12.5" },
-    { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "29.970", Duration: "12.5" }
+    { "@type": "General", Format: "MPEG-4", Duration: "30" },
+    { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "29.970", Duration: "30" }
   ] }
 };
 const validProbe = async () => ({ stdout: JSON.stringify(validMetadata) });
@@ -38,7 +38,7 @@ test("stages exact hash-verified bytes and confirms Facebook Reel technical requ
     assert.equal(result.bytes, bytes.length);
     assert.equal(result.sha256, digest);
     assert.deepEqual(await readFile(result.filePath), bytes);
-    assert.deepEqual(result.videoMetadata, { width: 1080, height: 1920, duration: 12.5, frameRate: 29.97, formatName: "MPEG-4" });
+    assert.deepEqual(result.videoMetadata, { width: 1080, height: 1920, duration: 30, frameRate: 29.97, formatName: "MPEG-4" });
   } finally {
     await result.cleanup();
   }
@@ -51,10 +51,12 @@ test("rejects a changed remote file before video inspection", async () => {
   );
 });
 
-test("rejects video that is landscape, too small, too short, too long or below 23 fps", async () => {
+test("rejects video that is landscape, too small, outside the 25–35 second target or below 23 fps", async () => {
   const invalid = [
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "12" }, { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "30", Duration: "12" }] } },
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "12" }, { "@type": "Video", Width: "480", Height: "854", FrameRate: "30", Duration: "12" }] } },
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "24.9" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "24.9" }] } },
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "35.1" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "35.1" }] } },
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "3.9" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "3.9" }] } },
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "60.1" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "60.1" }] } },
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "12" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "20", Duration: "12" }] } }
