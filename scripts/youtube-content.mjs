@@ -88,7 +88,7 @@ export function buildYouTubeDescription({
   lines.push("", "CREATOR RESOURCES & PRODUCTS", policy.description.productNotice);
   for (const product of links.products) lines.push(product.title + ": " + product.url);
 
-  lines.push("", "SAFARI PLANNING LINKS", policy.description.affiliateDisclosure);
+  lines.push("", "SAFARI.COM AFFILIATE LINKS", policy.description.affiliateDisclosure);
   for (const affiliate of links.affiliates) lines.push(affiliate.label + ": " + affiliate.url);
 
   if (sources.length) {
