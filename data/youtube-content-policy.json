@@ -102,5 +102,10 @@
       "factual claims have not been checked",
       "final edit or metadata has not received human review"
     ]
+  },
+  "youtubePublishing": {
+    "enabled": false,
+    "authenticatedChannelIdentityVerified": false,
+    "requiredCheck": "The authenticated YouTube channel ID must be verified against the owner-supplied channel URL before any upload or schedule operation."
   }
 }

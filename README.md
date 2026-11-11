@@ -16,7 +16,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 
 ## YouTube content packaging
 
-- Builds series descriptions with the Nature Frontiers channel CTA, all catalogue product links, and the five Safari.com affiliate destinations using the original `a=GM26` tracking value.
+- Builds series descriptions with the Nature Frontiers channel CTA, all catalogue product links, and the five Safari.com affiliate destinations using the original `a=GM26` tracking value. Use `npm run build:youtube-description -- path/to/episode.json` to produce a validated description.
 - Validates the 3–8 minute runtime, the ordered hook/story/takeaway/next-episode/CTA structure, and mid-roll placement only on eligible 8-minute monetized videos at natural segment boundaries.
 - Provides a six-episode `Wild Encounters` Season 1 concept slate. These are not rendered or approved videos.
 - Keeps the original-footage, provenance, rights and factual-review gates fail-closed.

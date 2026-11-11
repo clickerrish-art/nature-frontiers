@@ -10,6 +10,7 @@ on:
       - "data/youtube-series-season-1.json"
       - "data/products.json"
       - "scripts/youtube-content.mjs"
+      - "scripts/build-youtube-description.mjs"
       - "scripts/test-youtube-content.mjs"
       - "package.json"
       - "README.md"
@@ -48,6 +49,6 @@ jobs:
       - name: Validate the complete product catalogue
         run: node scripts/validate-campaign.mjs
       - name: Check module and test syntax
-        run: node --check scripts/youtube-content.mjs && node --check scripts/test-youtube-content.mjs
+        run: node --check scripts/youtube-content.mjs && node --check scripts/build-youtube-description.mjs && node --check scripts/test-youtube-content.mjs
       - name: Run YouTube description, series, duration and ad-break regression tests
         run: npm run test:youtube-content
