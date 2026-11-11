@@ -18,10 +18,10 @@ Every long-form episode must be 3–8 minutes, open with its approved hook befor
 Every video description must include:
 - Nature Frontiers YouTube channel: https://www.youtube.com/@naturefrontiers-life
 - Approved Wildlife Creator's Vault product: https://selar.com/0u19v8u99l
-- Each human-verified affiliate tracking URL, embedded verbatim with tracking parameters intact.
+- All five owner-supplied Safari.com affiliate URLs, embedded verbatim with their `a=GM26` tracking parameters intact.
 - The explicit affiliate disclosure.
 
-**Affiliate-link blocker:** no owner-verified Safari.com tracking URL was found in the accessible project records. A generic Safari.com homepage is not an affiliate link and must not be substituted. The video release guard therefore blocks a video until at least one exact affiliate URL is present in the description and its verification evidence is recorded.
+**Affiliate-link handling:** the owner-supplied Safari.com tracking URLs are recorded in `scripts/video-description.mjs`: Sabi Sand, Kruger National Park, Destinations, Singita Boulders and the 4-day Londolozi Varty Camp fly-in safari. The `a=GM26` tracking parameter is preserved. The release guard requires all five URLs, their exact presence in the description, and a human verification note; a generic Safari.com homepage is not substituted.
 
 ## What the automation does
 
