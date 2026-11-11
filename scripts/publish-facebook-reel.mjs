@@ -77,8 +77,10 @@ await saveState(before.sha, reserved, "Reserve Facebook Reel campaign " + campai
 const graph = "https://graph.facebook.com/" + graphVersion;
 const startUrl = new URL(graph + "/" + encodeURIComponent(pageId) + "/video_reels");
 startUrl.searchParams.set("upload_phase", "start");
-startUrl.searchParams.set("access_token", accessToken);
-const started = await fetch(startUrl, { method: "POST" });
+const started = await fetch(startUrl, {
+  method: "POST",
+  headers: { Authorization: "Bearer " + accessToken }
+});
 const startPayload = await started.json().catch(() => ({}));
 if (!started.ok || !startPayload.video_id || !startPayload.upload_url) {
   throw new Error("Meta Reel upload initialization failed (HTTP " + started.status + "); state remains publishing and must be reconciled manually.");
@@ -103,8 +105,10 @@ finishUrl.searchParams.set("upload_phase", "finish");
 finishUrl.searchParams.set("video_state", "PUBLISHED");
 finishUrl.searchParams.set("description", campaign.caption);
 finishUrl.searchParams.set("title", campaign.title);
-finishUrl.searchParams.set("access_token", accessToken);
-const finished = await fetch(finishUrl, { method: "POST" });
+const finished = await fetch(finishUrl, {
+  method: "POST",
+  headers: { Authorization: "Bearer " + accessToken }
+});
 const finishPayload = await finished.json().catch(() => ({}));
 if (!finished.ok || finishPayload.success !== true) {
   throw new Error("Meta Reel publish finalization failed (HTTP " + finished.status + "); state remains publishing; inspect before any retry.");
@@ -114,8 +118,9 @@ let confirmed = false;
 for (let attempt = 0; attempt < 12; attempt++) {
   const statusUrl = new URL(graph + "/" + encodeURIComponent(startPayload.video_id));
   statusUrl.searchParams.set("fields", "status");
-  statusUrl.searchParams.set("access_token", accessToken);
-  const statusResponse = await fetch(statusUrl);
+  const statusResponse = await fetch(statusUrl, {
+    headers: { Authorization: "Bearer " + accessToken }
+  });
   const statusPayload = await statusResponse.json().catch(() => ({}));
   if (!statusResponse.ok) throw new Error("Could not verify Reel publication status (HTTP " + statusResponse.status + "); state remains publishing.");
   if (isReelPublished(statusPayload)) { confirmed = true; break; }
