@@ -24,6 +24,8 @@ on:
       - "scripts/test-facebook-video-guards.mjs"
       - "scripts/test-facebook-video-media.mjs"
       - "scripts/test-publishing-safety.mjs"
+      - "scripts/publishing-cadence.mjs"
+      - "scripts/test-publishing-cadence.mjs"
       - "data/campaigns.json"
       - "data/products.json"
       - "scripts/validate-campaign.mjs"
@@ -43,6 +45,8 @@ on:
       - "scripts/test-facebook-video-guards.mjs"
       - "scripts/test-facebook-video-media.mjs"
       - "scripts/test-publishing-safety.mjs"
+      - "scripts/publishing-cadence.mjs"
+      - "scripts/test-publishing-cadence.mjs"
       - "data/campaigns.json"
       - "data/products.json"
       - "scripts/validate-campaign.mjs"
@@ -73,9 +77,9 @@ jobs:
           node-version: "24"
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
-      - name: Test fail-closed feed publishing controls
+      - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
-      - name: Verify MediaInfo is available for Reel media verification
+      - name: Verify MediaInfo is available for video media verification
         run: mediainfo --Version
       - name: Check Facebook publishing script syntax
         run: node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs
@@ -83,6 +87,8 @@ jobs:
         run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
       - name: Test long-form video guards and media integrity
         run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs
+      - name: Test Johannesburg daily publishing limits
+        run: node --test scripts/test-publishing-cadence.mjs
 
   meta-readiness:
     timeout-minutes: 5
