@@ -114,7 +114,7 @@ try {
   await saveState(before.sha, reservedItems, "Reserve Nature Frontiers long-form video " + campaign.id);
   reserved = true;
 
-  const endpoint = "https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(pageId) + "/videos";
+  const endpoint = "https://graph-video.facebook.com/" + graphVersion + "/" + encodeURIComponent(pageId) + "/videos";
   const body = new URLSearchParams({
     file_url: mediaCheck.finalUrl,
     title: campaign.title,
