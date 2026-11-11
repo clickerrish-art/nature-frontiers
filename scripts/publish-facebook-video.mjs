@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
+import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateLongFormVideoCampaign, toMetaAdBreakOffsetsMilliseconds } from "./facebook-video-guards.mjs";
 import { verifyRemoteLongFormVideo } from "./facebook-video-media.mjs";
 
@@ -35,6 +35,7 @@ if (approved.length !== 1) throw new Error("Exactly one approved long-form video
 const campaign = approved[0];
 const validation = validateLongFormVideoCampaign(campaign);
 if (validation.length) throw new Error("Long-form video failed release checks: " + validation.join(" "));
+assertApprovedPostingWindow();
 
 const stateUrl = "https://api.github.com/repos/" + repo + "/contents/data/campaigns.json";
 const ghHeaders = {
