@@ -20,7 +20,7 @@ if (!Array.isArray(products) || !Array.isArray(campaigns)) {
 }
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
 
-const pending = campaigns.filter((c) => c?.network === "facebook" && c?.status === "approved" && c?.facebook_type !== "REEL");
+const pending = campaigns.filter((c) => c?.network === "facebook" && c?.status === "approved" && c?.facebook_type === "POST");
 if (pending.length === 0) stop("No explicitly approved Facebook feed campaigns exist.");
 
 const seenCampaignIds = new Set();
