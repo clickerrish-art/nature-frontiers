@@ -87,6 +87,11 @@ test("rejects synthetic wildlife video even when fully disclosed", () => {
 });
 
 
+test("fails closed without throwing when the Reel description is missing", () => {
+  const errors = validateReelCampaign({ ...valid, caption: undefined });
+  assert.ok(errors.some((e) => e.includes("YouTube channel link")));
+});
+
 test("requires all channel, product, affiliate and disclosure links in every Reel description", () => {
   assert.ok(validateReelCampaign({ ...valid, caption: valid.caption.replace("https://www.youtube.com/@naturefrontiers-life", "") }).some((e) => e.includes("YouTube channel link")));
   assert.ok(validateReelCampaign({ ...valid, product_links: [] }).some((e) => e.includes("all six catalogue Selar")));
