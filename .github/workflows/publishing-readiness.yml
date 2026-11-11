@@ -50,7 +50,9 @@ jobs:
         run: node --test scripts/test-facebook-reel-guards.mjs
 
   facebook-publisher:
-    if: github.event_name != 'pull_request'
+    # Publishing writes durable campaign state to the dispatch ref. Never permit
+    # this job to write to main; use a dedicated non-main release branch.
+    if: github.event_name != 'pull_request' && github.ref != 'refs/heads/main'
     permissions:
       contents: write
     needs: safety-tests
