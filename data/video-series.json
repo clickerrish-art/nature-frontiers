@@ -22,10 +22,10 @@
         "Separate observed footage from researched explanation",
         "Close by introducing the sensory world beneath the surface"
       ],
-      "target_duration_seconds": 360,
+      "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        180
+        150
       ],
       "next_episode_teaser": "Next: how a crocodile detects and responds to a world beneath the water.",
       "editorial_ad_break_notes": [
@@ -44,10 +44,10 @@
         "Clarify the difference between established science and inference",
         "Tease the mechanics of the ambush"
       ],
-      "target_duration_seconds": 360,
+      "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        180
+        150
       ],
       "next_episode_teaser": "Next: the mechanics of the strike — and why the waiting matters.",
       "editorial_ad_break_notes": [
@@ -66,10 +66,10 @@
         "Avoid graphic close-ups and sensational claims",
         "Connect hunting behaviour to the animal's habitat"
       ],
-      "target_duration_seconds": 360,
+      "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        180
+        150
       ],
       "next_episode_teaser": "Next: the hidden story of nests, hatchlings and early survival.",
       "editorial_ad_break_notes": [
@@ -88,10 +88,10 @@
         "Avoid disturbing nests or approaching vulnerable animals",
         "Bridge to seasonal habitat pressures"
       ],
-      "target_duration_seconds": 360,
+      "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        180
+        150
       ],
       "next_episode_teaser": "Next: what happens when changing water levels reshape a crocodile's habitat.",
       "editorial_ad_break_notes": [
@@ -110,10 +110,10 @@
         "Explain how habitat conditions affect wildlife without implying a universal pattern",
         "Set up the wider ecological role of crocodiles"
       ],
-      "target_duration_seconds": 360,
+      "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        180
+        150
       ],
       "next_episode_teaser": "Final episode: what crocodiles reveal about the health of the river ecosystem.",
       "editorial_ad_break_notes": [
@@ -132,16 +132,14 @@
         "Avoid simplistic claims that one species alone controls ecosystem health",
         "Resolve the series arc and invite viewers to continue with the next Wild Encounters series"
       ],
-      "target_duration_seconds": 420,
+      "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
       "editorial_ad_breaks_seconds": [
-        180,
-        330
+        150
       ],
       "next_episode_teaser": "The next Wild Encounters series follows another species through its real habitat and behaviour.",
       "editorial_ad_break_notes": [
-        "After the species-level ecological context, before the final conservation and series conclusion.",
-        "After the conservation context and before the final series conclusion."
+        "After the species-level ecological context, before the final conservation and series conclusion."
       ]
     }
   ]
