@@ -79,7 +79,8 @@ test("series plan contains six sequential 3–8 minute episodes with hook-first 
     assert.ok(episode.next_episode_teaser.trim());
   }
 });
-\ntest("builds a series description containing the channel, all catalogue products and every approved Safari tracking URL", () => {
+
+test("builds a series description containing the channel, all catalogue products and every approved Safari tracking URL", () => {
   const description = valid.caption;
   assert.ok(description.includes(NATURE_FRONTIERS_YOUTUBE_URL));
   for (const item of REQUIRED_PRODUCT_LINKS) assert.ok(description.includes(item.url));
@@ -88,7 +89,8 @@ test("series plan contains six sequential 3–8 minute episodes with hook-first 
   assert.match(description, /Episode 1: The Patient Ambush/);
   assert.throws(() => buildLongFormVideoDescription({ seriesTitle: "Series", episodeNumber: 0, episodeTitle: "Title", episodeDescription: "Body", nextEpisodeTeaser: "Next" }), /positive integer/);
 });
-\ntest("accepts an approved, reviewed 3–8 minute original landscape-video series episode manifest", () => {
+
+test("accepts an approved, reviewed 3–8 minute original landscape-video series episode manifest", () => {
   assert.deepEqual(validateLongFormVideoCampaign(valid), []);
 });
 
