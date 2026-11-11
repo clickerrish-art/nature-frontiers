@@ -45,6 +45,8 @@ jobs:
           node-version: "24"
       - name: Validate policy and series JSON
         run: node -e "JSON.parse(require('node:fs').readFileSync('data/youtube-content-policy.json', 'utf8')); JSON.parse(require('node:fs').readFileSync('data/youtube-series-season-1.json', 'utf8')); JSON.parse(require('node:fs').readFileSync('data/products.json', 'utf8'));"
+      - name: Validate the complete product catalogue
+        run: node scripts/validate-campaign.mjs
       - name: Check module and test syntax
         run: node --check scripts/youtube-content.mjs && node --check scripts/test-youtube-content.mjs
       - name: Run YouTube description, series, duration and ad-break regression tests

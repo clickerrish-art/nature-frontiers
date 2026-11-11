@@ -22,6 +22,14 @@ export function validateYouTubeDescription(description) {
 
   for (const product of links.products) {
     if (!description.includes(product.url)) errors.push("Description is missing catalogue product link: " + product.id + ".");
+    try {
+      const parsed = new URL(product.url);
+      if (parsed.protocol !== "https:" || parsed.hostname !== "selar.com") {
+        errors.push("Catalogue product link has an unexpected destination: " + product.id + ".");
+      }
+    } catch {
+      errors.push("Catalogue product link is invalid: " + product.id + ".");
+    }
   }
   for (const affiliate of links.affiliates) {
     if (!description.includes(affiliate.url)) errors.push("Description is missing Safari.com affiliate link: " + affiliate.label + ".");
