@@ -70,8 +70,8 @@ try {
 // "publishing" and is never retried automatically.
 const before = await getState();
 const live = before.campaigns.find((item) => item.id === campaign.id);
-if (!live || live.status !== "approved" || live.facebook_type !== "REEL") {
-  throw new Error("SAFE STOP: live campaign state is not approved for Reel publication.");
+if (!live || JSON.stringify(live) !== JSON.stringify(campaign)) {
+  throw new Error("SAFE STOP: live Reel campaign snapshot changed after checkout.");
 }
 const reserved = before.campaigns.map((item) => item.id === campaign.id
   ? { ...item, status: "publishing", publishing_started_at: new Date().toISOString() }
