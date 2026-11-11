@@ -46,7 +46,7 @@ test("blocks the fourth release regardless of content type", () => {
 
 test("does not count a previous day's video toward today's allowance", () => {
   const campaigns = [
-    { status: "published", facebook_type: "VIDEO", published_at: "2026-11-10T22:30:00.000Z" }
+    { status: "published", facebook_type: "VIDEO", published_at: "2026-11-10T21:30:00.000Z" }
   ];
   assert.equal(assertDailyReleaseCapacity(campaigns, "VIDEO", new Date("2026-11-11T08:00:00.000Z")).longForm, 0);
 });
