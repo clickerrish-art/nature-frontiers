@@ -18,7 +18,7 @@ if (pageId === expectedPageId && pageToken && validVersion) {
     const payload = await response.json().catch(() => ({}));
     tokenPageCheck = response.ok && payload.id === expectedPageId
       ? "PASS: Page token is valid for read access to the configured Nature Frontiers Page"
-      : "BLOCKED: Meta rejected the read-only Page check (HTTP " + response.status + ", code " + (payload?.error?.code ?? "unknown") + ")";
+      : "BLOCKED: Meta rejected the read-only Page check (HTTP " + response.status + ", code " + (payload?.error?.code ?? "unknown") + ", subcode " + (payload?.error?.error_subcode ?? "none") + ", type " + (payload?.error?.type ?? "unknown") + ")";
   } catch (error) {
     tokenPageCheck = "BLOCKED: read-only Meta Page check failed (" + (error?.name ?? "network error") + ")";
   }
