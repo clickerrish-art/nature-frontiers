@@ -76,6 +76,32 @@ async function assertPublicHttpsUrl(value, lookupImpl) {
   return url;
 }
 
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+async function fetchPublicMediaResponse(initialUrl, fetchImpl, lookupImpl) {
+  let currentUrl = await assertPublicHttpsUrl(initialUrl, lookupImpl);
+  for (let redirectCount = 0; redirectCount <= 5; redirectCount++) {
+    const response = await fetchImpl(currentUrl, {
+      method: "GET",
+      redirect: "manual",
+      signal: AbortSignal.timeout(120000)
+    });
+    if (!REDIRECT_STATUSES.has(response.status)) {
+      return { response, finalUrl: currentUrl.href };
+    }
+    const location = response.headers?.get?.("location");
+    if (!location) throw new Error("Reel media host returned a redirect without a Location header.");
+    if (redirectCount === 5) throw new Error("Reel media exceeded the maximum of five redirects.");
+    let nextUrl;
+    try { nextUrl = new URL(location, currentUrl); } catch {
+      throw new Error("Reel media redirect contained an invalid target URL.");
+    }
+    // Validate scheme, credentials, hostname and DNS before issuing the next request.
+    currentUrl = await assertPublicHttpsUrl(nextUrl.href, lookupImpl);
+  }
+  throw new Error("Reel media redirect validation failed.");
+}
+
 async function inspectReelVideo(filePath, probeImpl) {
   let result;
   try {
@@ -131,17 +157,8 @@ export async function verifyRemoteMedia(
     throw new Error("A positive maximum media size is required.");
   }
 
-  const parsed = await assertPublicHttpsUrl(mediaUrl, lookupImpl);
-  const response = await fetchImpl(parsed, {
-    method: "GET",
-    redirect: "follow",
-    signal: AbortSignal.timeout(120000)
-  });
-  if (!response.ok || !response.body) {
-    throw new Error("Reel media could not be fetched successfully (HTTP " + response.status + ").");
-  }
-  const finalUrl = response.url || parsed.href;
-  await assertPublicHttpsUrl(finalUrl, lookupImpl);
+  const { response, finalUrl } = await fetchPublicMediaResponse(mediaUrl, fetchImpl, lookupImpl);
+  if (!response.ok || !response.body) throw new Error("Reel media could not be fetched successfully (HTTP " + response.status + ").");
   const contentType = response.headers?.get?.("content-type") ?? "";
   if (!/^video\//i.test(contentType)) {
     throw new Error("Reel media URL did not return a video content type.");
