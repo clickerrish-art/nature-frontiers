@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
+import { createWriteStream } from "node:fs";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { once } from "node:events";
+import { finished } from "node:stream/promises";
 
 const MAX_MEDIA_BYTES = 4 * 1024 * 1024 * 1024;
 
@@ -103,17 +109,38 @@ export async function verifyRemoteMedia(
     throw new Error("Reel media exceeds the configured maximum file size.");
   }
 
+  const directory = await mkdtemp(join(tmpdir(), "nature-frontiers-reel-"));
+  const filePath = join(directory, "approved-video.bin");
+  const output = createWriteStream(filePath, { flags: "wx" });
+  const outputDone = finished(output);
   const digest = createHash("sha256");
   let bytes = 0;
-  for await (const chunk of response.body) {
-    bytes += chunk.byteLength;
-    if (bytes > maxBytes) throw new Error("Reel media exceeds the configured maximum file size.");
-    digest.update(chunk);
+
+  try {
+    for await (const chunk of response.body) {
+      bytes += chunk.byteLength;
+      if (bytes > maxBytes) throw new Error("Reel media exceeds the configured maximum file size.");
+      digest.update(chunk);
+      if (!output.write(chunk)) await once(output, "drain");
+    }
+    output.end();
+    await outputDone;
+    if (bytes === 0) throw new Error("Reel media response was empty.");
+    const actual = digest.digest("hex");
+    if (actual.toLowerCase() !== expectedSha256.toLowerCase()) {
+      throw new Error("Reel media SHA-256 does not match the approved campaign manifest.");
+    }
+    return {
+      bytes,
+      sha256: actual,
+      contentType,
+      finalUrl,
+      filePath,
+      cleanup: () => rm(directory, { recursive: true, force: true })
+    };
+  } catch (error) {
+    output.destroy();
+    await rm(directory, { recursive: true, force: true });
+    throw error;
   }
-  if (bytes === 0) throw new Error("Reel media response was empty.");
-  const actual = digest.digest("hex");
-  if (actual.toLowerCase() !== expectedSha256.toLowerCase()) {
-    throw new Error("Reel media SHA-256 does not match the approved campaign manifest.");
-  }
-  return { bytes, sha256: actual, contentType, finalUrl };
 }
