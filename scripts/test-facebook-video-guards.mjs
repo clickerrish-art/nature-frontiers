@@ -101,7 +101,7 @@ test("rejects synthetic wildlife video even when fully disclosed", () => {
 test("requires at least 300 words of original narration and evidence links", () => {
   assert.ok(validateLongFormVideoCampaign({ ...valid, script_text: "too short" }).some((e) => e.includes("300–1,500 words")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, fact_check_sources: [] }).some((e) => e.includes("fact-check source")));
-  assert.deepEqual(validateLongFormVideoCampaign({ ...valid, duration_seconds: 180, script_text: Array(300).fill("wildlife").join(" "), editorial_ad_breaks_seconds: [120], editorial_ad_break_notes: ["After the complete opening and first story transition."] }), []);
+  assert.deepEqual(validateLongFormVideoCampaign({ ...valid, duration_seconds: 180, script_text: Array(300).fill("wildlife").join(" "), retention_beats_seconds: [40, 90, 150], editorial_ad_breaks_seconds: [120], editorial_ad_break_notes: ["After the complete opening and first story transition."] }), []);
   assert.ok(validateLongFormVideoCampaign({ ...valid, duration_seconds: 179 }).some((e) => e.includes("180 and 480")));
 });
 
