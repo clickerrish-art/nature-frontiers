@@ -10,7 +10,9 @@ const approved = {
   status: "approved",
   policy_review_passed: true,
   content_accuracy_confirmed: true,
-  brand_fit_confirmed: true
+  brand_fit_confirmed: true,
+  wildlife_welfare_confirmed: true,
+  non_graphic_review_passed: true
 };
 
 test("accepts an explicitly approved organic wildlife feed post", () => {
@@ -51,4 +53,9 @@ test("requires rights and originality clearance and refuses unsupported media at
   assert.ok(validateFeedRelease(attached).some((e) => e.includes("originality review")));
   const reviewed = { ...attached, media_rights_confirmed: true, media_originality_confirmed: true };
   assert.ok(validateFeedRelease(reviewed).some((e) => e.includes("not supported")));
+});
+
+test("blocks wildlife content without animal-welfare and non-graphic review", () => {
+  assert.ok(validateFeedRelease({ ...approved, wildlife_welfare_confirmed: false }).some((e) => e.includes("baiting")));
+  assert.ok(validateFeedRelease({ ...approved, non_graphic_review_passed: false }).some((e) => e.includes("non-graphic")));
 });
