@@ -19,6 +19,14 @@ export function validateReelCampaign(campaign) {
   if (campaign?.media_accessibility_confirmed !== true) errors.push("public media URL accessibility must be verified.");
   if (campaign?.media_technical_review_passed !== true) errors.push("media technical specifications must be reviewed and confirmed.");
   if (typeof campaign?.media_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(campaign.media_sha256)) errors.push("a verified 64-character SHA-256 media hash is required.");
+  if (typeof campaign?.related_longform_campaign_id !== "string" || !campaign.related_longform_campaign_id.trim()) errors.push("Reel must reference its parent long-form video campaign.");
+  if (typeof campaign?.full_video_url !== "string") errors.push("Reel must include the URL of its already-published full video.");
+  else {
+    try {
+      const fullUrl = new URL(campaign.full_video_url);
+      if (fullUrl.protocol !== "https:" || !fullUrl.hostname || !campaign.caption.includes(campaign.full_video_url)) errors.push("Reel caption must include the exact HTTPS URL of the full video.");
+    } catch { errors.push("full_video_url must be a valid HTTPS URL."); }
+  }
   if (campaign?.synthetic_visuals === true) {
     if (typeof campaign?.ai_disclosure !== "string" || !campaign.ai_disclosure.trim()) errors.push("synthetic visuals require an explicit AI/illustrative disclosure.");
     else if (!campaign.caption.includes(campaign.ai_disclosure)) errors.push("caption must contain the exact AI/illustrative disclosure.");
