@@ -2,6 +2,7 @@ export function validateFeedRelease(campaign) {
   const errors = [];
   if (!campaign || campaign.network !== "facebook") errors.push("campaign must target Facebook.");
   if (campaign?.status !== "approved") errors.push("campaign must be explicitly approved.");
+  if (campaign?.facebook_type !== "POST") errors.push("feed publisher accepts only explicitly declared Facebook POST campaigns.");
   if (!["organic", "promotion"].includes(campaign?.campaign_type)) {
     errors.push("campaign_type must be explicitly organic or promotion.");
   }
