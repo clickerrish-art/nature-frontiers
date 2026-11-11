@@ -1,3 +1,5 @@
+import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE } from "./video-description.mjs";
+
 const MIN_SECONDS = 180;
 const MAX_SECONDS = 480;
 
@@ -42,28 +44,27 @@ export function validateLongFormVideoCampaign(campaign) {
       typeof campaign?.next_episode_teaser !== "string" || !campaign.next_episode_teaser.trim()) {
     errors.push("every series episode needs its own episode title and a teaser for the next episode.");
   }
-  const requiredChannelUrl = "https://www.youtube.com/@naturefrontiers-life";
-  const requiredProductUrl = "https://selar.com/0u19v8u99l";
-  if (typeof campaign?.caption !== "string" || !campaign.caption.includes(requiredChannelUrl)) {
-    errors.push("every video description must include the Nature Frontiers YouTube channel link: " + requiredChannelUrl);
+  if (typeof campaign?.caption !== "string" || !campaign.caption.includes(NATURE_FRONTIERS_YOUTUBE_URL)) {
+    errors.push("every video description must include the Nature Frontiers YouTube channel link: " + NATURE_FRONTIERS_YOUTUBE_URL);
   }
-  if (typeof campaign?.caption !== "string" || !campaign.caption.includes(requiredProductUrl)) {
-    errors.push("every video description must include the approved Wildlife Creator’s Vault product link: " + requiredProductUrl);
+  if (!Array.isArray(campaign?.product_links) ||
+      REQUIRED_PRODUCT_LINKS.some((item) => !campaign.product_links.includes(item.url)) ||
+      REQUIRED_PRODUCT_LINKS.some((item) => !campaign.caption.includes(item.url))) {
+    errors.push("every video description must include all six owner-catalogued Selar product URLs verbatim.");
   }
-  if (!Array.isArray(campaign?.affiliate_links) || campaign.affiliate_links.length === 0 ||
+  if (!Array.isArray(campaign?.affiliate_links) ||
+      APPROVED_AFFILIATE_LINKS.some((link) => !campaign.affiliate_links.includes(link)) ||
+      APPROVED_AFFILIATE_LINKS.some((link) => !campaign.caption.includes(link)) ||
       campaign.affiliate_links.some((link) => typeof link !== "string" || !isHttpsPublicCandidate(link))) {
-    errors.push("every video description must include at least one verified HTTPS affiliate tracking URL; do not substitute a generic merchant homepage.");
-  } else if (campaign.affiliate_links.some((link) => !campaign.caption.includes(link))) {
-    errors.push("every verified affiliate URL must be embedded verbatim in the video description, including its tracking parameters.");
+    errors.push("every video description must include all five owner-approved Safari.com affiliate URLs verbatim, preserving the a=GM26 tracking parameter.");
   }
   if (campaign?.affiliate_links_verified !== true ||
       typeof campaign?.affiliate_verification_note !== "string" || !campaign.affiliate_verification_note.trim()) {
     errors.push("affiliate tracking links must be human-verified and accompanied by a verification note before release.");
   }
-  if (typeof campaign?.affiliate_disclosure !== "string" ||
-      !/affiliate/i.test(campaign.affiliate_disclosure) ||
-      !campaign.caption.includes(campaign.affiliate_disclosure)) {
-    errors.push("every video description must include its explicit affiliate disclosure verbatim.");
+  if (campaign?.affiliate_disclosure !== AFFILIATE_DISCLOSURE ||
+      !campaign.caption.includes(AFFILIATE_DISCLOSURE)) {
+    errors.push("every video description must include the standard explicit affiliate disclosure verbatim.");
   }
   if (typeof campaign?.script_text !== "string") errors.push("campaign needs its complete original narration script.");
   else {
