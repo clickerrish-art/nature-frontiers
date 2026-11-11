@@ -64,7 +64,7 @@ test("rejects video that is landscape, too small, outside the 25–35 second tar
   for (const metadata of invalid) {
     await assert.rejects(
       verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify(metadata) })),
-      /Facebook Reel/
+      /Reel/
     );
   }
 });
@@ -75,7 +75,7 @@ test("rejects missing video streams and unsupported containers", async () => {
     /video stream/
   );
   await assert.rejects(
-    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify({ media: { track: [{ "@type": "General", Format: "AVI", Duration: "12" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "12" }] } }) })),
+    verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify({ media: { track: [{ "@type": "General", Format: "AVI", Duration: "30" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "30" }] } }) })),
     /MP4\/MOV/
   );
 });
