@@ -64,7 +64,10 @@ export function validateLongFormVideoCampaign(campaign) {
   if (typeof campaign?.script_text !== "string") errors.push("campaign needs its complete original narration script.");
   else {
     const words = campaign.script_text.trim().split(/\s+/).filter(Boolean).length;
-    if (words < 500 || words > 1500) errors.push("long-form narration script must contain 500–1,500 words for a 5–8 minute production.");
+    if (words < 300 || words > 1500) errors.push("long-form narration script must contain 300–1,500 words for a 3–8 minute production.");
+    if (typeof campaign?.hook_0_3s === "string" && !campaign.script_text.trim().startsWith(campaign.hook_0_3s.trim())) {
+      errors.push("the opening narration must begin with the approved first-three-second hook.");
+    }
   }
   if (!Number.isFinite(campaign?.duration_seconds) || campaign.duration_seconds < MIN_SECONDS || campaign.duration_seconds > MAX_SECONDS) {
     errors.push("long-form video duration must be between 180 and 480 seconds (3–8 minutes).");
