@@ -59,7 +59,7 @@ concurrency:
 jobs:
   safety-tests:
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -73,12 +73,8 @@ jobs:
         run: node scripts/test-publishing-safety.mjs
       - name: Test human review requirements for feed posts
         run: node --test scripts/test-facebook-feed-guards.mjs
-      - name: Ensure ffprobe is available for Reel media verification
-        run: |
-          if ! command -v ffprobe >/dev/null 2>&1; then
-            timeout 180s sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg
-          fi
-          ffprobe -version
+      - name: Verify MediaInfo is available for Reel media verification
+        run: mediainfo --Version
       - name: Check Facebook publishing script syntax
         run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-reel.mjs
       - name: Test Facebook Reel release guards and media integrity
@@ -86,7 +82,7 @@ jobs:
 
   meta-readiness:
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -110,7 +106,7 @@ jobs:
     permissions:
       contents: write
     needs: [safety-tests, meta-readiness]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
