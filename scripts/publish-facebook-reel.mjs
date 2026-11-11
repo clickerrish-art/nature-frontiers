@@ -1,5 +1,6 @@
 import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 
@@ -75,6 +76,13 @@ const live = before.campaigns.find((item) => item.id === campaign.id);
 if (!live || JSON.stringify(live) !== JSON.stringify(campaign)) {
   throw new Error("SAFE STOP: live Reel campaign snapshot changed after checkout.");
 }
+if (before.campaigns.some((item) => item.status === "publishing")) {
+  throw new Error("SAFE STOP: another campaign is in an uncertain publishing state; reconcile it first.");
+}
+const dailyCapacity = assertDailyReleaseCapacity(before.campaigns, "REEL");
+console.log("Johannesburg daily release capacity: " + dailyCapacity.longForm + "/2 long-form videos, " +
+  dailyCapacity.reels + "/1 Reel, " + dailyCapacity.total + "/3 total releases used.");
+
 const linkedVideo = before.campaigns.find((item) =>
   item.id === campaign.related_longform_campaign_id &&
   item.facebook_type === "VIDEO" &&
