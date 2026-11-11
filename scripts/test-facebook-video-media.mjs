@@ -94,3 +94,10 @@ test("checks final redirect host and fails closed when MediaInfo is unavailable"
 test("rejects missing checksum", async () => {
   await assert.rejects(verifyRemoteLongFormVideo("https://cdn.example.org/video.mp4", "missing", async () => response(), publicLookup), /SHA-256 digest/);
 });
+
+test("uses a conservative 1 GB file-size ceiling for Page video URL uploads", async () => {
+  await assert.rejects(
+    verifyRemoteLongFormVideo("https://cdn.example.org/wildlife.mp4", digest, async () => response({ length: 1024 * 1024 * 1024 + 1 }), publicLookup),
+    /maximum file size/
+  );
+});
