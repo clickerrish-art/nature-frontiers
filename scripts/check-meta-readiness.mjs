@@ -16,8 +16,8 @@ if (pageId === expectedPageId && pageToken && validVersion) {
       signal: AbortSignal.timeout(15000)
     });
     const payload = await response.json().catch(() => ({}));
-    if (response.ok && payload.id === expectedPageId) {
-      tokenPageCheck = "PASS: Page token is valid for read access to the configured Nature Frontiers Page";
+    if (response.ok && payload.id === expectedPageId && payload.name === "Nature Frontiers") {
+      tokenPageCheck = "PASS: Page token is valid for read access to the exact Nature Frontiers Page ID and name";
     } else {
       const code = payload?.error?.code ?? "unknown";
       const subcode = payload?.error?.error_subcode ?? "none";
