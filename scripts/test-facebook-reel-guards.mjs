@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
+import { REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE, buildLongFormVideoDescription } from "./video-description.mjs";
 
 const valid = {
   id: "nf-reel-001",
@@ -8,7 +9,19 @@ const valid = {
   status: "approved",
   facebook_type: "REEL",
   title: "Wildlife behaviour explained",
-  caption: "A responsible wildlife education Reel. Watch the full episode: https://www.facebook.com/watch/?v=123456789",
+  caption: buildLongFormVideoDescription({
+    seriesTitle: "Wild Encounters: Crocodile Behaviour",
+    episodeNumber: 1,
+    episodeTitle: "The Patient Ambush — Reel",
+    episodeDescription: "A responsible wildlife education Reel.",
+    nextEpisodeTeaser: "Watch the full episode for the complete story."
+  }) + "\\nWatch the full episode: https://www.facebook.com/watch/?v=123456789",
+  product_links: REQUIRED_PRODUCT_LINKS.map((item) => item.url),
+  affiliate_links: [...APPROVED_AFFILIATE_LINKS],
+  affiliate_links_verified: true,
+  affiliate_verification_note: "Owner-supplied approved Safari.com URLs; a=GM26 tracking preserved.",
+  affiliate_disclosure: AFFILIATE_DISCLOSURE,
+  product_disclosure: PRODUCT_DISCLOSURE,
   media_url: "https://cdn.example.org/wildlife.mp4",
   media_rights_confirmed: true,
   originality_confirmed: true,
@@ -71,6 +84,16 @@ test("rejects synthetic wildlife video even when fully disclosed", () => {
   const disclosure = "Visual disclosure: AI-generated illustrative animation, not documentary footage.";
   const errors = validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure, caption: `A wildlife fact. Watch the full episode: ${valid.full_video_url}. ${disclosure}` });
   assert.ok(errors.some((e) => e.includes("AI-generated or synthetic wildlife visuals are prohibited")));
+});
+
+
+test("requires all channel, product, affiliate and disclosure links in every Reel description", () => {
+  assert.ok(validateReelCampaign({ ...valid, caption: valid.caption.replace("https://www.youtube.com/@naturefrontiers-life", "") }).some((e) => e.includes("YouTube channel link")));
+  assert.ok(validateReelCampaign({ ...valid, product_links: [] }).some((e) => e.includes("all six catalogue Selar")));
+  assert.ok(validateReelCampaign({ ...valid, affiliate_links: [] }).some((e) => e.includes("all five owner-supplied Safari.com")));
+  assert.ok(validateReelCampaign({ ...valid, affiliate_links_verified: false }).some((e) => e.includes("human verification evidence")));
+  assert.ok(validateReelCampaign({ ...valid, affiliate_disclosure: "" }).some((e) => e.includes("standard affiliate disclosure")));
+  assert.ok(validateReelCampaign({ ...valid, product_disclosure: "" }).some((e) => e.includes("standard paid-product disclosure")));
 });
 
 test("requires Meta's explicit published state, not merely a completed upload or phase", () => {
