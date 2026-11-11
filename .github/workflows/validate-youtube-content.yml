@@ -12,6 +12,8 @@ on:
       - "scripts/youtube-content.mjs"
       - "scripts/test-youtube-content.mjs"
       - "package.json"
+      - "README.md"
+      - "docs/YOUTUBE_SERIES_AND_DESCRIPTION_STANDARD.md"
       - ".github/workflows/validate-youtube-content.yml"
   pull_request:
     paths:
