@@ -183,6 +183,35 @@ export function validateEpisodePlan(plan) {
   return errors;
 }
 
+export function validateSeasonPlan(season) {
+  const errors = [];
+  if (!season || typeof season !== "object" || Array.isArray(season)) return ["Season plan must be an object."];
+  if (!policy.series.some((item) => item.id === season.seriesId)) errors.push("Season must reference a configured Nature Frontiers series.");
+  if (!Number.isInteger(season.seasonNumber) || season.seasonNumber < 1) errors.push("Season number must be a positive integer.");
+  if (season.format !== "16:9") errors.push("Nature Frontiers long-form episodes must use 16:9 format.");
+  if (season.durationSeconds?.minimum !== policy.videoDurationSeconds.minimum || season.durationSeconds?.maximum !== policy.videoDurationSeconds.maximum) {
+    errors.push("Season runtime policy must match the configured 3–8 minute range.");
+  }
+  if (!Array.isArray(season.episodes) || season.episodes.length === 0) {
+    errors.push("Season must contain at least one episode concept.");
+  } else {
+    const seen = new Set();
+    for (const [index, episode] of season.episodes.entries()) {
+      const expectedNumber = index + 1;
+      if (episode?.episodeNumber !== expectedNumber) errors.push("Season episode numbers must be unique and sequential from 1.");
+      if (seen.has(episode?.episodeNumber)) errors.push("Season contains a duplicate episode number.");
+      seen.add(episode?.episodeNumber);
+      for (const field of ["title", "hookPrompt", "storyQuestion", "nextEpisodeTease"]) {
+        if (!isNonEmptyString(episode?.[field])) errors.push("Episode " + expectedNumber + " is missing " + field + ".");
+      }
+      if (episode?.status === "approved" && (episode.originalFootageVerified !== true || episode.rightsVerified !== true || episode.factCheckPassed !== true)) {
+        errors.push("Episode " + expectedNumber + " cannot be approved without original footage, rights and fact-check verification.");
+      }
+    }
+  }
+  return errors;
+}
+
 export function assertEpisodePlanValid(plan) {
   const errors = validateEpisodePlan(plan);
   if (errors.length) throw new Error("Episode plan failed validation: " + errors.join(" "));

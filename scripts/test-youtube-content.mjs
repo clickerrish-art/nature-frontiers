@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import {
   assertEpisodePlanValid,
   buildYouTubeDescription,
   getRequiredDescriptionLinks,
   validateEpisodePlan,
+  validateSeasonPlan,
   validateYouTubeDescription
 } from "./youtube-content.mjs";
+
+const season = JSON.parse(await readFile(new URL("../data/youtube-series-season-1.json", import.meta.url), "utf8"));
 
 const validPlan = {
   seriesId: "wild-encounters",
@@ -25,6 +29,13 @@ const validPlan = {
   ],
   adBreaks: []
 };
+
+test("Wild Encounters Season 1 is a complete, sequential concept slate and remains unapproved", () => {
+  assert.deepEqual(validateSeasonPlan(season), []);
+  assert.equal(season.status, "concept_only");
+  assert.ok(season.episodes.every((episode) => episode.status === "concept_only"));
+  assert.equal(new Set(season.episodes.map((episode) => episode.episodeNumber)).size, season.episodes.length);
+});
 
 test("description builder embeds the Nature Frontiers channel, every catalogue product and every Safari affiliate link", () => {
   const description = buildYouTubeDescription({
