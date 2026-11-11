@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateLongFormVideoCampaign, toMetaAdBreakOffsetsMilliseconds } from "./facebook-video-guards.mjs";
 import { verifyRemoteLongFormVideo } from "./facebook-video-media.mjs";
 
@@ -108,6 +109,10 @@ try {
   if (before.campaigns.some((item) => item.status === "publishing")) {
     throw new Error("SAFE STOP: another campaign is already in an uncertain publishing state; reconcile it first.");
   }
+  const dailyCapacity = assertDailyReleaseCapacity(before.campaigns, "VIDEO");
+  console.log("Johannesburg daily release capacity: " + dailyCapacity.longForm + "/2 long-form videos, " +
+    dailyCapacity.reels + "/1 Reel, " + dailyCapacity.total + "/3 total releases used.");
+
   const reservedItems = before.campaigns.map((item) => item.id === campaign.id
     ? { ...item, status: "publishing", publishing_started_at: new Date().toISOString() }
     : item);
