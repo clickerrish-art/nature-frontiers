@@ -28,6 +28,7 @@ export function validateReelCampaign(campaign) {
 }
 
 export function isReelPublished(payload) {
-  const status = payload?.status;
-  return status?.publishing_phase?.status === "complete" || status?.video_status === "published";
+  // A completed publishing phase can still represent a scheduled or draft Reel.
+  // Require Meta's explicit published state; upload/processing completion is not enough.
+  return payload?.status?.publishing_phase?.publish_status === "published";
 }
