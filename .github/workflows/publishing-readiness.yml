@@ -13,14 +13,16 @@ on:
       - "codex/facebook-reels-publisher"
     paths:
       - "scripts/check-meta-readiness.mjs"
-      - "scripts/publish-facebook.mjs"
-      - "scripts/facebook-feed-guards.mjs"
-      - "scripts/test-facebook-feed-guards.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
       - "scripts/test-facebook-reel-media.mjs"
       - "scripts/test-facebook-reel-guards.mjs"
+      - "scripts/publish-facebook-video.mjs"
+      - "scripts/facebook-video-guards.mjs"
+      - "scripts/facebook-video-media.mjs"
+      - "scripts/test-facebook-video-guards.mjs"
+      - "scripts/test-facebook-video-media.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "data/campaigns.json"
       - "data/products.json"
@@ -30,9 +32,6 @@ on:
   pull_request:
     paths:
       - "scripts/check-meta-readiness.mjs"
-      - "scripts/publish-facebook.mjs"
-      - "scripts/facebook-feed-guards.mjs"
-      - "scripts/test-facebook-feed-guards.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
@@ -71,14 +70,14 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed feed publishing controls
         run: node scripts/test-publishing-safety.mjs
-      - name: Test human review requirements for feed posts
-        run: node --test scripts/test-facebook-feed-guards.mjs
       - name: Verify MediaInfo is available for Reel media verification
         run: mediainfo --Version
       - name: Check Facebook publishing script syntax
-        run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-reel.mjs
+        run: node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs
       - name: Test Facebook Reel release guards and media integrity
         run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
+      - name: Test long-form video guards and media integrity
+        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs
 
   meta-readiness:
     timeout-minutes: 5
@@ -106,6 +105,7 @@ jobs:
     permissions:
       contents: write
     needs: [safety-tests, meta-readiness]
+    timeout-minutes: 10
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
@@ -114,7 +114,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-      - name: Run gated Facebook Page adapter
+      - name: Run gated long-form Facebook Page video adapter
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
@@ -124,8 +124,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
-        run: node scripts/publish-facebook.mjs
-      - name: Run gated Facebook Reels adapter
+        run: node scripts/publish-facebook-video.mjs
+      - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
