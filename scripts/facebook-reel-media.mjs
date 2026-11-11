@@ -49,10 +49,16 @@ async function assertPublicHttpsUrl(value, lookupImpl) {
   ) {
     throw new Error("Reel media URL must be a public HTTPS URL without credentials, fragments, or non-standard ports.");
   }
-  const literalFamily = isIP(url.hostname);
+  const hostname = url.hostname.startsWith("[") && url.hostname.endsWith("]")
+    ? url.hostname.slice(1, -1)
+    : url.hostname;
+  if (hostname.startsWith("2001:db8:")) {
+    throw new Error("Reel media host resolves to a non-public or unverified network address.");
+  }
+  const literalFamily = isIP(hostname);
   const addresses = literalFamily
-    ? [{ address: url.hostname, family: literalFamily }]
-    : await lookupImpl(url.hostname, { all: true, verbatim: true });
+    ? [{ address: hostname, family: literalFamily }]
+    : await lookupImpl(hostname, { all: true, verbatim: true });
   if (!Array.isArray(addresses) || addresses.length === 0 || addresses.some((entry) => !isPublicAddress(entry.address))) {
     throw new Error("Reel media host resolves to a non-public or unverified network address.");
   }
