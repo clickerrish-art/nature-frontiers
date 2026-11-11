@@ -4,7 +4,7 @@ const pageToken = process.env.META_PAGE_ACCESS_TOKEN ?? "";
 const graphVersion = process.env.META_GRAPH_API_VERSION ?? "";
 const publishEnabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
-const validVersion = /^v\\d+\\.\\d+$/.test(graphVersion);
+const validVersion = /^v\d+\.\d+$/.test(graphVersion);
 let tokenPageCheck = "NOT TESTED";
 
 if (pageId === expectedPageId && pageToken && validVersion) {
