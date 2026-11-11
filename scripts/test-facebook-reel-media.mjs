@@ -92,9 +92,9 @@ test("rejects private, loopback, link-local and malformed URLs", async () => {
     "http://cdn.example.org/video.mp4", "https://user:pass@cdn.example.org/video.mp4",
     "https://cdn.example.org:8443/video.mp4", "https://localhost/video.mp4",
     "https://127.0.0.1/video.mp4", "https://10.0.0.5/video.mp4",
-    "https://169.254.1.2/video.mp4", "https://[::1]/video.mp4",
+    "https://169.254.1.2/video.mp4", "https://192.88.99.1/video.mp4", "https://[::1]/video.mp4",
     "https://[::ffff:7f00:1]/video.mp4", "https://[2002:7f00:1::1]/video.mp4",
-    "https://[2001:db8::1]/video.mp4", "https://cdn.example.org/video.mp4#fragment"
+    "https://[2001:db8::1]/video.mp4", "https://[3fff::1]/video.mp4", "https://cdn.example.org/video.mp4#fragment"
   ]) {
     await assert.rejects(verifyRemoteMedia(url, digest, async () => response(), publicLookup), /public HTTPS|non-public/);
   }
