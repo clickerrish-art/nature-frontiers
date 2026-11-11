@@ -8,15 +8,17 @@ export function assertApprovedPostingWindow(value = new Date()) {
     timeZone: TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
     hourCycle: "h23"
   }).formatToParts(date);
   const fields = Object.fromEntries(parts.map((part) => [part.type, part.value]));
   const hour = Number(fields.hour);
   const minute = Number(fields.minute);
-  if (!APPROVED_POSTING_SLOTS.some((slot) => slot.hour === hour && slot.minute === minute)) {
-    throw new Error("Publication is restricted to 11:00 and 16:00 Africa/Johannesburg (10:00 and 15:00 WAT).");
+  const second = Number(fields.second);
+  if (second !== 0 || date.getUTCMilliseconds() !== 0 || !APPROVED_POSTING_SLOTS.some((slot) => slot.hour === hour && slot.minute === minute)) {
+    throw new Error("Publication is restricted to exactly 11:00:00 and 16:00:00 Africa/Johannesburg (10:00:00 and 15:00:00 WAT).");
   }
-  return { timeZone: TIME_ZONE, hour, minute };
+  return { timeZone: TIME_ZONE, hour, minute, second };
 }
 const MAX_LONG_FORM_PER_DAY = 2;
 const MAX_REELS_PER_DAY = 1;
