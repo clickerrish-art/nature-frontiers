@@ -58,11 +58,10 @@ for (const [field, value] of [
   });
 }
 
-test("blocks synthetic media without a matching disclosure in the caption", () => {
-  assert.ok(validateReelCampaign({ ...valid, synthetic_visuals: true }).some((e) => e.includes("disclosure")));
+test("rejects synthetic wildlife video even when fully disclosed", () => {
   const disclosure = "Visual disclosure: AI-generated illustrative animation, not documentary footage.";
-  assert.ok(validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure }).some((e) => e.includes("caption")));
-  assert.deepEqual(validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure, caption: `A wildlife fact. Watch the full episode: ${valid.full_video_url}. ${disclosure}` }), []);
+  const errors = validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure, caption: `A wildlife fact. Watch the full episode: ${valid.full_video_url}. ${disclosure}` });
+  assert.ok(errors.some((e) => e.includes("AI-generated or synthetic wildlife visuals are prohibited")));
 });
 
 test("requires Meta's explicit published state, not merely a completed upload or phase", () => {
