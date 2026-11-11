@@ -4,7 +4,7 @@
 **Target length:** 3–8 minutes (this draft is paced for approximately four minutes; measure the final narration)  
 **Status:** SCRIPT DRAFT — not approved for recording or publication  
 **Opening hook:** “When the water changes, the whole habitat changes with it.”  
-**First ad-break marker:** 02:30, after the habitat-use research
+**First ad-break marker:** 02:00, after the habitat-use research
 
 ## Narration draft
 
@@ -22,7 +22,7 @@ This is an important distinction. A pattern recorded in one river system does no
 
 For a wildlife filmmaker, this creates an opportunity to tell a more complete story. Instead of presenting a crocodile as an isolated animal, show the habitat around it. Record the waterline, banks, vegetation and other visible features. Return to the same viewpoint when possible. A repeated camera position can reveal change without needing exaggerated narration.
 
-**[META AD BREAK — 02:30 — place after the explanation of habitat-use research and before the field-observation section.]**
+**[META AD BREAK — 02:00 — place after the explanation of habitat-use research and before the field-observation section.]**
 
 There is also a reason to be careful with the word “migration”. A crocodile moving from one part of a waterway to another is not automatically making a seasonal migration. Use that term only when a study or tracking data supports it.
 
