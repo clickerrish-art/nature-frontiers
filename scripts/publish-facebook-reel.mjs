@@ -90,7 +90,7 @@ const linkedVideo = before.campaigns.find((item) =>
   item.platform_video_url === campaign.full_video_url &&
   typeof item.platform_video_id === "string"
 );
-if (!linkedVideo) stop("The linked long-form episode is not yet confirmed published at the exact URL in this Reel; refusing to publish a disconnected funnel clip.");
+if (!linkedVideo) throw new Error("SAFE STOP: the linked long-form episode is not yet confirmed published at the exact URL in this Reel; refusing to publish a disconnected funnel clip.");
 const reserved = before.campaigns.map((item) => item.id === campaign.id
   ? { ...item, status: "publishing", publishing_started_at: new Date().toISOString() }
   : item);
