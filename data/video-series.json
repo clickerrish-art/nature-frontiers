@@ -1,0 +1,129 @@
+{
+  "series_id": "wild-encounters-crocodile-behaviour",
+  "series_title": "Wild Encounters: Crocodile Behaviour",
+  "format": "Original landscape wildlife documentary episodes",
+  "target_duration_seconds": {
+    "min": 180,
+    "max": 480
+  },
+  "timezone": "Africa/Johannesburg",
+  "episode_policy": "Each episode is a self-contained story and advances the series arc. Research and fact-check every factual claim before scripting. Film only genuine original camera recordings with retained source files and verified rights. Never substitute stock footage, AI-generated video, staged encounters or animation.",
+  "production_status": "PLANNED — no episode is production-ready until genuine original camera footage, rights, factual review and final human approval are recorded.",
+  "episodes": [
+    {
+      "episode_number": 1,
+      "episode_title": "The Stillness Before the Strike",
+      "topic": "How crocodiles use patience, positioning and their environment when ambushing prey.",
+      "hook": "The river looks empty — until the surface moves.",
+      "story_beats": [
+        "Open on a real, unaltered observation of a crocodile in its habitat",
+        "Explain the documented behaviour and environmental context",
+        "Show how patience and positioning fit the animal's hunting strategy",
+        "Separate observed footage from researched explanation",
+        "Close by introducing the sensory world beneath the surface"
+      ],
+      "target_duration_seconds": 360,
+      "hook_duration_seconds": 30,
+      "editorial_ad_breaks_seconds": [
+        180
+      ],
+      "next_episode_teaser": "Next: how a crocodile detects and responds to a world beneath the water."
+    },
+    {
+      "episode_number": 2,
+      "episode_title": "A World Beneath the Water",
+      "topic": "Crocodile sensory adaptations and how they perceive movement and their surroundings.",
+      "hook": "Under the surface, a crocodile is responding to details we can barely see.",
+      "story_beats": [
+        "Begin with an authentic underwater or waterline observation",
+        "Explain sensory structures only after checking authoritative research",
+        "Connect each explanation to visible behaviour without overstating what the camera proves",
+        "Clarify the difference between established science and inference",
+        "Tease the mechanics of the ambush"
+      ],
+      "target_duration_seconds": 360,
+      "hook_duration_seconds": 30,
+      "editorial_ad_breaks_seconds": [
+        180
+      ],
+      "next_episode_teaser": "Next: the mechanics of the strike — and why the waiting matters."
+    },
+    {
+      "episode_number": 3,
+      "episode_title": "The Split-Second Ambush",
+      "topic": "The sequence, mechanics and ecological context of crocodile hunting behaviour.",
+      "hook": "The strike is fast. The waiting is the real story.",
+      "story_beats": [
+        "Start with genuine footage that shows the behaviour without misleading edits",
+        "Establish the sequence before explaining it",
+        "Use sourced research for bite, movement and hunting claims",
+        "Avoid graphic close-ups and sensational claims",
+        "Connect hunting behaviour to the animal's habitat"
+      ],
+      "target_duration_seconds": 360,
+      "hook_duration_seconds": 30,
+      "editorial_ad_breaks_seconds": [
+        180
+      ],
+      "next_episode_teaser": "Next: the hidden story of nests, hatchlings and early survival."
+    },
+    {
+      "episode_number": 4,
+      "episode_title": "A Crocodile's Early Life",
+      "topic": "Nesting, hatchlings, early survival and documented parental behaviour.",
+      "hook": "For an animal this powerful, life begins in a surprisingly vulnerable place.",
+      "story_beats": [
+        "Open with naturally recorded nesting or hatchling footage only if available",
+        "Verify species-specific nesting and parental-care facts",
+        "Explain threats to eggs and hatchlings using reliable sources",
+        "Avoid disturbing nests or approaching vulnerable animals",
+        "Bridge to seasonal habitat pressures"
+      ],
+      "target_duration_seconds": 360,
+      "hook_duration_seconds": 30,
+      "editorial_ad_breaks_seconds": [
+        180
+      ],
+      "next_episode_teaser": "Next: what happens when changing water levels reshape a crocodile's habitat."
+    },
+    {
+      "episode_number": 5,
+      "episode_title": "When the River Changes",
+      "topic": "Seasonal water levels, habitat change, competition and survival pressures.",
+      "hook": "When the water changes, the whole habitat changes with it.",
+      "story_beats": [
+        "Show a real, location-identified habitat observation",
+        "Use local ecological sources for seasonal and hydrological context",
+        "Distinguish species-wide facts from local observations",
+        "Explain how habitat conditions affect wildlife without implying a universal pattern",
+        "Set up the wider ecological role of crocodiles"
+      ],
+      "target_duration_seconds": 360,
+      "hook_duration_seconds": 30,
+      "editorial_ad_breaks_seconds": [
+        180
+      ],
+      "next_episode_teaser": "Final episode: what crocodiles reveal about the health of the river ecosystem."
+    },
+    {
+      "episode_number": 6,
+      "episode_title": "The River's Hidden Balance",
+      "topic": "Crocodiles in the wider ecosystem, coexistence and conservation context.",
+      "hook": "A crocodile's story reaches far beyond the animal itself.",
+      "story_beats": [
+        "Open with a wide, authentic habitat sequence",
+        "Explain ecological relationships using authoritative sources",
+        "Include conservation context only where location and species evidence support it",
+        "Avoid simplistic claims that one species alone controls ecosystem health",
+        "Resolve the series arc and invite viewers to continue with the next Wild Encounters series"
+      ],
+      "target_duration_seconds": 420,
+      "hook_duration_seconds": 30,
+      "editorial_ad_breaks_seconds": [
+        180,
+        330
+      ],
+      "next_episode_teaser": "The next Wild Encounters series follows another species through its real habitat and behaviour."
+    }
+  ]
+}
