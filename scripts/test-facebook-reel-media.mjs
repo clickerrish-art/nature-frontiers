@@ -15,7 +15,7 @@ const validMetadata = {
 };
 const validProbe = async () => ({ stdout: JSON.stringify(validMetadata) });
 
-function response({ body = bytes, status = 200, type = "video/mp4", url = "https://cdn.example.org/wildlife.mp4", length } = {}) {
+function response({ body = bytes, status = 200, type = "video/mp4", url = "https://cdn.example.org/wildlife.mp4", length, location } = {}) {
   return {
     ok: status >= 200 && status < 300,
     status,
@@ -25,6 +25,7 @@ function response({ body = bytes, status = 200, type = "video/mp4", url = "https
         const key = name.toLowerCase();
         if (key === "content-type") return type;
         if (key === "content-length") return length === undefined ? String(body.length) : String(length);
+        if (key === "location") return location ?? null;
         return null;
       }
     },
@@ -111,8 +112,32 @@ test("rejects DNS names resolving to private or mixed public/private addresses",
   await assert.rejects(verifyRemoteMedia("https://cdn.example.org/video.mp4", digest, async () => response(), mixedLookup), /non-public/);
 });
 
-test("checks the final redirect host and refuses private redirect targets", async () => {
-  await assert.rejects(verifyRemoteMedia("https://cdn.example.org/video.mp4", digest, async () => response({ url: "https://127.0.0.1/redirected.mp4" }), publicLookup), /non-public/);
+test("validates redirect targets before requesting them", async () => {
+  let calls = 0;
+  await assert.rejects(
+    verifyRemoteMedia("https://cdn.example.org/video.mp4", digest, async (url, options) => {
+      calls++;
+      assert.equal(options.redirect, "manual");
+      return response({ status: 302, location: "https://127.0.0.1/redirected.mp4" });
+    }, publicLookup),
+    /non-public/
+  );
+  assert.equal(calls, 1, "private redirect target must never be requested");
+});
+
+test("follows a public redirect only after validating the destination", async () => {
+  let calls = 0;
+  const result = await verifyRemoteMedia("https://cdn.example.org/video.mp4", digest, async (url, options) => {
+    calls++;
+    assert.equal(options.redirect, "manual");
+    return calls === 1
+      ? response({ status: 302, location: "https://media.example.org/wildlife.mp4" })
+      : response({ url: "https://media.example.org/wildlife.mp4" });
+  }, publicLookup, undefined, validProbe);
+  try {
+    assert.equal(calls, 2);
+    assert.equal(result.finalUrl, "https://media.example.org/wildlife.mp4");
+  } finally { await result.cleanup(); }
 });
 
 test("fails closed when MediaInfo is unavailable", async () => {
