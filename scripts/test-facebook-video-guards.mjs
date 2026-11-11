@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { validateLongFormVideoCampaign } from "./facebook-video-guards.mjs";
 import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, buildLongFormVideoDescription } from "./video-description.mjs";
 
@@ -65,7 +66,20 @@ const valid = {
 };
 
 
-test("builds a series description containing the channel, all catalogue products and every approved Safari tracking URL", () => {
+
+test("series plan contains six sequential 3–8 minute episodes with hook-first ad-break notes", async () => {
+  const plan = JSON.parse(await readFile(new URL("../data/video-series.json", import.meta.url), "utf8"));
+  assert.equal(plan.episodes.length, 6);
+  for (const [index, episode] of plan.episodes.entries()) {
+    assert.equal(episode.episode_number, index + 1);
+    assert.ok(episode.target_duration_seconds >= 180 && episode.target_duration_seconds <= 480);
+    assert.ok(episode.hook_duration_seconds >= 15 && episode.hook_duration_seconds <= 60);
+    assert.ok(episode.editorial_ad_breaks_seconds[0] >= episode.hook_duration_seconds + 60);
+    assert.equal(episode.editorial_ad_break_notes.length, episode.editorial_ad_breaks_seconds.length);
+    assert.ok(episode.next_episode_teaser.trim());
+  }
+});
+\ntest("builds a series description containing the channel, all catalogue products and every approved Safari tracking URL", () => {
   const description = valid.caption;
   assert.ok(description.includes(NATURE_FRONTIERS_YOUTUBE_URL));
   for (const item of REQUIRED_PRODUCT_LINKS) assert.ok(description.includes(item.url));
