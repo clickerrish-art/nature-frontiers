@@ -42,6 +42,8 @@ For more original wildlife stories, follow Nature Frontiers on YouTube and conti
 
 ## Footage and editorial requirements
 
+- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+
 - Original camera footage only; retain the unedited source file and SHA-256 hash.
 - Species and location must be identified only where the evidence supports them.
 - Capture waterline, head, jaw and body-scale details only from genuine recordings.
