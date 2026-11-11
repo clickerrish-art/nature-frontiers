@@ -193,6 +193,11 @@ test("requires the series identity, channel destination, product link, affiliate
   assert.ok(validateLongFormVideoCampaign({ ...valid, product_disclosure: "" }).some((e) => e.includes("standard paid-product disclosure")));
 });
 
+test("fails closed without throwing when the video description is missing", () => {
+  const errors = validateLongFormVideoCampaign({ ...valid, caption: undefined });
+  assert.ok(errors.some((e) => e.includes("YouTube channel link")));
+});
+
 test("requires the opening narration to start with the documented hook", () => {
   assert.ok(validateLongFormVideoCampaign({ ...valid, script_text: "Welcome back. " + valid.script_text }).some((e) => e.includes("begin with the approved first-three-second hook")));
 });
