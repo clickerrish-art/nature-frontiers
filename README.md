@@ -11,7 +11,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 - **Publishing:** keep `PUBLISH_ENABLED=false` and `PUBLISH_DRY_RUN=true`. Do not enable live publishing until the human launch checklist is complete.
 - **Nature Frontiers YouTube content standard:** long-form episodes are 3–8 minutes (16:9), planned as numbered series episodes, with the hook first and every description generated with the channel link, all catalogue product links, all owner-supplied Safari.com affiliate links and disclosures. See [the YouTube series and release standard](docs/YOUTUBE_SERIES_AND_DESCRIPTION_STANDARD.md).
 - **YouTube publishing:** the owner-supplied channel URL is `https://www.youtube.com/@naturefrontiers-life`; authenticated channel identity, OAuth upload, monetization and automatic scheduling are not yet verified or enabled. Content packaging tests do not prove live publishing.
-- **YouTube content CI:** the standalone `Validate Nature Frontiers YouTube content` workflow checks the policy JSON, series slate, module syntax and regression tests without depending on Meta credentials or invoking a publishing adapter.
+- **YouTube content CI:** the standalone `Validate Nature Frontiers YouTube content` workflow checks the policy JSON, product catalogue, series slate, module syntax and regression tests without depending on Meta credentials or invoking a publishing adapter. Mid-roll slots require an actual story-segment boundary plus reviewer, timestamp and placement note.
 - **Website and social accounts:** check these separately; a passing repository validator does not verify the live website, current checkout price, Meta permissions, or published social posts.
 
 ## YouTube content packaging
