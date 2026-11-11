@@ -14,12 +14,12 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 ## Latest branch verification
 
 - Implementation branch: `codex/facebook-reels-publisher`
-- Tested branch head: `92c440a9e311492f6ef1b1fbfac72b185b07281c`
-- GitHub Actions run #343: https://github.com/clickerrish-art/nature-frontiers/actions/runs/43103794192
-- Result: success. Reel guard/media 39/39; long-form guard/media and six script-draft checks 61/61; Johannesburg cadence 7/7; catalogue and fail-closed checks passed.
+- Tested application source SHA: `b24e2e32ebc16c3d83999e596fd310a6a9d1acb1`
+- GitHub Actions run #361: https://github.com/clickerrish-art/nature-frontiers/actions/runs/43104285026
+- Result: success. Reel guard/media and description-link tests 41/41; long-form guard/media, six episode scripts and all six description-manifest checks 63/63; Johannesburg cadence 7/7; catalogue and fail-closed checks passed.
 - Meta read-only check: exact Page ID and Page name verified. Publishing permission is not established by this read check.
 - Live publisher job skipped; no public Facebook post or video upload was made.
-- Six narration drafts and their series plan exist, but there is no approved original-camera footage, final media export, rights package or final human approval yet. Live publishing remains disabled.
+- Six sourced narration drafts and six complete descriptions exist, but no approved original-camera footage, final media exports, rights packages or final human approvals exist yet. Live publishing remains disabled.
 
 ## Long-form series and description requirements
 
