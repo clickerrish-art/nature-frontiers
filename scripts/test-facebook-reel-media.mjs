@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 
 const bytes = Buffer.from("original wildlife video bytes");
@@ -24,14 +25,19 @@ function response({ body = bytes, status = 200, type = "video/mp4", url = "https
   };
 }
 
-test("verifies remote video bytes, public DNS and SHA-256", async () => {
+test("stages the exact remote video bytes that passed the approved SHA-256 check", async () => {
   const result = await verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup);
-  assert.equal(result.bytes, bytes.length);
-  assert.equal(result.sha256, digest);
-  assert.equal(result.contentType, "video/mp4");
+  try {
+    assert.equal(result.bytes, bytes.length);
+    assert.equal(result.sha256, digest);
+    assert.equal(result.contentType, "video/mp4");
+    assert.deepEqual(await readFile(result.filePath), bytes);
+  } finally {
+    await result.cleanup();
+  }
 });
 
-test("rejects a changed remote file before upload", async () => {
+test("rejects a changed remote file and removes its temporary copy", async () => {
   await assert.rejects(
     verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response({ body: Buffer.from("changed video") }), publicLookup),
     /SHA-256 does not match/
