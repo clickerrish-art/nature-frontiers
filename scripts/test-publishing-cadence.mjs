@@ -2,12 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { APPROVED_POSTING_SLOTS, assertApprovedPostingWindow, assertDailyReleaseCapacity, getJohannesburgDailyReleaseCounts, johannesburgDateKey } from "./publishing-cadence.mjs";
 
-test("allows only 11:00 and 16:00 SAST, equivalent to 10:00 and 15:00 WAT", () => {
+test("allows only exact 11:00:00 and 16:00:00 SAST, equivalent to 10:00:00 and 15:00:00 WAT", () => {
   assert.deepEqual(APPROVED_POSTING_SLOTS, [{ hour: 11, minute: 0 }, { hour: 16, minute: 0 }]);
-  assert.deepEqual(assertApprovedPostingWindow("2026-11-12T09:00:00.000Z"), { timeZone: "Africa/Johannesburg", hour: 11, minute: 0 });
-  assert.deepEqual(assertApprovedPostingWindow("2026-11-12T14:00:00.000Z"), { timeZone: "Africa/Johannesburg", hour: 16, minute: 0 });
-  assert.throws(() => assertApprovedPostingWindow("2026-11-12T08:59:00.000Z"), /restricted to 11:00 and 16:00/);
-  assert.throws(() => assertApprovedPostingWindow("2026-11-12T12:00:00.000Z"), /restricted to 11:00 and 16:00/);
+  assert.deepEqual(assertApprovedPostingWindow("2026-11-12T09:00:00.000Z"), { timeZone: "Africa/Johannesburg", hour: 11, minute: 0, second: 0 });
+  assert.deepEqual(assertApprovedPostingWindow("2026-11-12T14:00:00.000Z"), { timeZone: "Africa/Johannesburg", hour: 16, minute: 0, second: 0 });
+  assert.throws(() => assertApprovedPostingWindow("2026-11-12T08:59:00.000Z"), /restricted to exactly 11:00:00 and 16:00:00/);
+  assert.throws(() => assertApprovedPostingWindow("2026-11-12T09:00:01.000Z"), /restricted to exactly 11:00:00 and 16:00:00/);
+  assert.throws(() => assertApprovedPostingWindow("2026-11-12T09:00:00.001Z"), /restricted to exactly 11:00:00 and 16:00:00/);
+  assert.throws(() => assertApprovedPostingWindow("2026-11-12T12:00:00.000Z"), /restricted to exactly 11:00:00 and 16:00:00/);
 });
 
 test("uses the Africa/Johannesburg calendar date rather than UTC", () => {
