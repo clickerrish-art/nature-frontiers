@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const sharedEnv = {
-  META_PAGE_ID: "1090224080838313",
+  META_PAGE_ID: "1003575786161492",
   META_PAGE_ACCESS_TOKEN: "not-a-real-token-used-only-for-safe-stop-tests",
   META_GRAPH_API_VERSION: "v27.0",
   GITHUB_REPOSITORY: "clickerrish-art/nature-frontiers",
