@@ -1,10 +1,10 @@
 # Episode 6 — The River's Hidden Balance
 
 **Series:** Wild Encounters: Crocodile Behaviour  
-**Target length:** 6–7 minutes  
+**Target length:** 3–8 minutes (this draft is paced for approximately four minutes; measure the final narration)  
 **Status:** SCRIPT DRAFT — not approved for recording or publication  
 **Opening hook:** “A crocodile's story reaches far beyond the animal itself.”  
-**Ad-break markers:** 03:00 and 05:30, only at natural transitions
+**Ad-break marker:** 02:30, only at natural transitions
 
 ## Narration draft
 
@@ -24,7 +24,7 @@ There is another reason to be precise. Crocodiles are often described as keyston
 
 That does not make crocodiles unimportant. It means good conservation storytelling should separate what has been demonstrated from what still needs to be studied.
 
-**[META AD BREAK — 03:00 — place after the global-versus-regional status explanation and before the discussion of evidence gaps.]**
+**[META AD BREAK — 02:30 — place after the global-versus-regional status explanation and before the discussion of evidence gaps.]**
 
 For the Nile crocodile, conservation depends on local knowledge: reliable population surveys, healthy wetlands and rivers, sound water management, and practical ways for people and wildlife to share landscapes safely.
 
