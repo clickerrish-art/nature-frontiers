@@ -77,16 +77,15 @@ for (const [field, value] of [
   });
 }
 
-test("requires an exact AI disclosure for synthetic visuals", () => {
+test("rejects synthetic wildlife video even when fully disclosed", () => {
   const disclosure = "Visual disclosure: AI-generated illustrative scenes, not documentary footage.";
-  assert.ok(validateLongFormVideoCampaign({ ...valid, synthetic_visuals: true }).some((e) => e.includes("AI/illustrative disclosure")));
-  assert.ok(validateLongFormVideoCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure }).some((e) => e.includes("caption")));
-  assert.deepEqual(validateLongFormVideoCampaign({
+  const errors = validateLongFormVideoCampaign({
     ...valid,
     synthetic_visuals: true,
     ai_disclosure: disclosure,
     caption: valid.caption + " " + disclosure
-  }), []);
+  });
+  assert.ok(errors.some((e) => e.includes("AI-generated or synthetic wildlife visuals are prohibited")));
 });
 
 test("requires at least 500 words of original narration and evidence links", () => {
