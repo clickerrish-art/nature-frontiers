@@ -51,7 +51,7 @@ jobs:
         env:
           META_PAGE_ID: "1003575786161492"
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          META_GRAPH_API_VERSION: "v26.0"
+          META_GRAPH_API_VERSION: "v27.0"
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN }}
         run: node scripts/check-meta-readiness.mjs
@@ -83,7 +83,7 @@ jobs:
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
-          META_GRAPH_API_VERSION: "v26.0"
+          META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: "1003575786161492"
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -94,7 +94,7 @@ jobs:
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
-          META_GRAPH_API_VERSION: "v26.0"
+          META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: "1003575786161492"
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
