@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { validateLongFormVideoCampaign } from "./facebook-video-guards.mjs";
+import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, buildLongFormVideoDescription } from "./video-description.mjs";
 
 const valid = {
   id: "nf-video-001",
@@ -9,7 +10,13 @@ const valid = {
   status: "approved",
   facebook_type: "VIDEO",
   title: "How Crocodiles Wait for the Perfect Moment",
-  caption: "Original wildlife documentary narration and episode description. Follow the series: https://www.youtube.com/@naturefrontiers-life\\nExplore the Wildlife Creator’s Vault: https://selar.com/0u19v8u99l\\nSafari partner offer: https://affiliate.example.org/click?aid=123&src=naturefrontiers\\nDisclosure: Some links are affiliate links. If you book through them, Nature Frontiers may earn a commission at no extra cost to you.",
+  caption: buildLongFormVideoDescription({
+    seriesTitle: "Wild Encounters: Crocodile Behaviour",
+    episodeNumber: 1,
+    episodeTitle: "The Patient Ambush",
+    episodeDescription: "Original wildlife documentary narration and episode description.",
+    nextEpisodeTeaser: "Next episode explores how a crocodile detects movement below the waterline."
+  }),
   hook_0_3s: "It has barely moved. It has not stopped watching.",
   hook_duration_seconds: 30,
   series_id: "crocodile-behaviour",
@@ -18,10 +25,11 @@ const valid = {
   episode_title: "The Patient Ambush",
   series_arc: "A multi-episode exploration of crocodile senses, ambush behaviour, hunting ecology and conservation.",
   next_episode_teaser: "Next episode explores how a crocodile detects movement below the waterline.",
-  affiliate_links: ["https://affiliate.example.org/click?aid=123&src=naturefrontiers"],
+  product_links: REQUIRED_PRODUCT_LINKS.map((item) => item.url),
+  affiliate_links: [...APPROVED_AFFILIATE_LINKS],
   affiliate_links_verified: true,
   affiliate_verification_note: "Owner-confirmed active Safari.com tracking URL; destination and attribution checked."
-  affiliate_disclosure: "Disclosure: Some links are affiliate links. If you book through them, Nature Frontiers may earn a commission at no extra cost to you.",
+  affiliate_disclosure: AFFILIATE_DISCLOSURE,
   script_text: "It has barely moved. It has not stopped watching. " + Array(700).fill("wildlife").join(" "),
   duration_seconds: 360,
   media_url: "https://cdn.example.org/sha256/wildlife.mp4",
@@ -56,7 +64,17 @@ const valid = {
   editorial_ad_break_notes: ["After the first explanation of ambush posture, before the underwater sensory reveal."]
 };
 
-test("accepts an approved, reviewed 3–8 minute original landscape-video series episode manifest", () => {
+
+test("builds a series description containing the channel, all catalogue products and every approved Safari tracking URL", () => {
+  const description = valid.caption;
+  assert.ok(description.includes(NATURE_FRONTIERS_YOUTUBE_URL));
+  for (const item of REQUIRED_PRODUCT_LINKS) assert.ok(description.includes(item.url));
+  for (const link of APPROVED_AFFILIATE_LINKS) assert.ok(description.includes(link));
+  assert.ok(description.includes(AFFILIATE_DISCLOSURE));
+  assert.match(description, /Episode 1: The Patient Ambush/);
+  assert.throws(() => buildLongFormVideoDescription({ seriesTitle: "Series", episodeNumber: 0, episodeTitle: "Title", episodeDescription: "Body", nextEpisodeTeaser: "Next" }), /positive integer/);
+});
+\ntest("accepts an approved, reviewed 3–8 minute original landscape-video series episode manifest", () => {
   assert.deepEqual(validateLongFormVideoCampaign(valid), []);
 });
 
@@ -146,12 +164,12 @@ test("accepts a three-minute episode and keeps the opening hook before the first
 
 test("requires the series identity, channel destination, product link, affiliate URL and disclosure in every description", () => {
   assert.ok(validateLongFormVideoCampaign({ ...valid, series_id: "" }).some((e) => e.includes("named series")));
-  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://www.youtube.com/@naturefrontiers-life", "") }).some((e) => e.includes("YouTube channel link")));
-  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://selar.com/0u19v8u99l", "") }).some((e) => e.includes("approved Wildlife Creator")));
-  assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_links: [] }).some((e) => e.includes("affiliate tracking URL")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace(NATURE_FRONTIERS_YOUTUBE_URL, "") }).some((e) => e.includes("YouTube channel link")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, product_links: [] }).some((e) => e.includes("all six owner-catalogued Selar product URLs")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_links: [] }).some((e) => e.includes("all five owner-approved Safari.com affiliate URLs")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_links_verified: false }).some((e) => e.includes("human-verified")));
-  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace("https://affiliate.example.org/click?aid=123&src=naturefrontiers", "") }).some((e) => e.includes("embedded verbatim")));
-  assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_disclosure: "" }).some((e) => e.includes("explicit affiliate disclosure")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, caption: valid.caption.replace(APPROVED_AFFILIATE_LINKS[0], "") }).some((e) => e.includes("all five owner-approved Safari.com affiliate URLs")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, affiliate_disclosure: "" }).some((e) => e.includes("standard explicit affiliate disclosure")));
 });
 
 test("requires the opening narration to start with the documented hook", () => {
