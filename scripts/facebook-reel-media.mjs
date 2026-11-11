@@ -22,7 +22,7 @@ function isPublicIPv4(address) {
     (a === 100 && b >= 64 && b <= 127) ||
     (a === 169 && b === 254) ||
     (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && (b === 0 || b === 168)) ||
+    (a === 192 && (b === 0 || b === 168 || (b === 88 && c === 99))) ||
     (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) ||
     (a === 203 && b === 0 && c === 113)
   );
@@ -34,7 +34,7 @@ function isPublicIPv6(address) {
   const first = Number.parseInt(value.split(":")[0] || "0", 16);
   const second = Number.parseInt(value.split(":")[1] || "0", 16);
   if (!Number.isFinite(first) || first < 0x2000 || first > 0x3fff) return false;
-  if (first === 0x2002 || (first === 0x2001 && second <= 0x01ff)) return false;
+  if (first === 0x2002 || (first === 0x2001 && second <= 0x01ff) || (first === 0x3fff && second <= 0x0fff)) return false;
   if (value.startsWith("2001:db8:")) return false;
   return true;
 }
