@@ -18,6 +18,9 @@ export const APPROVED_AFFILIATE_LINKS = Object.freeze([
   "https://www.safari.com/safaris/4-day-londolozi-varty-camp-fly-in-safari?a=GM26"
 ]);
 
+export const PRODUCT_DISCLOSURE =
+  "Product disclosure: These links lead to third-party paid digital products. Check each seller page for current details, price, contents and terms before purchasing.";
+
 export const AFFILIATE_DISCLOSURE =
   "Disclosure: Some links are affiliate links. If you book through them, Nature Frontiers may earn a commission at no extra cost to you.";
 
@@ -48,7 +51,8 @@ export function buildLongFormVideoDescription({
     seriesTitle + " — Episode " + episodeNumber + ": " + episodeTitle,
     episodeDescription.trim(),
     "Watch Nature Frontiers on YouTube and follow the next episode: " + NATURE_FRONTIERS_YOUTUBE_URL,
-    "Explore our creator resources (check each product page for current details):",
+    "Explore our creator resources:",
+    PRODUCT_DISCLOSURE,
     productSection,
     "Explore Safari destinations:",
     affiliateSection,
