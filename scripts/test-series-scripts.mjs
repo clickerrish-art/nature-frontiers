@@ -42,7 +42,7 @@ for (const [index, filename] of scriptFiles.entries()) {
     assert.ok(beforeWords.length >= 240, "the hook and opening story must be established before the first ad marker");
     assert.ok(markdown.includes("## Fact-check sources"));
     assert.ok(/https:\/\//.test(markdown), "each episode must cite research sources");
-    assert.ok(markdown.includes("original camera") || markdown.includes("original camera footage"));
+    assert.ok(/original camera/i.test(markdown), "every episode must require original camera recordings");
     assert.ok(markdown.includes("Nature Frontiers on YouTube"), "each script must direct viewers to the YouTube series");
   });
 }
