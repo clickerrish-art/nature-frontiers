@@ -41,8 +41,8 @@ export function buildLongFormVideoDescription({
 
   const productSection = REQUIRED_PRODUCT_LINKS
     .map((item) => item.title + ": " + item.url)
-    .join("\\n");
-  const affiliateSection = APPROVED_AFFILIATE_LINKS.join("\\n");
+    .join("\n");
+  const affiliateSection = APPROVED_AFFILIATE_LINKS.join("\n");
 
   return [
     seriesTitle + " — Episode " + episodeNumber + ": " + episodeTitle,
@@ -54,5 +54,5 @@ export function buildLongFormVideoDescription({
     affiliateSection,
     AFFILIATE_DISCLOSURE,
     "Next episode: " + nextEpisodeTeaser.trim()
-  ].join("\\n\\n");
+  ].join("\n\n");
 }
