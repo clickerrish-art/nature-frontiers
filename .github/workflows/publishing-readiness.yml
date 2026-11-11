@@ -66,14 +66,6 @@ jobs:
           node-version: "24"
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
-      - name: Check Meta connection readiness without publishing
-        env:
-          META_PAGE_ID: "1003575786161492"
-          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          META_GRAPH_API_VERSION: "v27.0"
-          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
-          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN }}
-        run: node scripts/check-meta-readiness.mjs
       - name: Test fail-closed feed publishing controls
         run: node scripts/test-publishing-safety.mjs
       - name: Test human review requirements for feed posts
@@ -83,13 +75,31 @@ jobs:
       - name: Test Facebook Reel release guards and media integrity
         run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
 
+  meta-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Check Meta Page access without publishing
+        env:
+          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          META_GRAPH_API_VERSION: "v27.0"
+          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN }}
+        run: node scripts/check-meta-readiness.mjs
+
   facebook-publisher:
     # Publishing writes durable campaign state to the dispatch ref. Never permit
     # this job to write to main; use a dedicated non-main release branch.
     if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
     permissions:
       contents: write
-    needs: safety-tests
+    needs: [safety-tests, meta-readiness]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
