@@ -8,7 +8,7 @@ const valid = {
   status: "approved",
   facebook_type: "REEL",
   title: "Wildlife behaviour explained",
-  caption: "A responsible wildlife education Reel.",
+  caption: "A responsible wildlife education Reel. Watch the full episode: https://www.facebook.com/watch/?v=123456789",
   media_url: "https://cdn.example.org/wildlife.mp4",
   media_rights_confirmed: true,
   originality_confirmed: true,
@@ -18,6 +18,8 @@ const valid = {
   media_accessibility_confirmed: true,
   media_technical_review_passed: true,
   media_sha256: "a".repeat(64),
+  related_longform_campaign_id: "nf-video-001",
+  full_video_url: "https://www.facebook.com/watch/?v=123456789",
   synthetic_visuals: false
 };
 
@@ -36,6 +38,8 @@ for (const [field, value] of [
   ["media_accessibility_confirmed", false],
   ["media_technical_review_passed", false],
   ["media_sha256", "missing"],
+  ["related_longform_campaign_id", ""],
+  ["full_video_url", "not-a-url"],
   ["synthetic_visuals", true],
   ["media_url", "http://cdn.example.org/wildlife.mp4"]
 ]) {
@@ -60,4 +64,9 @@ test("requires Meta's explicit published state, not merely a completed upload or
   assert.equal(isReelPublished({ status: { video_status: "published" } }), false);
   assert.equal(isReelPublished({ status: { video_status: "ready", publishing_phase: { status: "not_started" } } }), false);
   assert.equal(isReelPublished({ status: { video_status: "processing", publishing_phase: { status: "in_progress" } } }), false);
+});
+
+test("requires each Reel to lead to its already-published full episode", () => {
+  assert.ok(validateReelCampaign({ ...valid, caption: "A short clip without the full episode link." }).some((e) => e.includes("exact HTTPS URL")));
+  assert.deepEqual(validateReelCampaign(valid), []);
 });
