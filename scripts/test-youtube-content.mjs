@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import {
   assertEpisodePlanValid,
   buildYouTubeDescription,
@@ -55,6 +57,14 @@ test("description builder embeds the Nature Frontiers channel, every catalogue p
   assert.ok(description.indexOf("Affiliate disclosure:") < description.indexOf(links.affiliates[0].url));
   assert.ok(description.indexOf("Product links below lead to paid digital resources.") < description.indexOf(links.products[0].url));
   assert.deepEqual(validateYouTubeDescription(description), []);
+});
+
+test("description CLI emits a complete validated description from the sample episode input", () => {
+  const scriptPath = fileURLToPath(new URL("./build-youtube-description.mjs", import.meta.url));
+  const inputPath = fileURLToPath(new URL("../content/youtube/wild-encounters-s01e01-description.json", import.meta.url));
+  const output = execFileSync(process.execPath, [scriptPath, inputPath], { encoding: "utf8" }).trim();
+  assert.deepEqual(validateYouTubeDescription(output), []);
+  assert.ok(output.includes("The Signals Animals Give Before They Move"));
 });
 
 test("description validator rejects missing channel, product, affiliate and disclosure content", () => {
