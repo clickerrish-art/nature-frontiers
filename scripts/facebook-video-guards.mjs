@@ -1,4 +1,4 @@
-import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE } from "./video-description.mjs";
+import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE } from "./video-description.mjs";
 
 const MIN_SECONDS = 180;
 const MAX_SECONDS = 480;
@@ -65,6 +65,10 @@ export function validateLongFormVideoCampaign(campaign) {
   if (campaign?.affiliate_disclosure !== AFFILIATE_DISCLOSURE ||
       !campaign.caption.includes(AFFILIATE_DISCLOSURE)) {
     errors.push("every video description must include the standard explicit affiliate disclosure verbatim.");
+  }
+  if (campaign?.product_disclosure !== PRODUCT_DISCLOSURE ||
+      !campaign.caption.includes(PRODUCT_DISCLOSURE)) {
+    errors.push("every video description must include the standard paid-product disclosure verbatim.");
   }
   if (typeof campaign?.script_text !== "string") errors.push("campaign needs its complete original narration script.");
   else {
