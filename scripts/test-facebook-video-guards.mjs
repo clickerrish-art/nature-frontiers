@@ -70,7 +70,16 @@ for (const [field, value] of [
   ["thumbnail_accuracy_confirmed", false],
   ["media_technical_review_passed", false],
   ["human_review_confirmed", false],
-  ["synthetic_visuals", "unknown"]
+  ["synthetic_visuals", "unknown"],
+  ["ai_generated_video", true],
+  ["stock_footage_used", true],
+  ["media_origin", "stock_footage"],
+  ["source_recording_id", ""],
+  ["original_camera_file_sha256", "missing"],
+  ["original_recording_retained", false],
+  ["provenance_review_passed", false],
+  ["provenance_reviewer", ""],
+  ["provenance_reviewed_at", "not-a-date"]
 ]) {
   test(`fails closed when ${field} is invalid`, () => {
     assert.ok(validateLongFormVideoCampaign({ ...valid, [field]: value }).length > 0);
