@@ -36,6 +36,8 @@ Thank you for following Wild Encounters. Follow Nature Frontiers on YouTube to c
 
 ## Footage and editorial requirements
 
+- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+
 - Date every conservation-status claim and identify whether it is global or South African.
 - Do not call the Nile crocodile globally endangered; the cited global assessment lists it as Least Concern, while the cited South African assessment lists it as Vulnerable.
 - Do not claim it is a keystone species or ecosystem engineer without location-specific evidence.
