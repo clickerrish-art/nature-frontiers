@@ -13,7 +13,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 
 ## Long-form series and description requirements
 
-Every long-form episode must be 3–8 minutes, open with its approved hook before any ad break, and carry a series ID, series title, episode number, episode title, series arc and next-episode teaser. The narration must begin with the approved hook. Editorial ad-break markers must follow the hook by at least 60 seconds and occur at natural transitions; markers do not guarantee that Meta or YouTube will serve an ad.
+Every long-form episode must be 3–8 minutes, open with its approved hook before any ad break, and carry a series ID, series title, episode number, episode title, series arc and next-episode teaser. The six-episode `Wild Encounters: Crocodile Behaviour` editorial plan is in `data/video-series.json`; it is a plan only, not evidence that footage, scripts or finished videos exist. The narration must begin with the approved hook. Editorial ad-break markers must follow the hook by at least 60 seconds and occur at natural transitions; markers do not guarantee that Meta or YouTube will serve an ad.
 
 Every video description must include:
 - Nature Frontiers YouTube channel: https://www.youtube.com/@naturefrontiers-life
