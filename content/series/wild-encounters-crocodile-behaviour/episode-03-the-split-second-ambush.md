@@ -1,10 +1,10 @@
 # Episode 3 — The Split-Second Ambush
 
 **Series:** Wild Encounters: Crocodile Behaviour  
-**Target length:** 5–6 minutes  
+**Target length:** 3–8 minutes (this draft is paced for approximately four minutes; measure the final narration)  
 **Status:** SCRIPT DRAFT — not approved for recording or publication  
 **Opening hook:** “The strike is fast. The waiting is the real story.”  
-**First ad-break marker:** 03:00, after the hunting sequence is introduced
+**First ad-break marker:** 02:30, after the hunting sequence is introduced
 
 ## Narration draft
 
@@ -26,7 +26,7 @@ Research on Nile crocodile feeding ecology also shows that diet can change with 
 
 The most important part of the story may be what happens before the attack. Positioning, patience and the ability to move efficiently through water all matter. The animal does not need to chase every opportunity. A missed opportunity is part of the natural process too.
 
-**[META AD BREAK — 03:00 — place after the hunting mechanics and before the section on diet and size. Never cut into a strike, chase, bite or recovery sequence.]**
+**[META AD BREAK — 02:30 — place after the hunting mechanics and before the section on diet and size. Never cut into a strike, chase, bite or recovery sequence.]**
 
 The difference between a strong wildlife documentary and a misleading one is often the edit. A dramatic shot can be real and still be presented dishonestly if it is taken out of context. Keep the original recording, preserve its sequence and make clear when narration is explaining general research rather than describing the exact filmed moment.
 
