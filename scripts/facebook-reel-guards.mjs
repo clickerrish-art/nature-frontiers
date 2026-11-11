@@ -14,6 +14,8 @@ export function validateReelCampaign(campaign) {
   if (campaign?.media_rights_confirmed !== true) errors.push("media rights must be explicitly human-confirmed.");
   if (campaign?.originality_confirmed !== true) errors.push("media originality must be explicitly human-confirmed.");
   if (campaign?.policy_review_passed !== true) errors.push("the exact Reel and caption must pass human policy review.");
+  if (campaign?.wildlife_welfare_confirmed !== true) errors.push("wildlife footage must confirm no baiting, harassment, handling, staging or disturbance of animals.");
+  if (campaign?.non_graphic_review_passed !== true) errors.push("wildlife footage must pass a human non-graphic imagery review.");
   if (campaign?.media_accessibility_confirmed !== true) errors.push("public media URL accessibility must be verified.");
   if (campaign?.media_technical_review_passed !== true) errors.push("media technical specifications must be reviewed and confirmed.");
   if (typeof campaign?.media_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(campaign.media_sha256)) errors.push("a verified 64-character SHA-256 media hash is required.");
