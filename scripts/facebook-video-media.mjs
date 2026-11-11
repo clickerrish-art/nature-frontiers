@@ -119,8 +119,8 @@ async function inspectVideo(filePath, probeImpl) {
   if (width < 1280 || height < 720 || Math.abs(width / height - 16 / 9) > 0.03) {
     throw new Error("Long-form Facebook video must be landscape 16:9 and at least 1280x720 pixels.");
   }
-  if (!Number.isFinite(duration) || duration < 300 || duration > 480) {
-    throw new Error("Long-form Facebook video duration must be between 300 and 480 seconds (5–8 minutes).");
+  if (!Number.isFinite(duration) || duration < 180 || duration > 480) {
+    throw new Error("Long-form Facebook video duration must be between 180 and 480 seconds (3–8 minutes).");
   }
   if (!Number.isFinite(frameRate) || frameRate < 23) {
     throw new Error("Long-form video frame rate must be at least 23 fps.");
