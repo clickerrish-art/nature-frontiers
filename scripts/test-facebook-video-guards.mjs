@@ -11,6 +11,7 @@ const valid = {
   title: "How Crocodiles Wait for the Perfect Moment",
   caption: "Original wildlife documentary narration and episode description.",
   hook_0_3s: "It has barely moved. It has not stopped watching.",
+  opening_hook_end_seconds: 15,
   script_text: Array(700).fill("wildlife").join(" "),
   duration_seconds: 360,
   media_url: "https://cdn.example.org/sha256/wildlife.mp4",
@@ -45,7 +46,7 @@ const valid = {
   editorial_ad_break_notes: ["After the first explanation of ambush posture, before the underwater sensory reveal."]
 };
 
-test("accepts an approved, reviewed 5–8 minute original landscape-video campaign manifest", () => {
+test("accepts an approved, reviewed 3–8 minute original landscape-video campaign manifest", () => {
   assert.deepEqual(validateLongFormVideoCampaign(valid), []);
 });
 
@@ -97,9 +98,11 @@ test("rejects synthetic wildlife video even when fully disclosed", () => {
   assert.ok(errors.some((e) => e.includes("AI-generated or synthetic wildlife visuals are prohibited")));
 });
 
-test("requires at least 500 words of original narration and evidence links", () => {
-  assert.ok(validateLongFormVideoCampaign({ ...valid, script_text: "too short" }).some((e) => e.includes("500–1,500 words")));
+test("requires at least 300 words of original narration and evidence links", () => {
+  assert.ok(validateLongFormVideoCampaign({ ...valid, script_text: "too short" }).some((e) => e.includes("300–1,500 words")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, fact_check_sources: [] }).some((e) => e.includes("fact-check source")));
+  assert.deepEqual(validateLongFormVideoCampaign({ ...valid, duration_seconds: 180, script_text: Array(300).fill("wildlife").join(" "), editorial_ad_breaks_seconds: [120], editorial_ad_break_notes: ["After the complete opening and first story transition."] }), []);
+  assert.ok(validateLongFormVideoCampaign({ ...valid, duration_seconds: 179 }).some((e) => e.includes("180 and 480")));
 });
 
 test("requires curiosity beats no more than 75 seconds apart and a next-episode CTA", () => {
@@ -107,10 +110,15 @@ test("requires curiosity beats no more than 75 seconds apart and a next-episode 
   assert.ok(validateLongFormVideoCampaign({ ...valid, next_episode_cta: "" }).some((e) => e.includes("next episode")));
 });
 
-test("requires one proposed break marker for 5–6:59 minute videos and two for 7–8 minute videos", () => {
+test("requires one proposed break marker for 3–6:59 minute videos and two for 7–8 minute videos", () => {
   assert.deepEqual(validateLongFormVideoCampaign({ ...valid, duration_seconds: 420, retention_beats_seconds: [55, 115, 175, 235, 295, 355], editorial_ad_breaks_seconds: [180, 360], editorial_ad_break_notes: ["After story beat one.", "Before the final explanation."] }), []);
-  assert.ok(validateLongFormVideoCampaign({ ...valid, editorial_ad_breaks_seconds: [180, 250], editorial_ad_break_notes: ["One.", "Two."] }).some((e) => e.includes("one for 5–6:59")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, editorial_ad_breaks_seconds: [180, 250], editorial_ad_break_notes: ["One.", "Two."] }).some((e) => e.includes("one for 3–6:59")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, duration_seconds: 420, retention_beats_seconds: [55, 115, 175, 235, 295, 355], editorial_ad_breaks_seconds: [180], editorial_ad_break_notes: ["After the first story beat."] }).some((e) => e.includes("one for 5–6:59")));
+});
+
+test("rejects ad-break markers before the opening hook or too early in the story", () => {
+  assert.ok(validateLongFormVideoCampaign({ ...valid, opening_hook_end_seconds: 30, editorial_ad_breaks_seconds: [90] }).some((e) => e.includes("after the opening hook")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, opening_hook_end_seconds: 30, editorial_ad_breaks_seconds: [119] }).some((e) => e.includes("after the opening hook")));
 });
 
 test("rejects ad-break markers too close together or too close to the ending", () => {

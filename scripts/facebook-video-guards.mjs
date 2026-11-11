@@ -1,4 +1,4 @@
-const MIN_SECONDS = 300;
+const MIN_SECONDS = 180;
 const MAX_SECONDS = 480;
 
 function isHttpsPublicCandidate(value) {
@@ -32,10 +32,10 @@ export function validateLongFormVideoCampaign(campaign) {
   if (typeof campaign?.script_text !== "string") errors.push("campaign needs its complete original narration script.");
   else {
     const words = campaign.script_text.trim().split(/\s+/).filter(Boolean).length;
-    if (words < 500 || words > 1500) errors.push("long-form narration script must contain 500–1,500 words for a 5–8 minute production.");
+    if (words < 300 || words > 1500) errors.push("long-form narration script must contain 300–1,500 words for a 3–8 minute production.");
   }
   if (!Number.isFinite(campaign?.duration_seconds) || campaign.duration_seconds < MIN_SECONDS || campaign.duration_seconds > MAX_SECONDS) {
-    errors.push("long-form video duration must be between 300 and 480 seconds (5–8 minutes).");
+    errors.push("long-form video duration must be between 180 and 480 seconds (3–8 minutes).");
   }
   if (typeof campaign?.media_url !== "string" || !isHttpsPublicCandidate(campaign.media_url)) {
     errors.push("media_url must be a public HTTPS URL without credentials, fragments, or non-standard ports.");
@@ -86,12 +86,16 @@ export function validateLongFormVideoCampaign(campaign) {
     errors.push("the ending must direct viewers to a relevant next episode or series playlist.");
   }
 
+  if (!Number.isFinite(campaign?.opening_hook_end_seconds) || campaign.opening_hook_end_seconds < 8 || campaign.opening_hook_end_seconds > 60) {
+    errors.push("the opening hook must have a verified timeline end between 8 and 60 seconds.");
+  }
   const breaks = campaign?.editorial_ad_breaks_seconds;
   const expectedCount = Number.isFinite(campaign?.duration_seconds) && campaign.duration_seconds >= 420 ? 2 : 1;
+  const earliestBreak = Math.max(120, Number.isFinite(campaign?.opening_hook_end_seconds) ? campaign.opening_hook_end_seconds : 120);
   if (!Array.isArray(breaks) || breaks.length !== expectedCount ||
-      breaks.some((value) => !Number.isFinite(value) || value < 140 || value > campaign.duration_seconds - 45) ||
+      breaks.some((value) => !Number.isFinite(value) || value < earliestBreak || value > campaign.duration_seconds - 45) ||
       breaks.some((value, index, values) => index > 0 && (value <= values[index - 1] || value - values[index - 1] < 120))) {
-    errors.push("editorial ad-break markers must be one for 5–6:59 videos or two for 7–8 minute videos, placed at natural transitions at least 120 seconds apart.");
+    errors.push("editorial ad-break markers must be one for 3–6:59 videos or two for 7–8 minute videos, placed after the opening hook at natural transitions at least 120 seconds apart.");
   }
   if (!Array.isArray(campaign?.editorial_ad_break_notes) ||
       campaign.editorial_ad_break_notes.length !== expectedCount ||

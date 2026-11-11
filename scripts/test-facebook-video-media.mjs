@@ -44,6 +44,15 @@ test("stages exact hash-verified bytes and confirms landscape long-form technica
   }
 });
 
+test("accepts the new 3-minute lower duration boundary", async () => {
+  const metadata = { media: { track: [
+    { "@type": "General", Format: "MPEG-4", Duration: "180" },
+    { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "29.970", Duration: "180" }
+  ] } };
+  const result = await verifyRemoteLongFormVideo("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify(metadata) }));
+  try { assert.equal(result.videoMetadata.duration, 180); } finally { await result.cleanup(); }
+});
+
 test("rejects changed bytes before upload", async () => {
   await assert.rejects(verifyRemoteLongFormVideo("https://cdn.example.org/wildlife.mp4", digest, async () => response({ body: Buffer.from("changed") }), publicLookup), /SHA-256 does not match/);
 });
@@ -52,7 +61,7 @@ test("rejects portrait, low-resolution, too-short, too-long, slow-frame-rate and
   const invalid = [
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "360" }, { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "30", Duration: "360" }] } },
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "360" }, { "@type": "Video", Width: "640", Height: "360", FrameRate: "30", Duration: "360" }] } },
-    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "299" }, { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "30", Duration: "299" }] } },
+    { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "179" }, { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "30", Duration: "179" }] } },
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "481" }, { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "30", Duration: "481" }] } },
     { media: { track: [{ "@type": "General", Format: "MPEG-4", Duration: "360" }, { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "20", Duration: "360" }] } },
     { media: { track: [{ "@type": "General", Format: "AVI", Duration: "360" }, { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "30", Duration: "360" }] } }
