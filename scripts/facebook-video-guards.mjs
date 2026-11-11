@@ -23,6 +23,7 @@ function isHttpsPublicCandidate(value) {
 
 export function validateLongFormVideoCampaign(campaign) {
   const errors = [];
+  const caption = typeof campaign?.caption === "string" ? campaign.caption : "";
   if (!campaign || campaign.network !== "facebook") errors.push("campaign must target Facebook.");
   if (campaign?.status !== "approved") errors.push("campaign must be explicitly approved by a human.");
   if (campaign?.campaign_type !== "organic") errors.push("long-form wildlife videos must be organic campaigns.");
@@ -44,17 +45,17 @@ export function validateLongFormVideoCampaign(campaign) {
       typeof campaign?.next_episode_teaser !== "string" || !campaign.next_episode_teaser.trim()) {
     errors.push("every series episode needs its own episode title and a teaser for the next episode.");
   }
-  if (typeof campaign?.caption !== "string" || !campaign.caption.includes(NATURE_FRONTIERS_YOUTUBE_URL)) {
+  if (typeof campaign?.caption !== "string" || !caption.includes(NATURE_FRONTIERS_YOUTUBE_URL)) {
     errors.push("every video description must include the Nature Frontiers YouTube channel link: " + NATURE_FRONTIERS_YOUTUBE_URL);
   }
   if (!Array.isArray(campaign?.product_links) ||
       REQUIRED_PRODUCT_LINKS.some((item) => !campaign.product_links.includes(item.url)) ||
-      REQUIRED_PRODUCT_LINKS.some((item) => !campaign.caption.includes(item.url))) {
+      REQUIRED_PRODUCT_LINKS.some((item) => !caption.includes(item.url))) {
     errors.push("every video description must include all six owner-catalogued Selar product URLs verbatim.");
   }
   if (!Array.isArray(campaign?.affiliate_links) ||
       APPROVED_AFFILIATE_LINKS.some((link) => !campaign.affiliate_links.includes(link)) ||
-      APPROVED_AFFILIATE_LINKS.some((link) => !campaign.caption.includes(link)) ||
+      APPROVED_AFFILIATE_LINKS.some((link) => !caption.includes(link)) ||
       campaign.affiliate_links.some((link) => typeof link !== "string" || !isHttpsPublicCandidate(link))) {
     errors.push("every video description must include all five owner-approved Safari.com affiliate URLs verbatim, preserving the a=GM26 tracking parameter.");
   }
@@ -63,11 +64,11 @@ export function validateLongFormVideoCampaign(campaign) {
     errors.push("affiliate tracking links must be human-verified and accompanied by a verification note before release.");
   }
   if (campaign?.affiliate_disclosure !== AFFILIATE_DISCLOSURE ||
-      !campaign.caption.includes(AFFILIATE_DISCLOSURE)) {
+      !caption.includes(AFFILIATE_DISCLOSURE)) {
     errors.push("every video description must include the standard explicit affiliate disclosure verbatim.");
   }
   if (campaign?.product_disclosure !== PRODUCT_DISCLOSURE ||
-      !campaign.caption.includes(PRODUCT_DISCLOSURE)) {
+      !caption.includes(PRODUCT_DISCLOSURE)) {
     errors.push("every video description must include the standard paid-product disclosure verbatim.");
   }
   if (typeof campaign?.script_text !== "string") errors.push("campaign needs its complete original narration script.");
