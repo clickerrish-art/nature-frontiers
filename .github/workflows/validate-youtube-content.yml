@@ -8,6 +8,7 @@ on:
     paths:
       - "data/youtube-content-policy.json"
       - "data/youtube-series-season-1.json"
+      - "content/youtube/**"
       - "data/products.json"
       - "scripts/youtube-content.mjs"
       - "scripts/build-youtube-description.mjs"

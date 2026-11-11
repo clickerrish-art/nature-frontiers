@@ -12,6 +12,7 @@ import {
 
 const season = JSON.parse(await readFile(new URL("../data/youtube-series-season-1.json", import.meta.url), "utf8"));
 const policy = JSON.parse(await readFile(new URL("../data/youtube-content-policy.json", import.meta.url), "utf8"));
+const episodeOne = JSON.parse(await readFile(new URL("../content/youtube/wild-encounters-s01e01-description.json", import.meta.url), "utf8"));
 
 const validPlan = {
   seriesId: "wild-encounters",
@@ -45,14 +46,7 @@ test("Wild Encounters Season 1 is a complete, sequential concept slate and remai
 });
 
 test("description builder embeds the Nature Frontiers channel, every catalogue product and every Safari affiliate link", () => {
-  const description = buildYouTubeDescription({
-    seriesId: "wild-encounters",
-    seasonNumber: 1,
-    episodeNumber: 1,
-    title: "The Signals Animals Give Before They Move",
-    synopsis: "A research-led look at observable animal behaviour, told through genuine field recordings.",
-    nextEpisodeTease: "Next episode: why predators sometimes wait before moving."
-  });
+  const description = buildYouTubeDescription(episodeOne);
   const links = getRequiredDescriptionLinks();
   assert.ok(description.includes(links.channel));
   assert.ok(description.includes("subscribe for the next episode"));
