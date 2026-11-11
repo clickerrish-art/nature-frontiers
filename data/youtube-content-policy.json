@@ -108,6 +108,8 @@
     "enabled": false,
     "authenticatedChannelIdentityVerified": false,
     "requiredCheck": "The authenticated YouTube channel ID must be verified against the owner-supplied channel URL before any upload or schedule operation.",
-    "nativePaidPromotionDeclarationRequiredWhenApplicable": true
+    "nativePaidPromotionDeclarationRequiredWhenApplicable": true,
+    "publicHandleResolved": true,
+    "metricoolChannelMismatchConfirmed": true
   }
 }

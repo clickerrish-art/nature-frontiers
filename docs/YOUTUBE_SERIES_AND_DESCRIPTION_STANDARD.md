@@ -44,8 +44,9 @@ If the video itself contains a paid product placement, sponsorship, endorsement 
 - Fact-check species-specific claims and ensure the narration matches what the footage actually shows.
 - Do not stage, provoke, bait, chase, handle or otherwise disturb wildlife for footage.
 - A plan cannot be marked approved unless original footage, rights and factual review are verified.
-- The owner-supplied channel URL is not proof of authenticated channel ownership. Metricool currently reports YouTube channel ID `UCSlkuPfHH78oGC1o418HV4w` for the Nature Frontiers brand, but that ID has not been verified as the channel behind `@naturefrontiers-life`. Treat the identity match as unresolved; do not upload or schedule until the authenticated YouTube account confirms it.
-- YouTube publishing is explicitly disabled in `data/youtube-content-policy.json` until that identity check and the remaining live publishing gates pass.
+- The owner-supplied handle `@naturefrontiers-life` resolves publicly to a channel titled **Nature Frontiers** with the expected African-wildlife documentary description.
+- **A connected-account mismatch is confirmed:** Metricool currently reports YouTube channel ID `UCSlkuPfHH78oGC1o418HV4w`, but that ID resolves publicly to **SonicVibes**, not Nature Frontiers. Do not use the Metricool YouTube connection for Nature Frontiers uploads or scheduling.
+- YouTube publishing is explicitly disabled in `data/youtube-content-policy.json`. The public handle is resolved, but an authenticated Nature Frontiers YouTube connection is not available through the current Metricool integration.
 - This repository change does not enable YouTube uploads, monetization, ad settings, public publishing or automatic scheduling. Those require a separate verified integration and owner-authorised account settings.
 
 ## Validation
