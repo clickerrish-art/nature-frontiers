@@ -48,10 +48,12 @@ test("blocks synthetic media without a matching disclosure in the caption", () =
   assert.deepEqual(validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure, caption: `A wildlife fact. ${disclosure}` }), []);
 });
 
-test("requires Meta to confirm completed publishing, not merely ready media", () => {
-  assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete" } } }), true);
-  assert.equal(isReelPublished({ status: { video_status: "published" } }), true);
-  assert.equal(isReelPublished({ status: { video_status: "ready" } }), false);
-  assert.equal(isReelPublished({ status: { video_status: "processing" } }), false);
-  assert.equal(isReelPublished({ status: { publishing_phase: { status: "not_started" } } }), false);
+test("requires Meta's explicit published state, not merely a completed upload or phase", () => {
+  assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete", publish_status: "published" } } }), true);
+  assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete", publish_status: "scheduled" } } }), false);
+  assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete", publish_status: "draft" } } }), false);
+  assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete" } } }), false);
+  assert.equal(isReelPublished({ status: { video_status: "published" } }), false);
+  assert.equal(isReelPublished({ status: { video_status: "ready", publishing_phase: { status: "not_started" } } }), false);
+  assert.equal(isReelPublished({ status: { video_status: "processing", publishing_phase: { status: "in_progress" } } }), false);
 });
