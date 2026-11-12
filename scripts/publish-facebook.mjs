@@ -20,6 +20,7 @@ if (!Array.isArray(products) || !Array.isArray(campaigns)) {
   throw new Error("Products and campaigns must be JSON arrays.");
 }
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
+if (process.env.EMERGENCY_STOP !== "false") stop("EMERGENCY_STOP is active; public publishing is blocked.");
 if (!dryRun && process.env.PUBLISH_RUN_AUTHORIZED !== "true") {
   stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
 }
