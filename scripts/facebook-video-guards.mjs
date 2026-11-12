@@ -156,3 +156,15 @@ export function toMetaAdBreakOffsetsMilliseconds(campaign) {
   }
   return campaign.editorial_ad_breaks_seconds.map((seconds) => Math.round(seconds * 1000));
 }
+
+/**
+ * Require the confirmed published video receipt to belong to the exact Page
+ * and upload operation before recording a durable publication receipt.
+ */
+export function isLongFormVideoPublishedByPage(payload, expectedVideoId, expectedPageId) {
+  return payload?.id === expectedVideoId &&
+    payload?.from?.id === expectedPageId &&
+    payload?.published === true &&
+    typeof payload?.permalink_url === "string" &&
+    payload.permalink_url.startsWith("https://");
+}
