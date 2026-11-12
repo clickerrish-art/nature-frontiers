@@ -33,7 +33,9 @@ on:
       - "scripts/publishing-cadence.mjs"
       - "scripts/test-publishing-cadence.mjs"
       - "scripts/youtube-content.mjs"
+      - "scripts/build-youtube-description.mjs"
       - "scripts/test-youtube-content.mjs"
+      - "content/youtube/**"
       - "data/youtube-content-policy.json"
       - "data/youtube-series-season-1.json"
       - "data/campaigns.json"
@@ -64,7 +66,9 @@ on:
       - "scripts/publishing-cadence.mjs"
       - "scripts/test-publishing-cadence.mjs"
       - "scripts/youtube-content.mjs"
+      - "scripts/build-youtube-description.mjs"
       - "scripts/test-youtube-content.mjs"
+      - "content/youtube/**"
       - "data/youtube-content-policy.json"
       - "data/youtube-series-season-1.json"
       - "data/campaigns.json"
@@ -142,6 +146,8 @@ jobs:
         uses: actions/checkout@v5
       - name: Set up Node.js
         uses: actions/setup-node@v5
+        with:
+          node-version: "24"
       - name: Run gated long-form Facebook Page video adapter
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
