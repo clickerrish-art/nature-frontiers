@@ -115,6 +115,9 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
     ...validPlan,
     durationSeconds: 480,
     monetizationEligibilityVerified: true,
+    monetizationEligibilityChannelId: policy.youtubePublishing.verifiedChannelId,
+    monetizationEligibilityVerifiedBy: "test fixture",
+    monetizationEligibilityVerifiedAt: "2026-11-11T00:00:00.000Z",
     segments: [
       { type: "hook", startSeconds: 0, endSeconds: 15 },
       { type: "story_setup", startSeconds: 15, endSeconds: 60 },
@@ -127,6 +130,8 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
   };
   assert.deepEqual(validateEpisodePlan(plan), []);
   assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityVerified: false }).some((error) => error.includes("monetization eligibility")));
+  assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityChannelId: "UCSlkuPfHH78oGC1o418HV4w" }).some((error) => error.includes("verified Nature Frontiers channel")));
+  assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityVerifiedBy: "" }).some((error) => error.includes("reviewer and verification timestamp")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 30, naturalBreakpoint: true }] }).some((error) => error.includes("after the opening hook")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("natural narrative breakpoint")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true }] }).some((error) => error.includes("reviewer, review timestamp")));
@@ -136,6 +141,28 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
 test("malformed segment containers fail closed without crashing the validator", () => {
   const errors = validateEpisodePlan({ ...validPlan, segments: { type: "hook" } });
   assert.ok(errors.some((error) => error.includes("segments must be an array")));
+});
+
+test("approved episodes require a recorded final human editorial and metadata review", () => {
+  const approved = {
+    ...validPlan,
+    status: "approved",
+    originalFootageVerified: true,
+    rightsVerified: true,
+    factCheckPassed: true,
+    humanReviewPassed: true,
+    humanReviewer: "Editorial reviewer",
+    humanReviewedAt: "2026-11-11T00:00:00.000Z"
+  };
+  assert.deepEqual(validateEpisodePlan(approved), []);
+  assert.ok(validateEpisodePlan({ ...approved, humanReviewPassed: false }).some((error) => error.includes("human review")));
+  assert.ok(validateEpisodePlan({ ...approved, humanReviewer: "" }).some((error) => error.includes("named human reviewer")));
+});
+
+test("season and episode statuses reject unsupported publication states", () => {
+  assert.ok(validateSeasonPlan({ ...season, status: "published" }).some((error) => error.includes("Season status")));
+  const invalidEpisode = { ...season, episodes: season.episodes.map((episode, index) => index === 0 ? { ...episode, status: "published" } : episode) };
+  assert.ok(validateSeasonPlan(invalidEpisode).some((error) => error.includes("invalid status")));
 });
 
 test("episode publication states are rejected by the content-plan validator", () => {
@@ -148,4 +175,5 @@ test("approval is blocked unless original footage, rights and factual review are
   assert.ok(errors.some((error) => error.includes("original camera footage")));
   assert.ok(errors.some((error) => error.includes("rights are verified")));
   assert.ok(errors.some((error) => error.includes("factual claims")));
+  assert.ok(errors.some((error) => error.includes("human review")));
 });
