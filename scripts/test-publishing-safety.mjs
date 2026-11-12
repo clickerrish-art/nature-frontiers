@@ -17,10 +17,22 @@ const cases = [
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
   },
   {
-    name: "legacy feed publisher has no approved campaigns",
+    name: "legacy feed publisher requires separate per-run authorization before live mode",
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    expected: "PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required."
+  },
+  {
+    name: "legacy feed publisher with per-run authorization finds no approved campaigns",
+    script: "scripts/publish-facebook.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true" },
     expected: "No explicitly approved Facebook feed campaigns exist."
+  },
+  {
+    name: "legacy feed publisher refuses a non-Nature-Frontiers Page",
+    script: "scripts/publish-facebook.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", META_PAGE_ID: "123456789" },
+    expected: "META_PAGE_ID does not match the exact Nature Frontiers Page ID"
   },
   {
     name: "long-form publisher is disabled by default",
