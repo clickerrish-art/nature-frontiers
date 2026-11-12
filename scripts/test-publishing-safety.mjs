@@ -33,7 +33,7 @@ const cases = [
 
   ...[
     {
-      name: "legacy feed publisher permits the protected production branch but finds no approved campaign",
+      name: "legacy feed publisher permits the production branch but finds no approved campaign",
       script: "scripts/publish-facebook.mjs",
       env: {
         PUBLISH_ENABLED: "true",
@@ -44,7 +44,7 @@ const cases = [
       expected: "No explicitly approved Facebook feed campaigns exist."
     },
     {
-      name: "long-form publisher permits the protected production branch but finds no approved campaign",
+      name: "long-form publisher permits the production branch but finds no approved campaign",
       script: "scripts/publish-facebook-video.mjs",
       env: {
         PUBLISH_ENABLED: "true",
@@ -55,7 +55,7 @@ const cases = [
       expected: "No explicitly approved long-form Facebook video campaigns exist."
     },
     {
-      name: "Reel publisher permits the protected production branch but finds no approved campaign",
+      name: "Reel publisher permits the production branch but finds no approved campaign",
       script: "scripts/publish-facebook-reel.mjs",
       env: {
         PUBLISH_ENABLED: "true",
