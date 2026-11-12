@@ -22,7 +22,7 @@ The long-form and Reel scripts independently require all of the following before
 - durable GitHub campaign-state access
 - exactly one campaign in approved state with all media, rights, provenance, factual, hash and human-review gates satisfied
 
-The legacy text/link feed adapter also requires the per-run authorization and exact Page ID. It shares one daily feed slot with long-form Page video; the daily cadence permits up to two Reels plus one feed post per Johannesburg calendar day. All adapters fail closed when the required state or evidence is missing. Uncertain publication outcomes remain reserved for manual reconciliation; they must not be blindly retried.
+The legacy text/link feed adapter also requires the per-run authorization and exact Page ID. Its human review record must include an identified reviewer, valid timestamp, explicit approval and a SHA-256 matching the exact caption and release metadata. Changing the caption or reviewed metadata invalidates approval. It shares one daily feed slot with long-form Page video; the daily cadence permits up to two Reels plus one feed post per Johannesburg calendar day. All adapters fail closed when the required state or evidence is missing. Uncertain publication outcomes remain reserved for manual reconciliation; they must not be blindly retried.
 
 ## Current external release blockers
 
