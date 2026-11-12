@@ -66,7 +66,8 @@ test("rejects missing, unsynchronized, low-rate or unsupported audio before uplo
 test("accepts the new 3-minute lower duration boundary", async () => {
   const metadata = { media: { track: [
     { "@type": "General", Format: "MPEG-4", Duration: "180" },
-    { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "29.970", Duration: "180" }
+    { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "29.970", Duration: "180" },
+    { "@type": "Audio", Format: "AAC", Duration: "180", SamplingRate: "48000", Channels: "2" }
   ] } };
   const result = await verifyRemoteLongFormVideo("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined, async () => ({ stdout: JSON.stringify(metadata) }));
   try { assert.equal(result.videoMetadata.duration, 180); } finally { await result.cleanup(); }
