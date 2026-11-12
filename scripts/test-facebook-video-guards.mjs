@@ -176,3 +176,12 @@ test("converts editorial mid-roll timestamps to Meta Page Videos ad_breaks milli
   };
   assert.deepEqual(toMetaAdBreakOffsetsMilliseconds(long), [180000, 360000]);
 });
+
+test("remote long-form publication receipt must match the exact video ID and Page owner", async () => {
+  const { isLongFormVideoPublishedByPage } = await import("./facebook-video-guards.mjs");
+  const receipt = { id: "video-123", from: { id: "1003575786161492" }, published: true, permalink_url: "https://www.facebook.com/watch/?v=video-123" };
+  assert.equal(isLongFormVideoPublishedByPage(receipt, "video-123", "1003575786161492"), true);
+  assert.equal(isLongFormVideoPublishedByPage({ ...receipt, from: { id: "wrong-page" } }, "video-123", "1003575786161492"), false);
+  assert.equal(isLongFormVideoPublishedByPage({ ...receipt, id: "other-video" }, "video-123", "1003575786161492"), false);
+  assert.equal(isLongFormVideoPublishedByPage({ ...receipt, published: false }, "video-123", "1003575786161492"), false);
+});
