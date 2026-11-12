@@ -1,63 +1,75 @@
-# Nature Frontiers: social publishing setup
+# Nature Frontiers: publishing architecture and release setup
 
-## Current status
+Last reconciled: 12 November 2026. This document supersedes the older setup notes below.
 
-The catalogue validator is active. The publishing readiness checker is a diagnostic only. **There is no publisher enabled by these files.** Neither workflow sends posts, uploads media, schedules posts, or contacts social APIs.
+## Current implementation
 
-Products in `data/products.json` remain `review-required`. Do not change a product to an approved status until its checkout link, title, price, promotional claims, and usage rights are checked.
+The repository contains three Facebook publishing adapters:
 
-## Safe implementation order
+- `scripts/publish-facebook.mjs`: legacy text/link feed adapter. It is available as an npm script but is not called by the current gated workflow.
+- `scripts/publish-facebook-video.mjs`: hash-verified long-form Page video adapter.
+- `scripts/publish-facebook-reel.mjs`: hash-verified discovery Reel adapter. It requires an already-published parent long-form video from the same Nature Frontiers Page.
 
-1. Verify each Selar checkout page manually against the product title and listed price. The catalogue currently contains a shared checkout URL for YouTube Success Blueprint and Cash Smasher Secrets; do not promote Cash Smasher Secrets until its checkout destination is confirmed.
-2. Create/verify each platform's developer app and account eligibility.
-3. Grant only the minimum publishing scopes required. Complete any platform review/audit required for public posting.
-4. Add secrets through GitHub repository **Settings → Secrets and variables → Actions**. Never put credentials in JSON, source code, commits, issues, logs, or chat.
-5. Run the **Publishing readiness (diagnostic only)** workflow. It reports whether expected secret names are present; it does not validate whether tokens are genuine, current, or authorized.
-6. Test the platform API using a private/draft or otherwise non-public method where that platform supports it. Confirm account identity, media requirements, response handling, rate limits, and error handling.
-7. Only after the above checks, implement platform-specific publishing adapters. The final publisher must require an explicit approved product and approved post payload, verify links and claims, prevent duplicate sends, log platform post IDs without secrets, and fail closed when any prerequisite is missing.
+The `.github/workflows/publishing-readiness.yml` workflow runs the safety/regression suite and a read-only Meta Page identity/token check. Its scheduled and push-triggered runs do not publish. The publisher job runs only on a manual `workflow_dispatch`, only from a non-`main` branch, only after both prerequisite jobs pass, and only when the separate `live_publish_authorized` input is explicitly true. That input defaults to false.
 
-## Expected GitHub Actions secret names
+The long-form and Reel scripts independently require all of the following before any live request:
+
+- `PUBLISH_ENABLED=true`
+- `PUBLISH_DRY_RUN=false`
+- `PUBLISH_RUN_AUTHORIZED=true` from the explicit one-run workflow authorization
+- exact Nature Frontiers Page ID `1003575786161492`
+- a valid Page token and configured Graph API version
+- durable GitHub campaign-state access
+- exactly one campaign in approved state with all media, rights, provenance, factual, hash and human-review gates satisfied
+
+The legacy text/link feed adapter also requires the per-run authorization and exact Page ID. All adapters fail closed when the required state or evidence is missing. Uncertain publication outcomes remain reserved for manual reconciliation; they must not be blindly retried.
+
+## Current external release blockers
+
+- The latest read-only Meta check reports HTTP 401 / OAuth error 190 / subcode 463 for the configured Page token. It is expired, invalid or revoked. Replace `META_PAGE_ACCESS_TOKEN` privately in GitHub repository Settings → Secrets and variables → Actions. Never paste a token into chat, a commit, a log or a campaign file.
+- The Nature Frontiers Metricool brand currently maps its YouTube field to the separate SonicVibes channel ID `UCSlkuPfHH78oGC1o418HV4w`. Do not publish Nature Frontiers YouTube videos through that mapping. The verified Nature Frontiers channel is `@naturefrontiers-life`, ID `UC41xXhw22o6Q2I2pTKB2kOg`.
+- The repository validates YouTube series, episode metadata and descriptions; it does not upload or schedule YouTube videos. Channel identity authorization is not evidence that a video has been uploaded.
+- Actual documentary footage must be original camera footage with retained source files, verifiable provenance, rights evidence, fact-check sources and human review. A hash or successful technical media inspection alone does not prove those rights or editorial approvals.
+- No Instagram, TikTok or Pinterest publishing adapter is implemented in this repository.
+
+## Catalogue and campaign state
+
+The current catalogue contains six products and six Facebook promotional campaign drafts. All products remain `review-required`; all campaigns remain `draft`. Do not promote any product or campaign to approved based only on a URL or a previous listing snapshot. Verify the exact live checkout destination, title, deliverables, price, promotional claims and any applicable affiliate relationship before approval. The current catalogue has distinct URLs for the six products; if a future edit reuses a checkout URL, require explicit human confirmation for that exact shared destination.
+
+The current campaign validator checks the product-to-caption URL match, paid-product disclosure, campaign state, duplicate IDs, media rights and supported campaign types. A successful catalogue validation does not establish that a product file, checkout or claim has been independently inspected.
+
+## Secrets and variables
+
+Store credentials only in GitHub Actions secrets.
 
 ### Facebook Page
-- `META_PAGE_ID`
-- `META_PAGE_ACCESS_TOKEN`
 
-### Instagram
-- `META_PAGE_ACCESS_TOKEN`
-- `INSTAGRAM_USER_ID`
+- `META_PAGE_ACCESS_TOKEN` — current Page token with the minimum required Page permissions.
+- `META_PAGE_ID` is fixed in the gated workflow to `1003575786161492`.
+- `META_GRAPH_API_VERSION` is set in the workflow; the syntax check does not prove that Meta still supports that version.
 
-The correct Meta account/login flow determines the full set of app credentials and permissions. Verify the current official Meta documentation before implementation.
+Repository Actions variables:
 
-### Pinterest
-- `PINTEREST_ACCESS_TOKEN`
-- `PINTEREST_BOARD_ID`
-
-### TikTok
-- `TIKTOK_ACCESS_TOKEN`
-- `TIKTOK_OPEN_ID`
+- `PUBLISH_ENABLED` must remain `false` until the owner separately authorizes a release.
+- `PUBLISH_DRY_RUN` must remain `true` until an explicitly approved one-run release.
+- The workflow's `live_publish_authorized` input defaults to `false`; do not change the default.
 
 ### YouTube
-- `YOUTUBE_CLIENT_ID`
-- `YOUTUBE_CLIENT_SECRET`
-- `YOUTUBE_REFRESH_TOKEN`
-- `YOUTUBE_CHANNEL_ID`
 
-These are proposed names for this repository, not credentials already configured. A name being present does not prove a token is valid or that publishing permission has been granted.
+The verified channel is `UC41xXhw22o6Q2I2pTKB2kOg` (`@naturefrontiers-life`). The channel ID and handle are recorded in `data/youtube-content-policy.json`. No YouTube upload token or production upload adapter is configured by this repository. Do not substitute the mismatched Metricool YouTube connection.
 
-## Rules for automated content
+## Release and recovery rules
 
-- Publish only catalogue entries explicitly approved after link and price verification.
-- Never infer that a shared Selar link points to both products.
-- No guaranteed-income, misleading scarcity, fake endorsement, or unsupported performance claims.
-- No repetitive spam or deceptive engagement tactics.
-- Use media only when Nature Frontiers has permission to publish it.
-- Respect each platform's API policies, media format rules, disclosure requirements, and rate limits.
-- Do not publish anything when credentials, link checks, approvals, or platform responses are ambiguous.
+1. Keep every campaign in draft until the exact final media, metadata, destination, rights, provenance, facts and human approval are verified.
+2. Long-form wildlife video must be 16:9, 3–8 minutes, and use original camera recordings. Discovery Reels must pass their separate portrait format, duration, source, rights and review checks.
+3. Each final artefact is bound to its SHA-256 hash and the named/timestamped human-review record. Rights evidence must identify the relevant footage and audio/music licences or ownership.
+4. The media adapter verifies public HTTPS resolution, redirects, byte limits, file hashes and technical media metadata before upload.
+5. A publisher reserves campaign state before contacting Meta. If a request times out or its result is ambiguous, leave the reservation intact and inspect the Page and GitHub state before any manual recovery. Never automatically retry an uncertain upload.
+6. Confirm the remote receipt matches the exact uploaded media ID, exact Nature Frontiers Page owner and HTTPS Facebook permalink before recording publication success.
+7. A Reel may only refer to a parent video that is already published by the same Page.
+8. A green CI run, a connected account, a local draft, a read-only API check or a successful media hash is not authorisation to publish.
+9. Never enable public publishing merely to clear a failing readiness check.
 
-## Official references
+## Historical implementation notes
 
-- Meta Pages API: https://developers.facebook.com/documentation/pages-api/posts
-- Instagram API: https://developers.facebook.com/docs/instagram-platform/
-- Pinterest API: https://developer.pinterest.com/docs/getting-started/set-up-authentication-and-authorization/
-- TikTok Content Posting API: https://developers.tiktok.com/doc/content-posting-api-get-started/
-- YouTube video uploads: https://developers.google.com/youtube/v3/docs/videos/insert
+Earlier revisions of this document described the project as having no publishing adapters and a shared Selar URL for two products. Those statements are obsolete: the gated Facebook adapters now exist, and the current catalogue uses distinct product URLs. Retain this section only as a correction record; follow the current implementation and blocker sections above.
