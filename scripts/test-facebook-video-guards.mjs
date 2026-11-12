@@ -54,7 +54,7 @@ for (const [field, value] of [
   ["status", "draft"],
   ["facebook_type", "REEL"],
   ["campaign_type", "promotion"],
-  ["duration_seconds", 299],
+  ["duration_seconds", 179],
   ["duration_seconds", 481],
   ["media_url", "http://cdn.example.org/video.mp4"],
   ["media_sha256", "missing"],
@@ -113,7 +113,7 @@ test("requires curiosity beats no more than 75 seconds apart and a next-episode 
 test("requires one proposed break marker for 3–6:59 minute videos and two for 7–8 minute videos", () => {
   assert.deepEqual(validateLongFormVideoCampaign({ ...valid, duration_seconds: 420, retention_beats_seconds: [55, 115, 175, 235, 295, 355], editorial_ad_breaks_seconds: [180, 360], editorial_ad_break_notes: ["After story beat one.", "Before the final explanation."] }), []);
   assert.ok(validateLongFormVideoCampaign({ ...valid, editorial_ad_breaks_seconds: [180, 250], editorial_ad_break_notes: ["One.", "Two."] }).some((e) => e.includes("one for 3–6:59")));
-  assert.ok(validateLongFormVideoCampaign({ ...valid, duration_seconds: 420, retention_beats_seconds: [55, 115, 175, 235, 295, 355], editorial_ad_breaks_seconds: [180], editorial_ad_break_notes: ["After the first story beat."] }).some((e) => e.includes("one for 5–6:59")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, duration_seconds: 420, retention_beats_seconds: [55, 115, 175, 235, 295, 355], editorial_ad_breaks_seconds: [180], editorial_ad_break_notes: ["After the first story beat."] }).some((e) => e.includes("one for 3–6:59")));
 });
 
 test("rejects ad-break markers before the opening hook or too early in the story", () => {
