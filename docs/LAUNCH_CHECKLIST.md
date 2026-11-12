@@ -131,7 +131,7 @@ This section supersedes older implementation-status bullets above where the date
 - The live Meta read-only check confirms the configured Page ID `1003575786161492` but rejects the Page token with HTTP 401 / OAuth error 190 / subcode 463. Replace the token privately in GitHub Actions secrets before any Meta publishing.
 - Nature Frontiers YouTube identity is verified as `@naturefrontiers-life` / `UC41xXhw22o6Q2I2pTKB2kOg`. Metricool's Nature Frontiers brand still maps YouTube to the separate SonicVibes channel ID `UCSlkuPfHH78oGC1o418HV4w`; do not use that mapping for Nature Frontiers publishing.
 - The YouTube series and description validator passes, but the six-episode season is still `concept_only`. There is no verified rendered/approved documentary, upload or scheduled YouTube release.
-- Latest completed full publishing workflow for exact PR head `a477b903df47053ee3ebd349d098bc8cc5b28d73` ([run 43299648452](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43299648452)): safety job passed 148 automated tests (0 failed, 0 skipped) and 17 fail-closed publisher scenarios. The test suites include 10 feed-guard, 53 Reel/media, 62 long-form/media, 7 Johannesburg cadence and 15 YouTube tests. Meta readiness failed because of the expired/invalid/revoked token; Facebook publisher was skipped. The check confirmed the Page ID, `PUBLISH_ENABLED` disabled, dry-run enabled and emergency stop active.
+- Latest completed full publishing workflow for exact PR code head `7c29d122e9cc6a7c22a80b524a58d586a7e669da` ([run 43300216600](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43300216600)): safety job passed 148 automated tests (0 failed, 0 skipped) and 20 fail-closed publisher scenarios. The test suites include 10 feed-guard, 53 Reel/media, 62 long-form/media, 7 Johannesburg cadence and 15 YouTube tests. Meta readiness failed because of the expired/invalid/revoked token; Facebook publisher was skipped. The check confirmed the Page ID, `PUBLISH_ENABLED` disabled, dry-run enabled and emergency stop active.
 - PR #12 targets `main` directly, has no base-branch commits missing, and GitHub reports it mergeable. It remains a draft and has not been merged. Do not treat mergeability as release approval.
 - Website items listed in the October snapshot (placeholder contact address/phone, privacy-policy and affiliate-disclosure review, mobile layout, embedded video playback, newsletter behaviour and checkout) were not rechecked or changed in this release. WordPress dashboard write access was not available. Keep those checks open until a current authenticated website review is completed.
 - Public publishing remains disabled. No campaign is approved by this checklist, and no live post or video upload is claimed.
@@ -157,8 +157,8 @@ The earlier 193.886621-second documentary export and corrected audio export rema
 - All three Facebook adapters now fail closed when `EMERGENCY_STOP` is absent or active; the workflow defaults it to `true`.
 - CI now runs the legacy feed-guard test suite and syntax-checks all three publishing adapters. Stale references to non-existent series test files were removed.
 - Long-form and Reel media preflight now rejects files with no AAC audio stream, audio/video duration mismatch over 1.5 seconds, sample rates below 44.1 kHz, or non-mono/stereo channel layouts.
-- Latest verified YouTube content workflow: [43299648391](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43299648391), PASS, 15/15 tests.
-- Latest verified safety workflow: [43299648452](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43299648452), safety PASS, 148/148 tests and 17/17 fail-closed scenarios; Meta token remains blocked and publisher skipped.
+- Latest verified YouTube content workflow: [43300216613](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43300216613), PASS, 15/15 tests.
+- Latest verified safety workflow: [43300216600](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43300216600), safety PASS, 148/148 tests and 17/17 fail-closed scenarios; Meta token remains blocked and publisher skipped.
 
 
 ## Daily Facebook publishing cadence — 12 November 2026
@@ -173,3 +173,5 @@ The daily quota now reflects the owner's operating target:
 - The feed publisher now checks the same daily capacity and stops if another campaign is in an uncertain publishing state, matching the long-form/Reel recovery behaviour.
 
 Current Metricool queue read on 12 November 2026: 20 scheduled records; all 20 are drafts and all have autoPublish=false. All 20 target Facebook, and one static-cover product post is cross-posted to Instagram. No Reel is currently queued for release, and no post was modified in this inspection.
+
+- Live publisher execution is now branch-locked: both the workflow job and all three adapters reject any branch other than `codex/nature-frontiers-youtube-series`. The fail-closed suite includes one wrong-branch test for each adapter.
