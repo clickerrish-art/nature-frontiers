@@ -44,7 +44,7 @@ const ghHeaders = {
 };
 
 async function getState() {
-  const response = await fetch(stateUrl + "?ref=" + encodeURIComponent(ref), { headers: ghHeaders });
+  const response = await fetch(stateUrl + "?ref=" + encodeURIComponent(ref), { headers: ghHeaders, signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error("Could not read durable campaign state (HTTP " + response.status + ").");
   const data = await response.json();
   const content = Buffer.from(data.content.replaceAll("\n", "").replaceAll("\r", ""), "base64").toString("utf8");
@@ -56,7 +56,8 @@ async function saveState(sha, items, message) {
   const response = await fetch(stateUrl, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify({ message, content, sha, branch: ref })
+    body: JSON.stringify({ message, content, sha, branch: ref }),
+    signal: AbortSignal.timeout(30000)
   });
   if (!response.ok) throw new Error("Could not persist campaign state (HTTP " + response.status + "); do not retry the Reel until the Page and state are inspected.");
   return response.json();
@@ -102,7 +103,8 @@ const startUrl = new URL(graph + "/" + encodeURIComponent(pageId) + "/video_reel
 startUrl.searchParams.set("upload_phase", "start");
 const started = await fetch(startUrl, {
   method: "POST",
-  headers: { Authorization: "Bearer " + accessToken }
+  headers: { Authorization: "Bearer " + accessToken },
+  signal: AbortSignal.timeout(15000)
 });
 const startPayload = await started.json().catch(() => ({}));
 if (!started.ok || !startPayload.video_id || !startPayload.upload_url) {
@@ -122,7 +124,8 @@ const uploaded = await fetch(uploadUrl, {
     "Content-Type": "application/octet-stream"
   },
   body: createReadStream(mediaCheck.filePath),
-  duplex: "half"
+  duplex: "half",
+  signal: AbortSignal.timeout(180000)
 });
 const uploadPayload = await uploaded.json().catch(() => ({}));
 if (!uploaded.ok || uploadPayload.success !== true) {
@@ -137,7 +140,8 @@ finishUrl.searchParams.set("description", campaign.caption);
 finishUrl.searchParams.set("title", campaign.title);
 const finished = await fetch(finishUrl, {
   method: "POST",
-  headers: { Authorization: "Bearer " + accessToken }
+  headers: { Authorization: "Bearer " + accessToken },
+  signal: AbortSignal.timeout(30000)
 });
 const finishPayload = await finished.json().catch(() => ({}));
 if (!finished.ok || finishPayload.success !== true) {
@@ -149,7 +153,8 @@ for (let attempt = 0; attempt < 12; attempt++) {
   const statusUrl = new URL(graph + "/" + encodeURIComponent(startPayload.video_id));
   statusUrl.searchParams.set("fields", "status");
   const statusResponse = await fetch(statusUrl, {
-    headers: { Authorization: "Bearer " + accessToken }
+    headers: { Authorization: "Bearer " + accessToken },
+    signal: AbortSignal.timeout(15000)
   });
   const statusPayload = await statusResponse.json().catch(() => ({}));
   if (!statusResponse.ok) throw new Error("Could not verify Reel publication status (HTTP " + statusResponse.status + "); state remains publishing.");
