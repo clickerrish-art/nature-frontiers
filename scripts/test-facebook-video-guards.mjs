@@ -21,7 +21,7 @@ const valid = {
   voiceover_sha256: "d".repeat(64),
   captions_sha256: "e".repeat(64),
   thumbnail_sha256: "f".repeat(64),
-  metadata_sha256: "g".repeat(64),
+  metadata_sha256: "1".repeat(64),
   media_rights_evidence_ref: "rights-record://wildlife-video-001",
   audio_rights_evidence_ref: "rights-record://wildlife-audio-001",
   human_review: {
@@ -32,7 +32,7 @@ const valid = {
     voiceover_sha256: "d".repeat(64),
     captions_sha256: "e".repeat(64),
     thumbnail_sha256: "f".repeat(64),
-    metadata_sha256: "g".repeat(64)
+    metadata_sha256: "1".repeat(64)
   },
   script_originality_confirmed: true,
   voiceover_originality_confirmed: true,
