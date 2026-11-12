@@ -141,7 +141,7 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false, protectedContentClear: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("natural narrative boundary")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, protectedContentClear: false, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("protected animal behaviour")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true }] }).some((error) => error.includes("reviewer, review timestamp")));
-  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 300, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Incorrect in-segment placement." }] }).some((error) => error.includes("between story segments")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 300, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Incorrect in-segment placement." }] }).some((error) => error.includes("natural narrative boundary")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Do not interrupt this." , interrupts: "an active animal behaviour and critical reveal" }] }).some((error) => error.includes("active animal behaviour")));
 });
 
@@ -191,7 +191,7 @@ test("approval is blocked unless original footage, rights and factual review are
   const plan = { ...validPlan, status: "approved" };
   const errors = validateEpisodePlan(plan);
   assert.ok(errors.some((error) => error.includes("original camera footage")));
-  assert.ok(errors.some((error) => error.includes("rights are verified")));
+  assert.ok(errors.some((error) => error.includes("rights have a recorded")));
   assert.ok(errors.some((error) => error.includes("factual claims")));
   assert.ok(errors.some((error) => error.includes("human review")));
 });
