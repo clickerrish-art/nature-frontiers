@@ -8,6 +8,7 @@ const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 const expectedPageId = "1003575786161492";
+const expectedBranch = "codex/nature-frontiers-youtube-series";
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
@@ -25,6 +26,7 @@ if (process.env.EMERGENCY_STOP !== "false") stop("EMERGENCY_STOP is active; publ
 if (!dryRun && process.env.PUBLISH_RUN_AUTHORIZED !== "true") {
   stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
 }
+if (!dryRun && process.env.GITHUB_REF_NAME !== expectedBranch) stop("Live publishing is restricted to the exact implementation branch " + expectedBranch + ".");
 if (!dryRun && pageId !== expectedPageId) {
   stop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
 }
