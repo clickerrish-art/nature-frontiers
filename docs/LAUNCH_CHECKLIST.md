@@ -1,5 +1,7 @@
 # Nature Frontiers launch checklist
 
+> **Status note (12 November 2026):** The detailed website/product observations below are a historical snapshot from 21–22 October 2026, not a fresh website or checkout inspection. See [PUBLISHING-SETUP.md](PUBLISHING-SETUP.md) for the current publishing architecture and verified blockers, and the README for the latest CI results. Do not treat old checked boxes or historical workflow runs as current release approval.
+
 Use this checklist before any campaign is approved or any live publishing is enabled. Automated validation is necessary, but it does not replace the human checks below.
 
 ## 1. Product and checkout verification
@@ -119,3 +121,17 @@ The owner previously confirmed the newsletter works and asked that the website b
 ## Deployment follow-up (22 October 2026)
 
 - [x] The checklist-only GitHub Pages deployment completed successfully: Actions run [39724958455](https://github.com/clickerrish-art/nature-frontiers/actions/runs/39724958455); build, deploy, and status-report jobs all succeeded. This confirms deployment of the repository checklist update, not the completion of external WordPress, Meta, browser, or Selar checks.
+
+
+## Current release status — 12 November 2026
+
+This section supersedes older implementation-status bullets above where the dates or implementation state differ.
+
+- The six catalogue products remain `review-required`; the six repository Facebook campaigns remain `draft`. The current catalogue contains distinct Selar URLs, but the live checkout, price, currency, downloadable files and deliverables have not been freshly re-verified for this release.
+- The live Meta read-only check confirms the configured Page ID `1003575786161492` but rejects the Page token with HTTP 401 / OAuth error 190 / subcode 463. Replace the token privately in GitHub Actions secrets before any Meta publishing.
+- Nature Frontiers YouTube identity is verified as `@naturefrontiers-life` / `UC41xXhw22o6Q2I2pTKB2kOg`. Metricool's Nature Frontiers brand still maps YouTube to the separate SonicVibes channel ID `UCSlkuPfHH78oGC1o418HV4w`; do not use that mapping for Nature Frontiers publishing.
+- The YouTube series and description validator passes, but the six-episode season is still `concept_only`. There is no verified rendered/approved documentary, upload or scheduled YouTube release.
+- Latest completed full publishing workflow for the tested application/doc revision `4c64e397c6a0d5b0e5f1e58f97bbb5d48c008897`: safety job passed 135 automated tests (0 failed, 0 skipped) and 14 fail-closed publisher scenarios. Meta readiness failed because of the expired/invalid/revoked token; Facebook publisher was skipped.
+- PR #12 is now based on `main`, 223 commits ahead and 0 behind, and GitHub reports it mergeable. It remains a draft and has not been merged. Do not treat mergeability as release approval.
+- Website items listed in the October snapshot (placeholder contact address/phone, privacy-policy and affiliate-disclosure review, mobile layout, embedded video playback, newsletter behaviour and checkout) were not rechecked or changed in this release. WordPress dashboard write access was not available. Keep those checks open until a current authenticated website review is completed.
+- Public publishing remains disabled. No campaign is approved by this checklist, and no live post or video upload is claimed.
