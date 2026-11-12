@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { createFeedReviewDigest, validateFeedRelease } from "./facebook-feed-guards.mjs";
 
 const approvedBase = {
@@ -82,4 +83,15 @@ test("requires a named, timestamped human approval bound to the exact release me
 test("invalidates the feed approval when caption or reviewed metadata changes", () => {
   assert.ok(validateFeedRelease({ ...approved, caption: "Changed after review." }).some((e) => e.includes("bound to the exact release metadata")));
   assert.ok(validateFeedRelease({ ...approved, brand_fit_confirmed: false }).some((e) => e.includes("bound to the exact release metadata")));
+});
+
+test("every repository Facebook campaign draft links to the Nature Frontiers YouTube channel", async () => {
+  const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
+  assert.ok(campaigns.length > 0);
+  for (const campaign of campaigns) {
+    assert.ok(
+      campaign.caption.includes("https://www.youtube.com/@naturefrontiers-life"),
+      campaign.id + " is missing the required Nature Frontiers YouTube channel CTA"
+    );
+  }
 });
