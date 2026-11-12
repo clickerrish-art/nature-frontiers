@@ -163,6 +163,7 @@ jobs:
       - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: "1003575786161492"
