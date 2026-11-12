@@ -174,6 +174,6 @@ The daily quota now reflects the owner's operating target:
 
 Current Metricool queue read on 12 November 2026: 20 scheduled records; all 20 are drafts and all have autoPublish=false. All 20 target Facebook, and one static-cover product post is cross-posted to Instagram. No Reel is currently queued for release, and no post was modified in this inspection.
 
-- Live publisher execution is now branch-locked: both the workflow job and all three adapters reject any branch other than `codex/nature-frontiers-youtube-series`. The fail-closed suite includes one wrong-branch test for each adapter.
+- Live publisher execution is now restricted to protected `main`: both the workflow job and all three adapters reject implementation/pull-request branches. The fail-closed suite tests the production-branch allow path and wrong-branch rejection for each adapter.
 
 - Feed-post approval is now hash-bound: the reviewer name, timestamp, explicit approval and release SHA-256 must match the exact caption and relevant campaign metadata. Any post-review caption or metadata change invalidates the approval.
