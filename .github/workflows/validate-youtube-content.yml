@@ -22,9 +22,13 @@ on:
       - "data/youtube-content-policy.json"
       - "data/youtube-series-season-1.json"
       - "data/products.json"
+      - "content/youtube/**"
       - "scripts/youtube-content.mjs"
+      - "scripts/build-youtube-description.mjs"
       - "scripts/test-youtube-content.mjs"
       - "package.json"
+      - "README.md"
+      - "docs/YOUTUBE_SERIES_AND_DESCRIPTION_STANDARD.md"
       - ".github/workflows/validate-youtube-content.yml"
 
 permissions:
@@ -51,5 +55,9 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Check module and test syntax
         run: node --check scripts/youtube-content.mjs && node --check scripts/build-youtube-description.mjs && node --check scripts/test-youtube-content.mjs
+      - name: Build and validate the sample episode description
+        run: |
+          node scripts/build-youtube-description.mjs content/youtube/wild-encounters-s01e01-description.json > "$RUNNER_TEMP/nature-frontiers-sample-description.txt"
+          node -e "const fs = require('node:fs'); const d = fs.readFileSync(process.env.RUNNER_TEMP + '/nature-frontiers-sample-description.txt', 'utf8').trim(); if (!d || d.length > 5000) process.exit(1); console.log('Sample description valid: ' + d.length + ' characters.');"
       - name: Run YouTube description, series, duration and ad-break regression tests
         run: npm run test:youtube-content
