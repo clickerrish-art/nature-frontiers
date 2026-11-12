@@ -129,6 +129,7 @@ jobs:
           META_GRAPH_API_VERSION: "v27.0"
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
         run: node scripts/check-meta-readiness.mjs
 
   facebook-publisher:
@@ -149,6 +150,7 @@ jobs:
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: "1003575786161492"
@@ -161,6 +163,7 @@ jobs:
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: "1003575786161492"
