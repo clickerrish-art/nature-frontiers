@@ -63,6 +63,9 @@ test("description builder embeds the Nature Frontiers channel, every catalogue p
   for (const product of links.products) assert.ok(description.includes(product.url), product.id);
   for (const affiliate of links.affiliates) assert.ok(description.includes(affiliate.url), affiliate.label);
   assert.ok(description.indexOf("Affiliate disclosure:") < description.indexOf(links.affiliates[0].url));
+  assert.throws(() => buildYouTubeDescription({ ...episodeOne, title: "x".repeat(101) }), /100 characters/);
+  assert.throws(() => buildYouTubeDescription({ ...episodeOne, nextEpisodeUrl: "https://youtube.com.evil.example/watch?v=bad" }), /published HTTPS YouTube episode URL/);
+  assert.throws(() => buildYouTubeDescription({ ...episodeOne, previousEpisodeUrl: "http://youtu.be/example" }), /published HTTPS YouTube episode URL/);
   assert.ok(description.indexOf("Product links below lead to paid digital resources.") < description.indexOf(links.products[0].url));
   assert.deepEqual(validateYouTubeDescription(description), []);
 });
@@ -136,6 +139,7 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("natural narrative breakpoint")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true }] }).some((error) => error.includes("reviewer, review timestamp")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 300, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Incorrect in-segment placement." }] }).some((error) => error.includes("between story segments")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Do not interrupt this." , interrupts: "an active animal behaviour and critical reveal" }] }).some((error) => error.includes("active animal behaviour")));
 });
 
 test("malformed segment containers fail closed without crashing the validator", () => {
@@ -161,6 +165,7 @@ test("approved episodes require a recorded final human editorial and metadata re
 
 test("season and episode statuses reject unsupported publication states", () => {
   assert.ok(validateSeasonPlan({ ...season, status: "published" }).some((error) => error.includes("Season status")));
+  assert.ok(validateSeasonPlan({ ...season, status: "approved" }).some((error) => error.includes("every episode has passed")));
   const invalidEpisode = { ...season, episodes: season.episodes.map((episode, index) => index === 0 ? { ...episode, status: "published" } : episode) };
   assert.ok(validateSeasonPlan(invalidEpisode).some((error) => error.includes("invalid status")));
 });
