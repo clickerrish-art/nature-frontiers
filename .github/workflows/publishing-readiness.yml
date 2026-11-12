@@ -105,22 +105,10 @@ jobs:
           node-version: "24"
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
-      - name: Test fail-closed publishing controls
-        run: node scripts/test-publishing-safety.mjs
-      - name: Test legacy Facebook feed release guards
-        run: node --test scripts/test-facebook-feed-guards.mjs
       - name: Verify MediaInfo is available for video media verification
         run: mediainfo --Version
       - name: Check Facebook publishing script syntax
         run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs && node --check scripts/facebook-feed-guards.mjs && node --check scripts/test-facebook-feed-guards.mjs
-      - name: Test Facebook Reel release guards and media integrity
-        run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
-      - name: Test long-form video guards and media integrity
-        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs
-      - name: Test Johannesburg daily publishing limits
-        run: node --test scripts/test-publishing-cadence.mjs
-      - name: Test YouTube series, duration, hook, ad-break and description rules
-        run: node --test scripts/test-youtube-content.mjs
       - name: Verify the standard complete npm test entrypoint
         run: npm test
 
