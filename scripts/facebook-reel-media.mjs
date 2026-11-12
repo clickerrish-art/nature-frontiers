@@ -139,7 +139,23 @@ async function inspectReelVideo(filePath, probeImpl) {
   if (!/(mpeg-4|quicktime)/i.test(formatName)) {
     throw new Error("Facebook Reel must use a supported MP4/MOV video container.");
   }
-  return { width, height, duration, frameRate, formatName };
+  const audio = tracks.find((track) => track?.["@type"] === "Audio");
+  if (!audio) throw new Error("Facebook Reel must contain a synchronized audio stream.");
+  const audioFormat = String(audio.Format ?? "");
+  const audioDuration = Number(audio.Duration);
+  const audioSampleRate = Number(audio.SamplingRate);
+  const audioChannels = Number(audio.Channels);
+  if (!/aac/i.test(audioFormat)) throw new Error("Facebook Reel audio must use AAC encoding.");
+  if (!Number.isFinite(audioDuration) || Math.abs(audioDuration - duration) > 1.5) {
+    throw new Error("Facebook Reel audio duration must match the video within 1.5 seconds.");
+  }
+  if (!Number.isFinite(audioSampleRate) || audioSampleRate < 44100) {
+    throw new Error("Facebook Reel audio sample rate must be at least 44.1 kHz.");
+  }
+  if (!Number.isInteger(audioChannels) || audioChannels < 1 || audioChannels > 2) {
+    throw new Error("Facebook Reel audio must be mono or stereo.");
+  }
+  return { width, height, duration, frameRate, formatName, audioFormat, audioDuration, audioSampleRate, audioChannels };
 }
 
 export async function verifyRemoteMedia(
