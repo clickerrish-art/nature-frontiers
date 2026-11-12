@@ -50,6 +50,7 @@ Store credentials only in GitHub Actions secrets.
 
 Repository Actions variables:
 
+- `EMERGENCY_STOP` must remain `true` by default; every Facebook adapter independently stops unless it is explicitly set to `false` for an owner-authorized operation.
 - `PUBLISH_ENABLED` must remain `false` until the owner separately authorizes a release.
 - `PUBLISH_DRY_RUN` must remain `true` until an explicitly approved one-run release.
 - The workflow's `live_publish_authorized` input defaults to `false`; do not change the default.
@@ -68,7 +69,7 @@ The verified channel is `UC41xXhw22o6Q2I2pTKB2kOg` (`@naturefrontiers-life`). Th
 6. Confirm the remote receipt matches the exact uploaded media ID, exact Nature Frontiers Page owner and HTTPS Facebook permalink before recording publication success.
 7. A Reel may only refer to a parent video that is already published by the same Page.
 8. A green CI run, a connected account, a local draft, a read-only API check or a successful media hash is not authorisation to publish.
-9. Never enable public publishing merely to clear a failing readiness check.
+9. Keep `EMERGENCY_STOP=true` by default. Never release the emergency stop or enable public publishing merely to clear a failing readiness check.
 
 ## Historical implementation notes
 
