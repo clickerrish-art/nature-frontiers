@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - "codex/nature-frontiers-youtube-series"
+      - "main"
     paths:
       - "data/youtube-content-policy.json"
       - "data/youtube-series-season-1.json"
