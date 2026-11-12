@@ -191,7 +191,8 @@ const workflowChecks = [
   ["all three adapters receive the built-in GitHub token", workflow.includes("GITHUB_TOKEN: ${{ github.token }}") && (workflow.match(/GITHUB_TOKEN:/g) ?? []).length === 3],
   ["workflow does not incorrectly read the built-in token as a repository secret", !workflow.includes("secrets.GITHUB_TOKEN")],
   ["all three adapters receive one-run authorization", (workflow.match(/PUBLISH_RUN_AUTHORIZED:/g) ?? []).length === 3],
-  ["all three live authorization expressions require production main", (workflow.match(/github\.ref ==/g) ?? []).length >= 7]
+  ["all three live authorization expressions require production main", (workflow.match(/github\.ref ==/g) ?? []).length >= 7],
+  ["pull-request validation watches the legacy feed publisher and its guards", ["scripts/publish-facebook.mjs", "scripts/facebook-feed-guards.mjs", "scripts/test-facebook-feed-guards.mjs"].every((path) => workflow.split("  pull_request:")[1]?.split("  schedule:")[0]?.includes(`- "${path}"`))],
 ];
 for (const [name, passed] of workflowChecks) {
   if (!passed) {
