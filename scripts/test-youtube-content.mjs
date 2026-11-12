@@ -198,3 +198,9 @@ test("approval is blocked unless original footage, rights and factual review are
   assert.ok(errors.some((error) => error.includes("factual claims")));
   assert.ok(errors.some((error) => error.includes("human review")));
 });
+
+const youtubeWorkflow = await readFile(new URL("../.github/workflows/validate-youtube-content.yml", import.meta.url), "utf8");
+
+test("YouTube content validation runs on protected production main", () => {
+  assert.match(youtubeWorkflow, /push:\s+branches:\s+- "codex\/nature-frontiers-youtube-series"\s+- "main"/);
+});
