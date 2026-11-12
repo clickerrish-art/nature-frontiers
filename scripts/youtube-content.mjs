@@ -4,6 +4,16 @@ const policy = JSON.parse(await readFile(new URL("../data/youtube-content-policy
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 
 const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
+const isSafeYouTubeEpisodeUrl = (value) => {
+  if (!isNonEmptyString(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" &&
+      ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+};
 
 export function getRequiredDescriptionLinks() {
   return {
@@ -63,8 +73,8 @@ export function buildYouTubeDescription({
   if (!series) throw new Error("A recognised Nature Frontiers seriesId is required.");
   if (!Number.isInteger(seasonNumber) || seasonNumber < 1) throw new Error("seasonNumber must be a positive integer.");
   if (!Number.isInteger(episodeNumber) || episodeNumber < 1) throw new Error("episodeNumber must be a positive integer.");
-  if (!isNonEmptyString(title) || !isNonEmptyString(synopsis) || !isNonEmptyString(nextEpisodeTease)) {
-    throw new Error("title, synopsis and nextEpisodeTease are required for every series description.");
+  if (!isNonEmptyString(title) || title.trim().length > 100 || !isNonEmptyString(synopsis) || !isNonEmptyString(nextEpisodeTease)) {
+    throw new Error("title (maximum 100 characters), synopsis and nextEpisodeTease are required for every series description.");
   }
   if (!Array.isArray(sources) || sources.some((source) => !isNonEmptyString(source))) {
     throw new Error("sources must be an array of non-empty source URLs or references.");
@@ -83,6 +93,12 @@ export function buildYouTubeDescription({
     nextEpisodeTease.trim()
   ];
 
+  if (previousEpisodeUrl !== undefined && previousEpisodeUrl !== null && previousEpisodeUrl !== "" && !isSafeYouTubeEpisodeUrl(previousEpisodeUrl)) {
+    throw new Error("previousEpisodeUrl must be a published HTTPS YouTube episode URL.");
+  }
+  if (nextEpisodeUrl !== undefined && nextEpisodeUrl !== null && nextEpisodeUrl !== "" && !isSafeYouTubeEpisodeUrl(nextEpisodeUrl)) {
+    throw new Error("nextEpisodeUrl must be a published HTTPS YouTube episode URL.");
+  }
   if (isNonEmptyString(previousEpisodeUrl)) lines.push("Previous episode: " + previousEpisodeUrl.trim());
   if (isNonEmptyString(nextEpisodeUrl)) lines.push("Next episode: " + nextEpisodeUrl.trim());
 
@@ -112,7 +128,7 @@ export function validateEpisodePlan(plan) {
   if (!series) errors.push("Episode must belong to a configured Nature Frontiers series.");
   if (!Number.isInteger(plan.seasonNumber) || plan.seasonNumber < 1) errors.push("seasonNumber must be a positive integer.");
   if (!Number.isInteger(plan.episodeNumber) || plan.episodeNumber < 1) errors.push("episodeNumber must be a positive integer.");
-  if (!isNonEmptyString(plan.title)) errors.push("Episode title is required.");
+  if (!isNonEmptyString(plan.title) || plan.title.trim().length > 100) errors.push("Episode title is required and must not exceed YouTube’s 100-character title limit.");
   if (!["concept_only", "draft", "review", "approved"].includes(plan.status)) {
     errors.push("Episode status must be concept_only, draft, review or approved; publication is tracked separately.");
   }
@@ -195,8 +211,10 @@ export function validateEpisodePlan(plan) {
           !isNonEmptyString(ad?.reviewedAt) || !Number.isFinite(Date.parse(ad.reviewedAt))) {
         errors.push("Every mid-roll requires a reviewer, review timestamp and natural-breakpoint note.");
       }
-      if (isNonEmptyString(ad?.interrupts) && policy.midroll.prohibitedInterruptions.includes(ad.interrupts)) {
-        errors.push("A mid-roll cannot interrupt " + ad.interrupts + ".");
+      if (isNonEmptyString(ad?.interrupts)) {
+        const interruption = ad.interrupts.toLowerCase();
+        const prohibited = policy.midroll.prohibitedInterruptions.find((item) => interruption.includes(item.toLowerCase()));
+        if (prohibited) errors.push("A mid-roll cannot interrupt " + prohibited + ".");
       }
       if (Number.isInteger(duration) && Number.isInteger(ad?.atSeconds) && ad.atSeconds >= duration - 30) {
         errors.push("Mid-roll must leave at least 30 seconds for the closing section.");
@@ -251,6 +269,9 @@ export function validateSeasonPlan(season) {
            !Number.isFinite(Date.parse(episode.humanReviewedAt)))) {
         errors.push("Episode " + expectedNumber + " cannot be approved without original footage, rights, fact-check and recorded human-review verification.");
       }
+    }
+    if (season.status === "approved" && season.episodes.some((episode) => episode?.status !== "approved")) {
+      errors.push("A season cannot be approved until every episode has passed its individual release gates.");
     }
   }
   return errors;
