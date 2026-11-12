@@ -19,6 +19,7 @@ const repo = process.env.GITHUB_REPOSITORY;
 const ref = process.env.GITHUB_REF_NAME;
 const githubToken = process.env.GITHUB_TOKEN;
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
+if (process.env.EMERGENCY_STOP !== "false") stop("EMERGENCY_STOP is active; public publishing is blocked.");
 if (dryRun) stop("PUBLISH_DRY_RUN is not false; no public publishing is permitted.");
 if (process.env.PUBLISH_RUN_AUTHORIZED !== "true") stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
 if (pageId !== expectedPageId) stop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
