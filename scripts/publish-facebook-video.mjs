@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
-import { validateLongFormVideoCampaign, toMetaAdBreakOffsetsMilliseconds } from "./facebook-video-guards.mjs";
+import { validateLongFormVideoCampaign, toMetaAdBreakOffsetsMilliseconds, isLongFormVideoPublishedByPage } from "./facebook-video-guards.mjs";
 import { verifyRemoteLongFormVideo } from "./facebook-video-media.mjs";
 
 function safeStop(message) {
@@ -145,14 +145,14 @@ try {
   let confirmed;
   for (let attempt = 0; attempt < 18; attempt++) {
     confirmed = await graphGetVideo(payload.id);
-    if (confirmed.published === true && confirmed.from?.id === pageId && typeof confirmed.permalink_url === "string" && confirmed.permalink_url.startsWith("https://")) break;
+    if (isLongFormVideoPublishedByPage(confirmed, payload.id, pageId)) break;
     const videoStatus = confirmed?.status?.video_status;
     if (videoStatus === "error" || videoStatus === "upload_failed" || confirmed?.status?.publishing_phase?.publish_status === "error") {
       throw new Error("Meta reports a video processing or publishing error; campaign remains reserved for manual reconciliation.");
     }
     if (attempt < 17) await new Promise((resolve) => setTimeout(resolve, 5000));
   }
-  if (confirmed?.published !== true || confirmed?.from?.id !== pageId || typeof confirmed?.permalink_url !== "string" || !confirmed.permalink_url.startsWith("https://")) {
+  if (!isLongFormVideoPublishedByPage(confirmed, payload.id, pageId)) {
     throw new Error("Meta has not explicitly confirmed the long-form video as published; campaign remains reserved and will not be retried automatically.");
   }
 
