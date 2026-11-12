@@ -43,7 +43,9 @@ If the video itself contains a paid product placement, sponsorship, endorsement 
 - Preserve original source files, provenance, ownership/licence evidence and asset hashes.
 - Fact-check species-specific claims and ensure the narration matches what the footage actually shows.
 - Do not stage, provoke, bait, chase, handle or otherwise disturb wildlife for footage.
-- A plan cannot be marked approved unless original footage, rights and factual review are verified.
+- A plan cannot be marked approved unless original footage/provenance, rights, factual claims, and final editorial/metadata human review are verified and recorded with a named reviewer and timestamp. A season cannot be approved while any episode remains unapproved.
+- Any previous/next episode URL must be a published HTTPS YouTube URL; unsafe or non-YouTube destinations are rejected. Titles are capped at YouTube's 100-character limit.
+- Mid-roll eligibility requires a recorded verification for the exact Nature Frontiers channel ID, including the verifier and timestamp; a bare boolean is insufficient.
 - The owner-supplied handle `@naturefrontiers-life` resolves publicly to a channel titled **Nature Frontiers** with the expected African-wildlife documentary description.
 - **A connected-account mismatch is confirmed:** Metricool currently reports YouTube channel ID `UCSlkuPfHH78oGC1o418HV4w`, but that ID resolves publicly to **SonicVibes**, not Nature Frontiers. Do not use the Metricool YouTube connection for Nature Frontiers uploads or scheduling.
 - YouTube publishing is explicitly disabled in `data/youtube-content-policy.json`. The public handle is resolved, but an authenticated Nature Frontiers YouTube connection is not available through the current Metricool integration.
@@ -52,5 +54,8 @@ If the video itself contains a paid product placement, sponsorship, endorsement 
 ## Validation
 Run:
 ```sh
+node scripts/build-youtube-description.mjs content/youtube/wild-encounters-s01e01-description.json
 npm run test:youtube-content
 ```
+
+The YouTube content workflow runs the sample description builder explicitly and is triggered by changes to the sample input, builder, validator, tests, policy, catalogue, README and this standard.
