@@ -51,7 +51,7 @@ const cases = [
         PUBLISH_RUN_AUTHORIZED: "true",
         GITHUB_REF_NAME: "main"
       },
-      expected: "No explicitly approved long-form video campaigns exist."
+      expected: "No explicitly approved long-form Facebook video campaigns exist."
     },
     {
       name: "Reel publisher permits the protected production branch but finds no approved campaign",
