@@ -3,8 +3,17 @@ name: Nature Frontiers publishing (gated)
 on:
   workflow_dispatch:
     inputs:
+      publisher:
+        description: "Select exactly one publishing adapter for this one-shot authorization."
+        required: true
+        type: choice
+        options:
+          - reel
+          - feed
+          - video
+        default: reel
       live_publish_authorized:
-        description: "Explicitly authorize one live publishing run after all launch checks (leave false for checks/dry runs)."
+        description: "Explicitly authorize one live publishing operation after all launch checks (leave false for checks/dry runs)."
         required: true
         type: boolean
         default: false
@@ -147,6 +156,7 @@ jobs:
         with:
           node-version: "24"
       - name: Run gated long-form Facebook Page video adapter
+        if: inputs.publisher == 'video'
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
@@ -160,6 +170,7 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook-video.mjs
       - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
+        if: inputs.publisher == 'reel'
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
@@ -172,3 +183,17 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook-reel.mjs
+      - name: Run gated Facebook feed post adapter
+        if: inputs.publisher == 'feed'
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          META_GRAPH_API_VERSION: "v27.0"
+          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-facebook.mjs
