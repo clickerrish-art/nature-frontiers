@@ -6,6 +6,7 @@ const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+const expectedPageId = "1003575786161492";
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
@@ -86,6 +87,13 @@ if (dryRun) {
   process.exit(0);
 }
 
+if (process.env.PUBLISH_RUN_AUTHORIZED !== "true") {
+  stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
+}
+if (pageId !== expectedPageId) {
+  stop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
+}
+
 if (!graphVersion || !/^v\d+\.\d+$/.test(graphVersion)) {
   throw new Error("META_GRAPH_API_VERSION must be set to a currently supported Meta Graph API version.");
 }
@@ -102,7 +110,7 @@ const ghHeaders = {
 };
 
 async function getState() {
-  const response = await fetch(apiBase + "?ref=" + encodeURIComponent(process.env.GITHUB_REF_NAME), { headers: ghHeaders });
+  const response = await fetch(apiBase + "?ref=" + encodeURIComponent(process.env.GITHUB_REF_NAME), { headers: ghHeaders, signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error("Could not read campaign state from GitHub (HTTP " + response.status + ").");
   const data = await response.json();
   const decoded = Buffer.from(data.content.replace(/\s/g, ""), "base64").toString("utf8");
@@ -114,7 +122,8 @@ async function saveState(sha, nextCampaigns, messageText) {
   const response = await fetch(apiBase, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify({ message: messageText, content, sha, branch: process.env.GITHUB_REF_NAME })
+    body: JSON.stringify({ message: messageText, content, sha, branch: process.env.GITHUB_REF_NAME }),
+    signal: AbortSignal.timeout(30000)
   });
   if (!response.ok) throw new Error("Could not persist campaign state to GitHub (HTTP " + response.status + "). No further post attempt should be made until state is inspected.");
   return response.json();
@@ -133,8 +142,8 @@ const reservation = initial.campaigns.map((c) =>
 await saveState(initial.sha, reservation, "Reserve campaign " + campaign.id + " before Facebook publication");
 
 const endpoint = "https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(pageId) + "/feed";
-const body = new URLSearchParams({ message, access_token: accessToken });
-const response = await fetch(endpoint, { method: "POST", body });
+const body = new URLSearchParams({ message });
+const response = await fetch(endpoint, { method: "POST", headers: { Authorization: "Bearer " + accessToken }, body, signal: AbortSignal.timeout(30000) });
 const responseText = await response.text();
 let payload;
 try { payload = JSON.parse(responseText); } catch { payload = {}; }
@@ -145,10 +154,24 @@ if (!response.ok || payload.error || !payload.id) {
   throw new Error("Facebook publish failed or returned an ambiguous result (HTTP " + response.status + ", code " + errorCode + ", type " + errorType + "). State remains 'publishing' to prevent accidental duplicate retries; inspect the Page before manual recovery.");
 }
 
+const receiptUrl = new URL("https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(payload.id));
+receiptUrl.searchParams.set("fields", "id,from,permalink_url");
+const receiptResponse = await fetch(receiptUrl, {
+  headers: { Authorization: "Bearer " + accessToken },
+  signal: AbortSignal.timeout(15000)
+});
+const receipt = await receiptResponse.json().catch(() => ({}));
+const permalink = typeof receipt?.permalink_url === "string" ? new URL(receipt.permalink_url) : null;
+if (!receiptResponse.ok || receipt?.id !== payload.id || receipt?.from?.id !== pageId ||
+    !permalink || permalink.protocol !== "https:" ||
+    !["facebook.com", "www.facebook.com", "m.facebook.com"].includes(permalink.hostname)) {
+  throw new Error("Facebook post receipt could not confirm the exact post ID, Nature Frontiers Page owner and HTTPS permalink. State remains 'publishing'; reconcile manually before any retry.");
+}
+
 const after = await getState();
 const completed = after.campaigns.map((c) =>
   c.id === campaign.id && c.status === "publishing"
-    ? { ...c, status: "published", published_at: new Date().toISOString(), platform_post_id: payload.id }
+    ? { ...c, status: "published", published_at: new Date().toISOString(), platform_post_id: payload.id, platform_permalink: permalink.href }
     : c
 );
 await saveState(after.sha, completed, "Record Facebook publication for campaign " + campaign.id);
