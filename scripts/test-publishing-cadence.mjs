@@ -26,21 +26,30 @@ test("counts today's published releases and ignores drafts, pending items and pr
     { status: "publishing", facebook_type: "REEL", publishing_started_at: "2026-11-11T14:00:00.000Z" }
   ];
   assert.deepEqual(getJohannesburgDailyReleaseCounts(campaigns, new Date("2026-11-11T14:00:00.000Z")), {
-    date: "2026-11-11", longForm: 1, reels: 1, total: 2
+    date: "2026-11-11", feedPosts: 1, reels: 1, total: 2
   });
 });
 
-test("allows up to two long-form videos, one Reel and three total releases per Johannesburg day", () => {
+test("allows two Reels and one feed post per Johannesburg day", () => {
   const now = new Date("2026-11-11T14:00:00.000Z");
-  const current = [
-    { status: "published", facebook_type: "VIDEO", published_at: "2026-11-11T08:00:00.000Z" },
-    { status: "published", facebook_type: "VIDEO", published_at: "2026-11-11T12:00:00.000Z" }
+  const twoReels = [
+    { status: "published", facebook_type: "REEL", published_at: "2026-11-11T08:00:00.000Z" },
+    { status: "published", facebook_type: "REEL", published_at: "2026-11-11T12:00:00.000Z" }
   ];
-  assert.throws(() => assertDailyReleaseCapacity(current, "VIDEO", now), /no more than two/);
-  assert.equal(assertDailyReleaseCapacity(current, "REEL", now).longForm, 2);
+  assert.equal(assertDailyReleaseCapacity(twoReels, "POST", now).reels, 2);
+  assert.throws(() => assertDailyReleaseCapacity(twoReels, "REEL", now), /no more than two Reels/);
 
-  const withReel = [...current, { status: "published", facebook_type: "REEL", published_at: "2026-11-11T13:00:00.000Z" }];
-  assert.throws(() => assertDailyReleaseCapacity(withReel, "REEL", now), /no more than three total releases/);
+  const withFeed = [...twoReels, { status: "published", facebook_type: "POST", published_at: "2026-11-11T13:00:00.000Z" }];
+  assert.throws(() => assertDailyReleaseCapacity(withFeed, "POST", now), /three total releases/);
+  assert.throws(() => assertDailyReleaseCapacity(withFeed, "REEL", now), /three total releases/);
+});
+
+test("long-form Page videos and text feed posts share one daily feed slot", () => {
+  const now = new Date("2026-11-11T14:00:00.000Z");
+  const publishedVideo = [{ status: "published", facebook_type: "VIDEO", published_at: "2026-11-11T08:00:00.000Z" }];
+  assert.throws(() => assertDailyReleaseCapacity(publishedVideo, "POST", now), /one feed post/);
+  const publishedPost = [{ status: "published", facebook_type: "POST", published_at: "2026-11-11T08:00:00.000Z" }];
+  assert.throws(() => assertDailyReleaseCapacity(publishedPost, "VIDEO", now), /one feed post/);
 });
 
 test("blocks the fourth release regardless of content type", () => {
@@ -54,13 +63,13 @@ test("blocks the fourth release regardless of content type", () => {
   assert.throws(() => assertDailyReleaseCapacity(campaigns, "REEL", now), /no more than three total releases/);
 });
 
-test("does not count a previous day's video toward today's allowance", () => {
+test("does not count a previous day's video toward today's feed-post allowance", () => {
   const campaigns = [
     { status: "published", facebook_type: "VIDEO", published_at: "2026-11-10T21:30:00.000Z" }
   ];
-  assert.equal(assertDailyReleaseCapacity(campaigns, "VIDEO", new Date("2026-11-11T08:00:00.000Z")).longForm, 0);
+  assert.equal(assertDailyReleaseCapacity(campaigns, "VIDEO", new Date("2026-11-11T08:00:00.000Z")).feedPosts, 0);
 });
 
-test("rejects non-video release types", () => {
-  assert.throws(() => assertDailyReleaseCapacity([], "POST"), /Only VIDEO and REEL/);
+test("rejects unsupported release types", () => {
+  assert.throws(() => assertDailyReleaseCapacity([], "STORY"), /Only VIDEO, POST and REEL/);
 });
