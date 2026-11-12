@@ -10,7 +10,8 @@ const publicLookup = async () => [{ address: "93.184.216.34", family: 4 }];
 const validMetadata = {
   media: { track: [
     { "@type": "General", Format: "MPEG-4", Duration: "360" },
-    { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "29.970", Duration: "360" }
+    { "@type": "Video", Width: "1920", Height: "1080", FrameRate: "29.970", Duration: "360" },
+    { "@type": "Audio", Format: "AAC", Duration: "360", SamplingRate: "48000", Channels: "2" }
   ] }
 };
 
@@ -38,9 +39,27 @@ test("stages exact hash-verified bytes and confirms landscape long-form technica
     assert.equal(result.bytes, bytes.length);
     assert.equal(result.sha256, digest);
     assert.deepEqual(await readFile(result.filePath), bytes);
-    assert.deepEqual(result.videoMetadata, { width: 1920, height: 1080, duration: 360, frameRate: 29.97, formatName: "MPEG-4" });
+    assert.deepEqual(result.videoMetadata, { width: 1920, height: 1080, duration: 360, frameRate: 29.97, formatName: "MPEG-4", audioFormat: "AAC", audioDuration: 360, audioSampleRate: 48000, audioChannels: 2 });
   } finally {
     await result.cleanup();
+  }
+});
+
+test("rejects missing, unsynchronized, low-rate or unsupported audio before upload", async () => {
+  const invalidAudio = [
+    validMetadata.media.track.filter((track) => track["@type"] !== "Audio"),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, Duration: "300" } : track),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, SamplingRate: "22050" } : track),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, Format: "AC-3" } : track),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, Channels: "6" } : track)
+  ];
+  for (const track of invalidAudio) {
+    const metadata = { media: { track } };
+    await assert.rejects(
+      verifyRemoteLongFormVideo("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined,
+        async () => ({ stdout: JSON.stringify(metadata) })),
+      /audio stream|audio duration|AAC encoding|sample rate|mono or stereo/
+    );
   }
 });
 
