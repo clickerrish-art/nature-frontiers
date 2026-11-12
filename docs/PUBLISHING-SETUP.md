@@ -36,7 +36,7 @@ The legacy text/link feed adapter also requires the per-run authorization and ex
 
 The current catalogue contains six products and six Facebook promotional campaign drafts. All products remain `review-required`; all campaigns remain `draft`. Do not promote any product or campaign to approved based only on a URL or a previous listing snapshot. Verify the exact live checkout destination, title, deliverables, price, promotional claims and any applicable affiliate relationship before approval. The current catalogue has distinct URLs for the six products; if a future edit reuses a checkout URL, require explicit human confirmation for that exact shared destination.
 
-The current campaign validator checks the product-to-caption URL match, paid-product disclosure, campaign state, duplicate IDs, media rights and supported campaign types. A successful catalogue validation does not establish that a product file, checkout or claim has been independently inspected.
+The current campaign validator checks that every Facebook campaign caption includes the Nature Frontiers YouTube channel CTA, the product-to-caption URL match, paid-product disclosure, campaign state, duplicate IDs, media rights and supported campaign types. A successful catalogue validation does not establish that a product file, checkout or claim has been independently inspected.
 
 ## Secrets and variables
 
