@@ -16,19 +16,19 @@ const cases = [
     name: "legacy feed publisher rejects a different live branch",
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
-    expected: "Live publishing is restricted to the protected production branch main."
+    expected: "Live publishing is restricted to the production branch main."
   },
   {
     name: "long-form publisher rejects a different live branch",
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
-    expected: "Live publishing is restricted to the protected production branch main."
+    expected: "Live publishing is restricted to the production branch main."
   },
   {
     name: "Reel publisher rejects a different live branch",
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
-    expected: "Live publishing is restricted to the protected production branch main."
+    expected: "Live publishing is restricted to the production branch main."
   },
 
   ...[
@@ -191,7 +191,7 @@ const workflowChecks = [
   ["all three adapters receive the built-in GitHub token", workflow.includes("GITHUB_TOKEN: ${{ github.token }}") && (workflow.match(/GITHUB_TOKEN:/g) ?? []).length === 3],
   ["workflow does not incorrectly read the built-in token as a repository secret", !workflow.includes("secrets.GITHUB_TOKEN")],
   ["all three adapters receive one-run authorization", (workflow.match(/PUBLISH_RUN_AUTHORIZED:/g) ?? []).length === 3],
-  ["all three live authorization expressions require protected main", (workflow.match(/github\.ref ==/g) ?? []).length >= 7]
+  ["all three live authorization expressions require production main", (workflow.match(/github\.ref ==/g) ?? []).length >= 7]
 ];
 for (const [name, passed] of workflowChecks) {
   if (!passed) {
