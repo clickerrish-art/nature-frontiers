@@ -106,8 +106,11 @@
   },
   "youtubePublishing": {
     "enabled": false,
-    "authenticatedChannelIdentityVerified": false,
-    "requiredCheck": "The authenticated YouTube channel ID must be verified against the owner-supplied channel URL before any upload or schedule operation.",
+    "authenticatedChannelIdentityVerified": true,
+    "verifiedChannelId": "UC41xXhw22o6Q2I2pTKB2kOg",
+    "verifiedChannelHandle": "@naturefrontiers-life",
+    "identityVerificationSource": "vidIQ directly authorized owner-access channel listing, checked 2026-11-12",
+    "requiredCheck": "Use only the verified Nature Frontiers channel ID UC41xXhw22o6Q2I2pTKB2kOg. Metricool's Nature Frontiers brand still maps YouTube to the separate SonicVibes channel; do not use that Metricool mapping for Nature Frontiers publishing.",
     "nativePaidPromotionDeclarationRequiredWhenApplicable": true,
     "publicHandleResolved": true,
     "metricoolChannelMismatchConfirmed": true
