@@ -4,6 +4,7 @@ const policy = JSON.parse(await readFile(new URL("../data/youtube-content-policy
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 
 const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
+const isSha256 = (value) => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
 const isSafeYouTubeEpisodeUrl = (value) => {
   if (!isNonEmptyString(value)) return false;
   try {
@@ -186,6 +187,7 @@ export function validateEpisodePlan(plan) {
       if (plan.monetizationEligibilityVerified !== true ||
           plan.monetizationEligibilityChannelId !== policy.youtubePublishing.verifiedChannelId ||
           !isNonEmptyString(plan.monetizationEligibilityVerifiedBy) ||
+          !isNonEmptyString(plan.monetizationEligibilityEvidence) ||
           !isNonEmptyString(plan.monetizationEligibilityVerifiedAt) ||
           !Number.isFinite(Date.parse(plan.monetizationEligibilityVerifiedAt))) {
         errors.push("Mid-rolls require independently recorded monetization eligibility for the verified Nature Frontiers channel, including channel ID, reviewer and verification timestamp.");
@@ -204,8 +206,8 @@ export function validateEpisodePlan(plan) {
       const boundaries = segments.slice(0, -1).filter((segment, segmentIndex) =>
         segment?.endSeconds === segments[segmentIndex + 1]?.startSeconds
       ).map((segment) => segment.endSeconds);
-      if (ad?.naturalBreakpoint !== true || !boundaries.includes(ad?.atSeconds)) {
-        errors.push("Every mid-roll must be placed at a reviewed natural narrative breakpoint between story segments.");
+      if (ad?.naturalBreakpoint !== true || !boundaries.includes(ad?.atSeconds) || ad?.protectedContentClear !== true) {
+        errors.push("Every mid-roll must be reviewed at a natural narrative boundary, with confirmation that no protected animal behaviour, reveal or payoff is interrupted.");
       }
       if (!isNonEmptyString(ad?.reviewedBy) || !isNonEmptyString(ad?.breakpointNote) ||
           !isNonEmptyString(ad?.reviewedAt) || !Number.isFinite(Date.parse(ad.reviewedAt))) {
@@ -223,13 +225,22 @@ export function validateEpisodePlan(plan) {
     }
   }
 
-  if (plan.status === "approved" && plan.originalFootageVerified !== true) errors.push("Approval is blocked until original camera footage and provenance are verified.");
-  if (plan.status === "approved" && plan.rightsVerified !== true) errors.push("Approval is blocked until footage rights are verified.");
-  if (plan.status === "approved" && plan.factCheckPassed !== true) errors.push("Approval is blocked until factual claims are checked.");
+  if (plan.status === "approved" &&
+      (plan.originalFootageVerified !== true || !isNonEmptyString(plan.originalFootageEvidence) || !isSha256(plan.originalFootageSha256))) {
+    errors.push("Approval is blocked until original camera footage has a source reference and verified SHA-256 provenance hash.");
+  }
+  if (plan.status === "approved" && (plan.rightsVerified !== true || !isNonEmptyString(plan.rightsEvidence))) {
+    errors.push("Approval is blocked until footage rights have a recorded licence or ownership evidence reference.");
+  }
+  if (plan.status === "approved" &&
+      (plan.factCheckPassed !== true || !Array.isArray(plan.factCheckSources) || plan.factCheckSources.length === 0 ||
+       plan.factCheckSources.some((source) => !isNonEmptyString(source)))) {
+    errors.push("Approval is blocked until factual claims have passed review with recorded source references.");
+  }
   if (plan.status === "approved" && plan.humanReviewPassed !== true) errors.push("Approval is blocked until final editorial and metadata human review passes.");
   if (plan.status === "approved" &&
       (!isNonEmptyString(plan.humanReviewer) || !isNonEmptyString(plan.humanReviewedAt) ||
-       !Number.isFinite(Date.parse(plan.humanReviewedAt)))) {
+       !Number.isFinite(Date.parse(plan.humanReviewedAt)) || !isSha256(plan.reviewedVideoSha256) || !isSha256(plan.reviewedMetadataSha256))) {
     errors.push("Approval requires a named human reviewer and a valid review timestamp.");
   }
   return errors;
@@ -263,11 +274,14 @@ export function validateSeasonPlan(season) {
         errors.push("Episode " + expectedNumber + " has an invalid status; publication is tracked separately.");
       }
       if (episode?.status === "approved" &&
-          (episode.originalFootageVerified !== true || episode.rightsVerified !== true ||
-           episode.factCheckPassed !== true || episode.humanReviewPassed !== true ||
-           !isNonEmptyString(episode.humanReviewer) || !isNonEmptyString(episode.humanReviewedAt) ||
-           !Number.isFinite(Date.parse(episode.humanReviewedAt)))) {
-        errors.push("Episode " + expectedNumber + " cannot be approved without original footage, rights, fact-check and recorded human-review verification.");
+          (episode.originalFootageVerified !== true || !isNonEmptyString(episode.originalFootageEvidence) || !isSha256(episode.originalFootageSha256) ||
+           episode.rightsVerified !== true || !isNonEmptyString(episode.rightsEvidence) ||
+           episode.factCheckPassed !== true || !Array.isArray(episode.factCheckSources) || episode.factCheckSources.length === 0 ||
+           episode.factCheckSources.some((source) => !isNonEmptyString(source)) ||
+           episode.humanReviewPassed !== true || !isNonEmptyString(episode.humanReviewer) ||
+           !isNonEmptyString(episode.humanReviewedAt) || !Number.isFinite(Date.parse(episode.humanReviewedAt)) ||
+           !isSha256(episode.reviewedVideoSha256) || !isSha256(episode.reviewedMetadataSha256))) {
+        errors.push("Episode " + expectedNumber + " cannot be approved without original-footage provenance, rights evidence, fact-check sources and hash-bound human review.");
       }
     }
     if (season.status === "approved" && season.episodes.some((episode) => episode?.status !== "approved")) {
