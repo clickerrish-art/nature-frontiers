@@ -43,7 +43,8 @@ If the video itself contains a paid product placement, sponsorship, endorsement 
 - Preserve original source files, provenance, ownership/licence evidence and asset hashes.
 - Fact-check species-specific claims and ensure the narration matches what the footage actually shows.
 - Do not stage, provoke, bait, chase, handle or otherwise disturb wildlife for footage.
-- A plan cannot be marked approved unless original footage/provenance, rights, factual claims, and final editorial/metadata human review are verified and recorded with a named reviewer and timestamp. A season cannot be approved while any episode remains unapproved.
+- A plan cannot be marked approved unless original footage has a source reference and SHA-256, rights have a licence/ownership evidence reference, factual review has source references, and final editorial/metadata review has a named reviewer, timestamp, final-video SHA-256 and metadata SHA-256. A season cannot be approved while any episode remains unapproved.
+- A mid-roll review must record the verified monetization eligibility evidence, exact channel ID, verifier and timestamp, and explicitly confirm that no protected animal behaviour, critical reveal or payoff is interrupted.
 - Any previous/next episode URL must be a published HTTPS YouTube URL; unsafe or non-YouTube destinations are rejected. Titles are capped at YouTube's 100-character limit.
 - Mid-roll eligibility requires a recorded verification for the exact Nature Frontiers channel ID, including the verifier and timestamp; a bare boolean is insufficient.
 - The owner-supplied handle `@naturefrontiers-life` resolves publicly to a channel titled **Nature Frontiers** with the expected African-wildlife documentary description.
