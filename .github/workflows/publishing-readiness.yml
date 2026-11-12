@@ -14,6 +14,9 @@ on:
       - "codex/nature-frontiers-youtube-series"
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/publish-facebook.mjs"
+      - "scripts/facebook-feed-guards.mjs"
+      - "scripts/test-facebook-feed-guards.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
@@ -24,10 +27,6 @@ on:
       - "scripts/facebook-video-media.mjs"
       - "scripts/test-facebook-video-guards.mjs"
       - "scripts/test-facebook-video-media.mjs"
-      - "scripts/test-series-scripts.mjs"
-      - "scripts/video-description.mjs"
-      - "data/video-series.json"
-      - "content/series/**"
       - "README.md"
       - "scripts/test-publishing-safety.mjs"
       - "scripts/publishing-cadence.mjs"
@@ -57,10 +56,6 @@ on:
       - "scripts/facebook-video-media.mjs"
       - "scripts/test-facebook-video-guards.mjs"
       - "scripts/test-facebook-video-media.mjs"
-      - "scripts/test-series-scripts.mjs"
-      - "scripts/video-description.mjs"
-      - "data/video-series.json"
-      - "content/series/**"
       - "README.md"
       - "scripts/test-publishing-safety.mjs"
       - "scripts/publishing-cadence.mjs"
@@ -102,14 +97,16 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
+      - name: Test legacy Facebook feed release guards
+        run: node --test scripts/test-facebook-feed-guards.mjs
       - name: Verify MediaInfo is available for video media verification
         run: mediainfo --Version
       - name: Check Facebook publishing script syntax
-        run: node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs
+        run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs && node --check scripts/facebook-feed-guards.mjs && node --check scripts/test-facebook-feed-guards.mjs
       - name: Test Facebook Reel release guards and media integrity
         run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
       - name: Test long-form video guards and media integrity
-        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs scripts/test-series-scripts.mjs
+        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs
       - name: Test Johannesburg daily publishing limits
         run: node --test scripts/test-publishing-cadence.mjs
       - name: Test YouTube series, duration, hook, ad-break and description rules
