@@ -207,4 +207,7 @@ A fresh read of Nature Frontiers brand `7545638` for 12 November–31 December 2
 - All 21 records are Facebook `POST` type. One draft is cross-posted to Instagram and contains a static product-cover image.
 - There are **zero Reels and zero long-form videos** in the current queue.
 - The queue therefore does not meet the desired daily two-Reels-plus-one-feed target. The 20 drafts are not approved for auto-publishing and remain held.
-- No Metricool record was edited, rescheduled or published during this audit. Missed draft dates were not backdated or auto-published.
+- After the initial audit, 18 future-dated drafts were updated to add the owner-requested Nature Frontiers YouTube channel CTA. Read-back verified all 18 now contain `https://www.youtube.com/@naturefrontiers-life`; all remain `draft=true` and `autoPublish=false`, and their dates, networks and existing media were preserved.
+- Two drafts dated earlier on 12 November were already past due at the time of update. They were left unchanged and not rescheduled, rather than backdated or silently moved.
+- Eight drafts contain a relevant Selar product link. No Facebook caption contains a Safari affiliate URL. The YouTube description builder separately enforces all owner-supplied affiliate links in every YouTube video description; those affiliate links were not indiscriminately added to unrelated Facebook captions because that could look spammy.
+- No post was published, approved or enabled for auto-publishing. The one already-published 11 November post was not changed.
