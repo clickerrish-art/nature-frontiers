@@ -10,11 +10,6 @@ function safeStop(message) {
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
-if (!enabled) safeStop("PUBLISH_ENABLED is not true; public publishing is disabled.");
-if (dryRun) safeStop("PUBLISH_DRY_RUN is not false; no public publishing is permitted.");
-if (process.env.PUBLISH_RUN_AUTHORIZED !== "true") safeStop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
-if (pageId !== expectedPageId) safeStop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
-
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
@@ -22,6 +17,11 @@ const expectedPageId = "1003575786161492";
 const repo = process.env.GITHUB_REPOSITORY;
 const ref = process.env.GITHUB_REF_NAME;
 const githubToken = process.env.GITHUB_TOKEN;
+if (!enabled) safeStop("PUBLISH_ENABLED is not true; public publishing is disabled.");
+if (dryRun) safeStop("PUBLISH_DRY_RUN is not false; no public publishing is permitted.");
+if (process.env.PUBLISH_RUN_AUTHORIZED !== "true") safeStop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
+if (pageId !== expectedPageId) safeStop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
+
 const versionParts = typeof graphVersion === "string" ? graphVersion.replace("v", "").split(".") : [];
 if (typeof graphVersion !== "string" || !graphVersion.startsWith("v") || versionParts.length !== 2 ||
     versionParts.some((part) => part.length === 0 || [...part].some((ch) => ch < "0" || ch > "9"))) {
