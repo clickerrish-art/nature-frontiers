@@ -10,7 +10,7 @@ The repository contains three Facebook publishing adapters:
 - `scripts/publish-facebook-video.mjs`: hash-verified long-form Page video adapter.
 - `scripts/publish-facebook-reel.mjs`: hash-verified discovery Reel adapter. It requires an already-published parent long-form video from the same Nature Frontiers Page.
 
-The `.github/workflows/publishing-readiness.yml` workflow runs the safety/regression suite and a read-only Meta Page identity/token check. Its scheduled and push-triggered runs do not publish. The publisher job runs only on a manual `workflow_dispatch`, only from a non-`main` branch, only after both prerequisite jobs pass, and only when the separate `live_publish_authorized` input is explicitly true. That input defaults to false.
+The `.github/workflows/publishing-readiness.yml` workflow runs the safety/regression suite and a read-only Meta Page identity/token check. Its scheduled and push-triggered runs do not publish. A manual dispatch selects exactly one publisher adapter per authorization. The publisher job runs only on a manual `workflow_dispatch`, only from a non-`main` branch, only after both prerequisite jobs pass, and only when the separate `live_publish_authorized` input is explicitly true. That input defaults to false. The dispatch must select exactly one adapter (`feed`, `reel` or `video`) so a single authorization cannot fan out across multiple publishers.
 
 The long-form and Reel scripts independently require all of the following before any live request:
 
@@ -22,7 +22,7 @@ The long-form and Reel scripts independently require all of the following before
 - durable GitHub campaign-state access
 - exactly one campaign in approved state with all media, rights, provenance, factual, hash and human-review gates satisfied
 
-The legacy text/link feed adapter also requires the per-run authorization and exact Page ID. All adapters fail closed when the required state or evidence is missing. Uncertain publication outcomes remain reserved for manual reconciliation; they must not be blindly retried.
+The legacy text/link feed adapter also requires the per-run authorization and exact Page ID. It shares one daily feed slot with long-form Page video; the daily cadence permits up to two Reels plus one feed post per Johannesburg calendar day. All adapters fail closed when the required state or evidence is missing. Uncertain publication outcomes remain reserved for manual reconciliation; they must not be blindly retried.
 
 ## Current external release blockers
 
