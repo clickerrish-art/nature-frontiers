@@ -120,6 +120,8 @@ jobs:
         run: node --test scripts/test-publishing-cadence.mjs
       - name: Test YouTube series, duration, hook, ad-break and description rules
         run: node --test scripts/test-youtube-content.mjs
+      - name: Verify the standard complete npm test entrypoint
+        run: npm test
 
   meta-readiness:
     timeout-minutes: 5
