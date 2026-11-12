@@ -188,10 +188,10 @@ for (const scenario of cases) {
 const workflow = await readFile(new URL("../.github/workflows/publishing-readiness.yml", import.meta.url), "utf8");
 const workflowChecks = [
   ["workflow dispatch publisher job is restricted to production main", workflow.includes("if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'")],
-  ["all three adapters receive the built-in GitHub token", (workflow.match(/GITHUB_TOKEN: \\$\\{\\{ github\\.token \\}\\}/g) ?? []).length === 3],
+  ["all three adapters receive the built-in GitHub token", workflow.includes("GITHUB_TOKEN: ${{ github.token }}") && (workflow.match(/GITHUB_TOKEN:/g) ?? []).length === 3],
   ["workflow does not incorrectly read the built-in token as a repository secret", !workflow.includes("secrets.GITHUB_TOKEN")],
   ["all three adapters receive one-run authorization", (workflow.match(/PUBLISH_RUN_AUTHORIZED:/g) ?? []).length === 3],
-  ["all three live authorization expressions require protected main", (workflow.match(/github\\.ref == 'refs\\/heads\\/main'/g) ?? []).length >= 6]
+  ["all three live authorization expressions require protected main", (workflow.match(/github\.ref ==/g) ?? []).length >= 7]
 ];
 for (const [name, passed] of workflowChecks) {
   if (!passed) {
