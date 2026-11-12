@@ -75,6 +75,11 @@ test("description CLI emits a complete validated description from the sample epi
   assert.ok(output.includes("The Signals Animals Give Before They Move"));
 });
 
+test("description validator rejects descriptions above YouTube’s 5,000-character limit", () => {
+  const errors = validateYouTubeDescription("x".repeat(5001));
+  assert.ok(errors.some((error) => error.includes("5,000 characters")));
+});
+
 test("description validator rejects missing channel, product, affiliate and disclosure content", () => {
   const errors = validateYouTubeDescription("A short description with no required links.");
   assert.ok(errors.some((error) => error.includes("channel link")));
@@ -93,6 +98,13 @@ test("episode plan requires a 3–8 minute runtime and a hook as the first segme
   assert.ok(validateEpisodePlan(hookMissing).some((error) => error.includes("hook must be the first segment")));
 });
 
+test("episode timelines reject gaps and incomplete coverage", () => {
+  const gap = { ...validPlan, segments: [validPlan.segments[0], { ...validPlan.segments[1], startSeconds: 20 }, ...validPlan.segments.slice(2)] };
+  assert.ok(validateEpisodePlan(gap).some((error) => error.includes("without gaps")));
+  const incomplete = { ...validPlan, segments: validPlan.segments.slice(0, -1) };
+  assert.ok(validateEpisodePlan(incomplete).some((error) => error.includes("full episode duration")));
+});
+
 test("mid-rolls are rejected below eight minutes", () => {
   const plan = { ...validPlan, durationSeconds: 420, adBreaks: [{ atSeconds: 180, naturalBreakpoint: true }] };
   assert.ok(validateEpisodePlan(plan).some((error) => error.includes("not eligible below 8 minutes")));
@@ -102,6 +114,7 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
   const plan = {
     ...validPlan,
     durationSeconds: 480,
+    monetizationEligibilityVerified: true,
     segments: [
       { type: "hook", startSeconds: 0, endSeconds: 15 },
       { type: "story_setup", startSeconds: 15, endSeconds: 60 },
@@ -113,6 +126,7 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
     adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }]
   };
   assert.deepEqual(validateEpisodePlan(plan), []);
+  assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityVerified: false }).some((error) => error.includes("monetization eligibility")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 30, naturalBreakpoint: true }] }).some((error) => error.includes("after the opening hook")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("natural narrative breakpoint")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true }] }).some((error) => error.includes("reviewer, review timestamp")));
@@ -122,6 +136,10 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
 test("malformed segment containers fail closed without crashing the validator", () => {
   const errors = validateEpisodePlan({ ...validPlan, segments: { type: "hook" } });
   assert.ok(errors.some((error) => error.includes("segments must be an array")));
+});
+
+test("episode publication states are rejected by the content-plan validator", () => {
+  assert.ok(validateEpisodePlan({ ...validPlan, status: "published" }).some((error) => error.includes("publication is tracked separately")));
 });
 
 test("approval is blocked unless original footage, rights and factual review are verified", () => {
