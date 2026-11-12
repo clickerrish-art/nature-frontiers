@@ -4,6 +4,7 @@ const pageToken = process.env.META_PAGE_ACCESS_TOKEN ?? "";
 const graphVersion = process.env.META_GRAPH_API_VERSION ?? "";
 const publishEnabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
+const emergencyStop = process.env.EMERGENCY_STOP !== "false";
 const validVersion = /^v\d+\.\d+$/.test(graphVersion);
 let tokenPageCheck = "NOT TESTED";
 
@@ -36,7 +37,8 @@ const checks = [
   ["Meta Page token read access", tokenPageCheck],
   ["Meta Graph API version", validVersion ? "CONFIGURED: version syntax is valid; Meta support is not yet verified" : "BLOCKED: workflow configuration is missing or malformed"],
   ["Live publishing opt-in", publishEnabled ? "ENABLED: requires a separate one-shot workflow authorization" : "SAFE: repository opt-in is disabled"],
-  ["Dry-run mode", dryRun ? "SAFE: dry-run is enabled" : "WARNING: dry-run is disabled"]
+  ["Dry-run mode", dryRun ? "SAFE: dry-run is enabled" : "WARNING: dry-run is disabled"],
+  ["Emergency stop", emergencyStop ? "SAFE: emergency stop is active" : "WARNING: emergency stop is released"]
 ];
 
 for (const [name, result] of checks) console.log(name + ": " + result);
