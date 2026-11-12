@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
 
 const sharedEnv = {
   META_PAGE_ID: "1003575786161492",
@@ -182,6 +183,22 @@ for (const scenario of cases) {
     console.error(output);
   } else {
     console.log(`PASS: ${scenario.name}`);
+  }
+}
+const workflow = await readFile(new URL("../.github/workflows/publishing-readiness.yml", import.meta.url), "utf8");
+const workflowChecks = [
+  ["workflow dispatch publisher job is restricted to production main", workflow.includes("if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'")],
+  ["all three adapters receive the built-in GitHub token", (workflow.match(/GITHUB_TOKEN: \\$\\{\\{ github\\.token \\}\\}/g) ?? []).length === 3],
+  ["workflow does not incorrectly read the built-in token as a repository secret", !workflow.includes("secrets.GITHUB_TOKEN")],
+  ["all three adapters receive one-run authorization", (workflow.match(/PUBLISH_RUN_AUTHORIZED:/g) ?? []).length === 3],
+  ["all three live authorization expressions require protected main", (workflow.match(/github\\.ref == 'refs\\/heads\\/main'/g) ?? []).length >= 6]
+];
+for (const [name, passed] of workflowChecks) {
+  if (!passed) {
+    failed++;
+    console.error("FAIL: " + name);
+  } else {
+    console.log("PASS: " + name);
   }
 }
 if (failed) process.exit(1);
