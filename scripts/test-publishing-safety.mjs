@@ -15,20 +15,56 @@ const cases = [
     name: "legacy feed publisher rejects a different live branch",
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
-    expected: "Live publishing is restricted to the exact implementation branch codex/nature-frontiers-youtube-series."
+    expected: "Live publishing is restricted to the protected production branch main."
   },
   {
     name: "long-form publisher rejects a different live branch",
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
-    expected: "Live publishing is restricted to the exact implementation branch codex/nature-frontiers-youtube-series."
+    expected: "Live publishing is restricted to the protected production branch main."
   },
   {
     name: "Reel publisher rejects a different live branch",
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
-    expected: "Live publishing is restricted to the exact implementation branch codex/nature-frontiers-youtube-series."
+    expected: "Live publishing is restricted to the protected production branch main."
   },
+
+  ...[
+    {
+      name: "legacy feed publisher permits the protected production branch but finds no approved campaign",
+      script: "scripts/publish-facebook.mjs",
+      env: {
+        PUBLISH_ENABLED: "true",
+        PUBLISH_DRY_RUN: "false",
+        PUBLISH_RUN_AUTHORIZED: "true",
+        GITHUB_REF_NAME: "main"
+      },
+      expected: "No explicitly approved Facebook feed campaigns exist."
+    },
+    {
+      name: "long-form publisher permits the protected production branch but finds no approved campaign",
+      script: "scripts/publish-facebook-video.mjs",
+      env: {
+        PUBLISH_ENABLED: "true",
+        PUBLISH_DRY_RUN: "false",
+        PUBLISH_RUN_AUTHORIZED: "true",
+        GITHUB_REF_NAME: "main"
+      },
+      expected: "No explicitly approved long-form video campaigns exist."
+    },
+    {
+      name: "Reel publisher permits the protected production branch but finds no approved campaign",
+      script: "scripts/publish-facebook-reel.mjs",
+      env: {
+        PUBLISH_ENABLED: "true",
+        PUBLISH_DRY_RUN: "false",
+        PUBLISH_RUN_AUTHORIZED: "true",
+        GITHUB_REF_NAME: "main"
+      },
+      expected: "No explicitly approved Facebook Reel campaigns exist."
+    }
+  ],
   {
     name: "legacy feed publisher remains disabled by default",
     script: "scripts/publish-facebook.mjs",
