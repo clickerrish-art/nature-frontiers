@@ -20,6 +20,12 @@ if (!Array.isArray(products) || !Array.isArray(campaigns)) {
   throw new Error("Products and campaigns must be JSON arrays.");
 }
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
+if (!dryRun && process.env.PUBLISH_RUN_AUTHORIZED !== "true") {
+  stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
+}
+if (!dryRun && pageId !== expectedPageId) {
+  stop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
+}
 
 const pending = campaigns.filter((c) => c?.network === "facebook" && c?.status === "approved" && c?.facebook_type === "POST");
 if (pending.length === 0) stop("No explicitly approved Facebook feed campaigns exist.");
@@ -85,13 +91,6 @@ if (dryRun) {
   console.log("DRY RUN: campaign " + campaign.id + " passed local approval and release checks.");
   console.log("No platform API request was sent.");
   process.exit(0);
-}
-
-if (process.env.PUBLISH_RUN_AUTHORIZED !== "true") {
-  stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
-}
-if (pageId !== expectedPageId) {
-  stop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
 }
 
 if (!graphVersion || !/^v\d+\.\d+$/.test(graphVersion)) {
