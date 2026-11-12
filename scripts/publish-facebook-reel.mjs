@@ -90,6 +90,7 @@ const linkedVideo = before.campaigns.find((item) =>
   item.facebook_type === "VIDEO" &&
   item.status === "published" &&
   item.platform_video_url === campaign.full_video_url &&
+  item.platform_page_id === pageId &&
   typeof item.platform_video_id === "string"
 );
 if (!linkedVideo) throw new Error("SAFE STOP: the linked long-form episode is not yet confirmed published at the exact URL in this Reel; refusing to publish a disconnected funnel clip.");
@@ -151,14 +152,17 @@ if (!finished.ok || finishPayload.success !== true) {
 let confirmed = false;
 for (let attempt = 0; attempt < 12; attempt++) {
   const statusUrl = new URL(graph + "/" + encodeURIComponent(startPayload.video_id));
-  statusUrl.searchParams.set("fields", "status");
+  statusUrl.searchParams.set("fields", "id,status,from,permalink_url");
   const statusResponse = await fetch(statusUrl, {
     headers: { Authorization: "Bearer " + accessToken },
     signal: AbortSignal.timeout(15000)
   });
   const statusPayload = await statusResponse.json().catch(() => ({}));
   if (!statusResponse.ok) throw new Error("Could not verify Reel publication status (HTTP " + statusResponse.status + "); state remains publishing.");
-  if (isReelPublished(statusPayload)) { confirmed = true; break; }
+  if (statusPayload?.id !== startPayload.video_id || statusPayload?.from?.id !== pageId) {
+    throw new Error("Meta Reel receipt does not confirm the exact uploaded video ID and Nature Frontiers Page; state remains publishing.");
+  }
+  if (isReelPublished(statusPayload) && typeof statusPayload.permalink_url === "string" && statusPayload.permalink_url.startsWith("https://")) { confirmed = true; break; }
   const phase = statusPayload?.status?.publishing_phase?.status;
   if (phase === "error" || statusPayload?.status?.video_status === "error") {
     throw new Error("Meta reports a Reel publishing error; state remains publishing for manual reconciliation.");
@@ -169,7 +173,7 @@ if (!confirmed) throw new Error("Meta did not return a confirmed published state
 
 const after = await getState();
 const completed = after.campaigns.map((item) => item.id === campaign.id && item.status === "publishing"
-  ? { ...item, status: "published", published_at: new Date().toISOString(), platform_video_id: startPayload.video_id }
+  ? { ...item, status: "published", published_at: new Date().toISOString(), platform_video_id: startPayload.video_id, platform_video_url: statusPayload.permalink_url, platform_page_id: pageId }
   : item);
 await saveState(after.sha, completed, "Record verified Facebook Reel publication " + campaign.id);
 console.log("Facebook Reel publication verified. Campaign: " + campaign.id + "; video id: " + startPayload.video_id);
