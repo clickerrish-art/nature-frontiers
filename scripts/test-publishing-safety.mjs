@@ -41,6 +41,18 @@ const cases = [
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
   },
   {
+    name: "long-form publisher requires one-shot authorization for live mode",
+    script: "scripts/publish-facebook-video.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    expected: "PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required."
+  },
+  {
+    name: "long-form publisher refuses a non-Nature-Frontiers Page",
+    script: "scripts/publish-facebook-video.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", META_PAGE_ID: "123456789" },
+    expected: "META_PAGE_ID does not match the exact Nature Frontiers Page ID"
+  },
+  {
     name: "long-form publisher makes no request in dry-run mode",
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true" },
@@ -49,7 +61,7 @@ const cases = [
   {
     name: "long-form publisher finds no approved video campaigns and makes no Meta request",
     script: "scripts/publish-facebook-video.mjs",
-    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true" },
     expected: "No explicitly approved long-form Facebook video campaigns exist."
   },
   {
@@ -57,6 +69,18 @@ const cases = [
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "false", PUBLISH_DRY_RUN: "true" },
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
+  },
+  {
+    name: "discovery Reel publisher requires one-shot authorization for live mode",
+    script: "scripts/publish-facebook-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    expected: "PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required."
+  },
+  {
+    name: "discovery Reel publisher refuses a non-Nature-Frontiers Page",
+    script: "scripts/publish-facebook-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", META_PAGE_ID: "123456789" },
+    expected: "META_PAGE_ID does not match the exact Nature Frontiers Page ID"
   },
   {
     name: "discovery Reel publisher makes no request in dry-run mode",
@@ -67,7 +91,7 @@ const cases = [
   {
     name: "discovery Reel publisher finds no approved funnel clips and makes no Meta request",
     script: "scripts/publish-facebook-reel.mjs",
-    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true" },
     expected: "No explicitly approved Facebook Reel campaigns exist."
   }
 ];
