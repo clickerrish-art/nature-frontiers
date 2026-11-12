@@ -196,3 +196,15 @@ Current Metricool queue read on 12 November 2026: 20 scheduled records; all 20 a
 - Live publisher execution is now restricted to production branch `main`: both the workflow job and all three adapters reject implementation/pull-request branches. The fail-closed suite tests the production-branch allow path and wrong-branch rejection for each adapter.
 
 - Feed-post approval is now hash-bound: the reviewer name, timestamp, explicit approval and release SHA-256 must match the exact caption and relevant campaign metadata. Any post-review caption or metadata change invalidates the approval.
+
+
+## Live Metricool queue audit — 12 November 2026
+
+A fresh read of Nature Frontiers brand `7545638` for 12 November–31 December 2026 (extended range includes the previous-day published item) returned 21 records:
+
+- 20 are drafts; all 20 have `autoPublish=false`.
+- 1 record is already published (11 November 2026, 17:00 Johannesburg time).
+- All 21 records are Facebook `POST` type. One draft is cross-posted to Instagram and contains a static product-cover image.
+- There are **zero Reels and zero long-form videos** in the current queue.
+- The queue therefore does not meet the desired daily two-Reels-plus-one-feed target. The 20 drafts are not approved for auto-publishing and remain held.
+- No Metricool record was edited, rescheduled or published during this audit. Missed draft dates were not backdated or auto-published.
