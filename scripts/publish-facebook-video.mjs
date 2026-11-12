@@ -69,7 +69,7 @@ async function saveState(sha, items, message) {
 
 async function graphGetVideo(videoId) {
   const url = new URL("https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(videoId));
-  url.searchParams.set("fields", "id,published,permalink_url,status");
+  url.searchParams.set("fields", "id,published,permalink_url,status,from");
   const response = await fetch(url, {
     headers: { Authorization: "Bearer " + accessToken },
     signal: AbortSignal.timeout(15000)
@@ -145,14 +145,14 @@ try {
   let confirmed;
   for (let attempt = 0; attempt < 18; attempt++) {
     confirmed = await graphGetVideo(payload.id);
-    if (confirmed.published === true && typeof confirmed.permalink_url === "string" && confirmed.permalink_url.startsWith("https://")) break;
+    if (confirmed.published === true && confirmed.from?.id === pageId && typeof confirmed.permalink_url === "string" && confirmed.permalink_url.startsWith("https://")) break;
     const videoStatus = confirmed?.status?.video_status;
     if (videoStatus === "error" || videoStatus === "upload_failed" || confirmed?.status?.publishing_phase?.publish_status === "error") {
       throw new Error("Meta reports a video processing or publishing error; campaign remains reserved for manual reconciliation.");
     }
     if (attempt < 17) await new Promise((resolve) => setTimeout(resolve, 5000));
   }
-  if (confirmed?.published !== true || typeof confirmed?.permalink_url !== "string" || !confirmed.permalink_url.startsWith("https://")) {
+  if (confirmed?.published !== true || confirmed?.from?.id !== pageId || typeof confirmed?.permalink_url !== "string" || !confirmed.permalink_url.startsWith("https://")) {
     throw new Error("Meta has not explicitly confirmed the long-form video as published; campaign remains reserved and will not be retried automatically.");
   }
 
@@ -163,7 +163,8 @@ try {
         status: "published",
         published_at: new Date().toISOString(),
         platform_video_id: payload.id,
-        platform_video_url: confirmed.permalink_url
+        platform_video_url: confirmed.permalink_url,
+        platform_page_id: pageId
       }
     : item);
   await saveState(after.sha, completed, "Record confirmed Nature Frontiers video publication " + campaign.id);
