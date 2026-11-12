@@ -166,8 +166,14 @@ export function validateEpisodePlan(plan) {
   } else if (adBreaks.length && Number.isInteger(duration) && duration < policy.midroll.minimumEligibleDurationSeconds) {
     errors.push("Mid-rolls are not eligible below 8 minutes; remove ad breaks from this episode.");
   } else {
-    if (adBreaks.length && policy.midroll.requiresMonetizationEligibility && plan.monetizationEligibilityVerified !== true) {
-      errors.push("Mid-rolls require verified channel monetization eligibility before they can be approved.");
+    if (adBreaks.length && policy.midroll.requiresMonetizationEligibility) {
+      if (plan.monetizationEligibilityVerified !== true ||
+          plan.monetizationEligibilityChannelId !== policy.youtubePublishing.verifiedChannelId ||
+          !isNonEmptyString(plan.monetizationEligibilityVerifiedBy) ||
+          !isNonEmptyString(plan.monetizationEligibilityVerifiedAt) ||
+          !Number.isFinite(Date.parse(plan.monetizationEligibilityVerifiedAt))) {
+        errors.push("Mid-rolls require independently recorded monetization eligibility for the verified Nature Frontiers channel, including channel ID, reviewer and verification timestamp.");
+      }
     }
     const segments = Array.isArray(plan.segments) ? plan.segments : [];
     const hookEnd = segments[0]?.endSeconds;
@@ -202,6 +208,12 @@ export function validateEpisodePlan(plan) {
   if (plan.status === "approved" && plan.originalFootageVerified !== true) errors.push("Approval is blocked until original camera footage and provenance are verified.");
   if (plan.status === "approved" && plan.rightsVerified !== true) errors.push("Approval is blocked until footage rights are verified.");
   if (plan.status === "approved" && plan.factCheckPassed !== true) errors.push("Approval is blocked until factual claims are checked.");
+  if (plan.status === "approved" && plan.humanReviewPassed !== true) errors.push("Approval is blocked until final editorial and metadata human review passes.");
+  if (plan.status === "approved" &&
+      (!isNonEmptyString(plan.humanReviewer) || !isNonEmptyString(plan.humanReviewedAt) ||
+       !Number.isFinite(Date.parse(plan.humanReviewedAt)))) {
+    errors.push("Approval requires a named human reviewer and a valid review timestamp.");
+  }
   return errors;
 }
 
@@ -210,6 +222,9 @@ export function validateSeasonPlan(season) {
   if (!season || typeof season !== "object" || Array.isArray(season)) return ["Season plan must be an object."];
   if (!policy.series.some((item) => item.id === season.seriesId)) errors.push("Season must reference a configured Nature Frontiers series.");
   if (!Number.isInteger(season.seasonNumber) || season.seasonNumber < 1) errors.push("Season number must be a positive integer.");
+  if (!["concept_only", "draft", "review", "approved"].includes(season.status)) {
+    errors.push("Season status must be concept_only, draft, review or approved; publication is tracked separately.");
+  }
   if (season.format !== "16:9") errors.push("Nature Frontiers long-form episodes must use 16:9 format.");
   if (season.durationSeconds?.minimum !== policy.videoDurationSeconds.minimum || season.durationSeconds?.maximum !== policy.videoDurationSeconds.maximum) {
     errors.push("Season runtime policy must match the configured 3–8 minute range.");
@@ -226,8 +241,15 @@ export function validateSeasonPlan(season) {
       for (const field of ["title", "hookPrompt", "storyQuestion", "nextEpisodeTease"]) {
         if (!isNonEmptyString(episode?.[field])) errors.push("Episode " + expectedNumber + " is missing " + field + ".");
       }
-      if (episode?.status === "approved" && (episode.originalFootageVerified !== true || episode.rightsVerified !== true || episode.factCheckPassed !== true)) {
-        errors.push("Episode " + expectedNumber + " cannot be approved without original footage, rights and fact-check verification.");
+      if (!["concept_only", "draft", "review", "approved"].includes(episode?.status)) {
+        errors.push("Episode " + expectedNumber + " has an invalid status; publication is tracked separately.");
+      }
+      if (episode?.status === "approved" &&
+          (episode.originalFootageVerified !== true || episode.rightsVerified !== true ||
+           episode.factCheckPassed !== true || episode.humanReviewPassed !== true ||
+           !isNonEmptyString(episode.humanReviewer) || !isNonEmptyString(episode.humanReviewedAt) ||
+           !Number.isFinite(Date.parse(episode.humanReviewedAt)))) {
+        errors.push("Episode " + expectedNumber + " cannot be approved without original footage, rights, fact-check and recorded human-review verification.");
       }
     }
   }
