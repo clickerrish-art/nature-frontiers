@@ -102,6 +102,7 @@ if (!pageId || !accessToken) stop("Facebook Page ID or Page access token is miss
 if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPOSITORY || !process.env.GITHUB_REF_NAME) {
   throw new Error("GitHub state persistence is required to prevent duplicate publication.");
 }
+assertApprovedPostingWindow();
 
 const apiBase = "https://api.github.com/repos/" + process.env.GITHUB_REPOSITORY + "/contents/data/campaigns.json";
 const ghHeaders = {
@@ -140,9 +141,14 @@ if (!liveCampaign || JSON.stringify(liveCampaign) !== JSON.stringify(campaign)) 
 if (initial.campaigns.some((item) => item.status === "publishing")) {
   stop("Another campaign is already in an uncertain publishing state; reconcile it before any feed post.");
 }
-assertApprovedPostingWindow();
-const dailyCapacity = assertDailyReleaseCapacity(initial.campaigns, "POST");
-console.log("Johannesburg daily release capacity: " + dailyCapacity.feedPosts + "/1 feed posts, " +
+let dailyCapacity;
+try {
+  dailyCapacity = assertDailyReleaseCapacity(initial.campaigns, "POST");
+} catch (error) {
+  if (error instanceof Error && /Daily (publishing ceiling|feed-post limit)/.test(error.message)) stop(error.message);
+  throw error;
+}
+console.log("Johannesburg daily release capacity: " + dailyCapacity.feedPosts + "/1 feed posts, "
   dailyCapacity.reels + "/2 Reels, " + dailyCapacity.total + "/3 total releases used.");
 const reservation = initial.campaigns.map((c) =>
   c.id === campaign.id ? { ...c, status: "publishing", publishing_started_at: new Date().toISOString() } : c
