@@ -157,8 +157,8 @@ The earlier 193.886621-second documentary export and corrected audio export rema
 - All three Facebook adapters now fail closed when `EMERGENCY_STOP` is absent or active; the workflow defaults it to `true`.
 - CI now runs the legacy feed-guard test suite and syntax-checks all three publishing adapters. Stale references to non-existent series test files were removed.
 - Long-form and Reel media preflight now rejects files with no AAC audio stream, audio/video duration mismatch over 1.5 seconds, sample rates below 44.1 kHz, or non-mono/stereo channel layouts.
-- Latest exact-head YouTube content workflow: [43305435805](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43305435805), PASS, 16/16 tests on latest tested code head `88ae4ca024580ca5899740b0632d71ff72a05c8d` (current PR head `aef378b1bad6432d2bfca46fa154b41e4d55ed8c` contains documentation-only changes); this includes the `main` push-trigger regression.
-- Latest publishing workflow: [43305435720](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43305435720). Safety job PASS: complete `npm test` 151/151, 0 failed, 0 skipped; 23/23 fail-closed scenarios and 6/6 workflow wiring assertions. Meta readiness FAIL because the Page token is expired/invalid/revoked; publisher job SKIPPED.
+- Latest exact-head YouTube content workflow: [43305876491](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43305876491), PASS, 16/16 tests on current PR head `8fc9364848ec63aef029c6d6e91d9b03e69a8b34`; this includes the production-`main` trigger regression.
+- Latest publishing workflow: [43305876641](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43305876641). Safety job PASS: complete `npm test` 152/152, 0 failed, 0 skipped; 23/23 fail-closed scenarios and 6/6 workflow wiring assertions. Meta readiness FAIL because the Page token is expired/invalid/revoked; publisher job SKIPPED.
 
 
 ## Library media inventory — 12 November 2026
