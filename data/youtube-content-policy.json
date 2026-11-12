@@ -1,0 +1,121 @@
+{
+  "brand": "Nature Frontiers",
+  "channelUrl": "https://www.youtube.com/@naturefrontiers-life",
+  "format": "16:9",
+  "videoDurationSeconds": {
+    "minimum": 180,
+    "maximum": 480
+  },
+  "opening": {
+    "hookRequired": true,
+    "hookMustBeFirstSegment": true,
+    "minimumHookSeconds": 8,
+    "minimumSecondsBeforeAnyMidroll": 60,
+    "requiredStoryBeats": [
+      "hook",
+      "story_setup",
+      "main_story",
+      "takeaway",
+      "next_episode_tease",
+      "cta"
+    ]
+  },
+  "midroll": {
+    "minimumEligibleDurationSeconds": 480,
+    "requiresMonetizationEligibility": true,
+    "requiresNaturalBreakpoint": true,
+    "naturalBreakpointExamples": [
+      "completed scene transition",
+      "pause between story chapters",
+      "natural silence after a complete narration thought"
+    ],
+    "prohibitedInterruptions": [
+      "opening hook",
+      "mid-sentence narration",
+      "active animal behaviour",
+      "critical reveal",
+      "emotional or factual payoff"
+    ],
+    "note": "An ad slot is only an opportunity; YouTube decides whether an ad serves. Pre-roll ads are platform-controlled and cannot be moved by the creator."
+  },
+  "description": {
+    "requiredChannelLink": true,
+    "includeEveryCatalogueProduct": true,
+    "includeEverySafariAffiliateLink": true,
+    "productNotice": "Product links below lead to paid digital resources. Check each seller page for current details, contents, price and availability.",
+    "affiliateDisclosure": "Affiliate disclosure: Nature Frontiers may earn a commission from qualifying bookings made through the Safari.com links below.",
+    "nativePaidPromotionSetting": "If the video itself contains a paid product placement, sponsorship, endorsement or other paid promotion, enable YouTube's paid promotion declaration in video details. The description disclosure does not replace the native setting."
+  },
+  "affiliateId": "GM26",
+  "affiliateLinks": [
+    {
+      "label": "Sabi Sand",
+      "url": "https://www.safari.com/sabi-sand?a=GM26"
+    },
+    {
+      "label": "Kruger National Park",
+      "url": "https://www.safari.com/kruger-national-park?a=GM26"
+    },
+    {
+      "label": "Singita Boulders",
+      "url": "https://www.safari.com/singita-boulders?a=GM26"
+    },
+    {
+      "label": "Four-day Londolozi Varty Camp fly-in safari",
+      "url": "https://www.safari.com/safaris/4-day-londolozi-varty-camp-fly-in-safari?a=GM26"
+    },
+    {
+      "label": "Safari destinations",
+      "url": "https://www.safari.com/destinations?a=GM26"
+    }
+  ],
+  "series": [
+    {
+      "id": "wild-encounters",
+      "name": "Wild Encounters",
+      "promise": "Follow authentic animal behaviour and the details that make each encounter meaningful.",
+      "episodeStructure": "Hook, context, observed behaviour, explanation supported by research, takeaway, next-episode tease."
+    },
+    {
+      "id": "nature-under-the-surface",
+      "name": "Nature Under the Surface",
+      "promise": "Explore the ecological relationships and natural systems behind what viewers see.",
+      "episodeStructure": "Hook, central question, evidence-led explanation, wider ecological context, takeaway, next-episode tease."
+    },
+    {
+      "id": "field-notes",
+      "name": "Field Notes",
+      "promise": "Show how responsible wildlife observation and documentary storytelling are done.",
+      "episodeStructure": "Hook, field context, method or observation, ethical and factual checks, practical takeaway, next-episode tease."
+    }
+  ],
+  "productionGate": {
+    "footage": "Original, naturally realistic camera recordings with retained source files, provenance and rights evidence.",
+    "prohibitedFootage": [
+      "stock wildlife compilations",
+      "AI-generated wildlife video",
+      "synthetic animal encounters",
+      "animation presented as documentary footage"
+    ],
+    "holdWhen": [
+      "original source footage is unavailable",
+      "rights or provenance are unverified",
+      "factual claims have not been checked",
+      "final edit or metadata has not received human review"
+    ]
+  },
+  "youtubePublishing": {
+    "enabled": false,
+    "authenticatedChannelIdentityVerified": false,
+    "ownerAccessChannelListingVerified": true,
+    "youtubeOAuthIdentityVerified": false,
+    "uploadAdapterImplemented": false,
+    "verifiedChannelId": "UC41xXhw22o6Q2I2pTKB2kOg",
+    "verifiedChannelHandle": "@naturefrontiers-life",
+    "identityVerificationSource": "vidIQ directly authorized owner-access channel listing confirms the public channel identity only; YouTube OAuth/API identity has not been verified, checked 2026-11-12",
+    "requiredCheck": "Use only the verified Nature Frontiers channel ID UC41xXhw22o6Q2I2pTKB2kOg. Metricool's Nature Frontiers brand still maps YouTube to the separate SonicVibes channel; do not use that Metricool mapping for Nature Frontiers publishing.",
+    "nativePaidPromotionDeclarationRequiredWhenApplicable": true,
+    "publicHandleResolved": true,
+    "metricoolChannelMismatchConfirmed": true
+  }
+}

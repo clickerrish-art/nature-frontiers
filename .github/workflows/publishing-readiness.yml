@@ -3,20 +3,88 @@ name: Nature Frontiers publishing (gated)
 on:
   workflow_dispatch:
     inputs:
+      publisher:
+        description: "Select exactly one publishing adapter for this one-shot authorization."
+        required: true
+        type: choice
+        options:
+          - reel
+          - feed
+          - video
+        default: reel
       live_publish_authorized:
-        description: "Explicitly authorize one live publishing run after all launch checks (leave false for checks/dry runs)."
+        description: "Explicitly authorize one live publishing operation after all launch checks (leave false for checks/dry runs)."
         required: true
         type: boolean
         default: false
-  pull_request:
+  push:
+    branches:
+      - "codex/facebook-reels-publisher"
+      - "codex/nature-frontiers-youtube-series"
+      - "main"
     paths:
+      - "scripts/check-meta-readiness.mjs"
       - "scripts/publish-facebook.mjs"
+      - "scripts/facebook-feed-guards.mjs"
+      - "scripts/test-facebook-feed-guards.mjs"
+      - "scripts/publish-facebook-reel.mjs"
+      - "scripts/facebook-reel-guards.mjs"
+      - "scripts/facebook-reel-media.mjs"
+      - "scripts/test-facebook-reel-media.mjs"
+      - "scripts/test-facebook-reel-guards.mjs"
+      - "scripts/publish-facebook-video.mjs"
+      - "scripts/facebook-video-guards.mjs"
+      - "scripts/facebook-video-media.mjs"
+      - "scripts/test-facebook-video-guards.mjs"
+      - "scripts/test-facebook-video-media.mjs"
+      - "README.md"
       - "scripts/test-publishing-safety.mjs"
+      - "scripts/publishing-cadence.mjs"
+      - "scripts/test-publishing-cadence.mjs"
+      - "scripts/youtube-content.mjs"
+      - "scripts/build-youtube-description.mjs"
+      - "scripts/test-youtube-content.mjs"
+      - "content/youtube/**"
+      - "data/youtube-content-policy.json"
+      - "data/youtube-series-season-1.json"
       - "data/campaigns.json"
       - "data/products.json"
       - "scripts/validate-campaign.mjs"
       - "package.json"
       - ".github/workflows/publishing-readiness.yml"
+      - "docs/YOUTUBE_SERIES_AND_DESCRIPTION_STANDARD.md"
+  pull_request:
+    paths:
+      - "scripts/publish-facebook.mjs"
+      - "scripts/facebook-feed-guards.mjs"
+      - "scripts/test-facebook-feed-guards.mjs"
+      - "scripts/check-meta-readiness.mjs"
+      - "scripts/publish-facebook-reel.mjs"
+      - "scripts/facebook-reel-guards.mjs"
+      - "scripts/facebook-reel-media.mjs"
+      - "scripts/test-facebook-reel-media.mjs"
+      - "scripts/test-facebook-reel-guards.mjs"
+      - "scripts/publish-facebook-video.mjs"
+      - "scripts/facebook-video-guards.mjs"
+      - "scripts/facebook-video-media.mjs"
+      - "scripts/test-facebook-video-guards.mjs"
+      - "scripts/test-facebook-video-media.mjs"
+      - "README.md"
+      - "scripts/test-publishing-safety.mjs"
+      - "scripts/publishing-cadence.mjs"
+      - "scripts/test-publishing-cadence.mjs"
+      - "scripts/youtube-content.mjs"
+      - "scripts/build-youtube-description.mjs"
+      - "scripts/test-youtube-content.mjs"
+      - "content/youtube/**"
+      - "data/youtube-content-policy.json"
+      - "data/youtube-series-season-1.json"
+      - "data/campaigns.json"
+      - "data/products.json"
+      - "scripts/validate-campaign.mjs"
+      - "package.json"
+      - ".github/workflows/publishing-readiness.yml"
+      - "docs/YOUTUBE_SERIES_AND_DESCRIPTION_STANDARD.md"
   schedule:
     - cron: "30 7 * * *"
 
@@ -24,12 +92,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: nature-frontiers-publishing
-  cancel-in-progress: false
+  group: nature-frontiers-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   safety-tests:
-    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -39,15 +108,16 @@ jobs:
           node-version: "24"
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
-      - name: Test fail-closed publishing controls
-        run: node scripts/test-publishing-safety.mjs
+      - name: Verify MediaInfo is available for video media verification
+        run: mediainfo --Version
+      - name: Check Facebook publishing script syntax
+        run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs && node --check scripts/facebook-feed-guards.mjs && node --check scripts/test-facebook-feed-guards.mjs
+      - name: Verify the standard complete npm test entrypoint
+        run: npm test
 
-  facebook-publisher:
-    if: github.event_name != 'pull_request'
-    permissions:
-      contents: write
-    needs: safety-tests
-    runs-on: ubuntu-latest
+  meta-readiness:
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -55,14 +125,69 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-      - name: Run gated Facebook Page adapter
+      - name: Check Meta Page access without publishing
         env:
-          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }} # Requires both repository opt-in and explicit per-run authorization; scheduled runs are always disabled
-          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }} # Safe default: dry-run unless deliberately configured
-          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
-          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_PAGE_ID: "1003575786161492"
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          META_GRAPH_API_VERSION: "v27.0"
+          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
+        run: node scripts/check-meta-readiness.mjs
+
+  facebook-publisher:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    needs: [safety-tests, meta-readiness]
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Run gated long-form Facebook Page video adapter
+        if: inputs.publisher == 'video'
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          META_GRAPH_API_VERSION: "v27.0"
+          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-facebook-video.mjs
+      - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
+        if: inputs.publisher == 'reel'
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          META_GRAPH_API_VERSION: "v27.0"
+          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-facebook-reel.mjs
+      - name: Run gated Facebook feed post adapter
+        if: inputs.publisher == 'feed'
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          META_GRAPH_API_VERSION: "v27.0"
+          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook.mjs
