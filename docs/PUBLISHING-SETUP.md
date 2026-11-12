@@ -45,6 +45,7 @@ Store credentials only in GitHub Actions secrets.
 ### Facebook Page
 
 - `META_PAGE_ACCESS_TOKEN` — current Page token with the minimum required Page permissions.
+- `GITHUB_TOKEN` is supplied by GitHub Actions as the built-in `${{ github.token }}` with job-scoped `contents: write`; it is not a repository secret and must never be configured as `secrets.GITHUB_TOKEN`.
 - `META_PAGE_ID` is fixed in the gated workflow to `1003575786161492`.
 - `META_GRAPH_API_VERSION` is set in the workflow; the syntax check does not prove that Meta still supports that version.
 
