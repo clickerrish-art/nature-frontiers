@@ -120,6 +120,7 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
     monetizationEligibilityVerified: true,
     monetizationEligibilityChannelId: policy.youtubePublishing.verifiedChannelId,
     monetizationEligibilityVerifiedBy: "test fixture",
+    monetizationEligibilityEvidence: "channel monetization dashboard evidence ref",
     monetizationEligibilityVerifiedAt: "2026-11-11T00:00:00.000Z",
     segments: [
       { type: "hook", startSeconds: 0, endSeconds: 15 },
@@ -129,14 +130,16 @@ test("eight-minute mid-rolls must follow the hook and use natural breakpoints", 
       { type: "next_episode_tease", startSeconds: 390, endSeconds: 440 },
       { type: "cta", startSeconds: 440, endSeconds: 480 }
     ],
-    adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }]
+    adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, protectedContentClear: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }]
   };
   assert.deepEqual(validateEpisodePlan(plan), []);
   assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityVerified: false }).some((error) => error.includes("monetization eligibility")));
   assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityChannelId: "UCSlkuPfHH78oGC1o418HV4w" }).some((error) => error.includes("verified Nature Frontiers channel")));
   assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityVerifiedBy: "" }).some((error) => error.includes("reviewer and verification timestamp")));
+  assert.ok(validateEpisodePlan({ ...plan, monetizationEligibilityEvidence: "" }).some((error) => error.includes("reviewer and verification timestamp")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 30, naturalBreakpoint: true }] }).some((error) => error.includes("after the opening hook")));
-  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("natural narrative breakpoint")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: false, protectedContentClear: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("natural narrative boundary")));
+  assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, protectedContentClear: false, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Transition after a completed story chapter." }] }).some((error) => error.includes("protected animal behaviour")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true }] }).some((error) => error.includes("reviewer, review timestamp")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 300, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Incorrect in-segment placement." }] }).some((error) => error.includes("between story segments")));
   assert.ok(validateEpisodePlan({ ...plan, adBreaks: [{ atSeconds: 350, naturalBreakpoint: true, reviewedBy: "test fixture", reviewedAt: "2026-11-11T00:00:00.000Z", breakpointNote: "Do not interrupt this." , interrupts: "an active animal behaviour and critical reveal" }] }).some((error) => error.includes("active animal behaviour")));
@@ -154,13 +157,23 @@ test("approved episodes require a recorded final human editorial and metadata re
     originalFootageVerified: true,
     rightsVerified: true,
     factCheckPassed: true,
+    factCheckSources: ["https://example.org/species-research"],
+    originalFootageEvidence: "Drive source asset ID",
+    originalFootageSha256: "a".repeat(64),
+    rightsVerified: true,
+    rightsEvidence: "signed licence record",
     humanReviewPassed: true,
     humanReviewer: "Editorial reviewer",
-    humanReviewedAt: "2026-11-11T00:00:00.000Z"
+    humanReviewedAt: "2026-11-11T00:00:00.000Z",
+    reviewedVideoSha256: "b".repeat(64),
+    reviewedMetadataSha256: "c".repeat(64)
   };
   assert.deepEqual(validateEpisodePlan(approved), []);
   assert.ok(validateEpisodePlan({ ...approved, humanReviewPassed: false }).some((error) => error.includes("human review")));
   assert.ok(validateEpisodePlan({ ...approved, humanReviewer: "" }).some((error) => error.includes("named human reviewer")));
+  assert.ok(validateEpisodePlan({ ...approved, reviewedVideoSha256: "invalid" }).some((error) => error.includes("named human reviewer")));
+  assert.ok(validateEpisodePlan({ ...approved, rightsEvidence: "" }).some((error) => error.includes("rights have a recorded")));
+  assert.ok(validateEpisodePlan({ ...approved, factCheckSources: [] }).some((error) => error.includes("source references")));
 });
 
 test("season and episode statuses reject unsupported publication states", () => {
