@@ -131,7 +131,31 @@ This section supersedes older implementation-status bullets above where the date
 - The live Meta read-only check confirms the configured Page ID `1003575786161492` but rejects the Page token with HTTP 401 / OAuth error 190 / subcode 463. Replace the token privately in GitHub Actions secrets before any Meta publishing.
 - Nature Frontiers YouTube identity is verified as `@naturefrontiers-life` / `UC41xXhw22o6Q2I2pTKB2kOg`. Metricool's Nature Frontiers brand still maps YouTube to the separate SonicVibes channel ID `UCSlkuPfHH78oGC1o418HV4w`; do not use that mapping for Nature Frontiers publishing.
 - The YouTube series and description validator passes, but the six-episode season is still `concept_only`. There is no verified rendered/approved documentary, upload or scheduled YouTube release.
-- Latest completed full publishing workflow for the tested application/doc revision `4c64e397c6a0d5b0e5f1e58f97bbb5d48c008897`: safety job passed 135 automated tests (0 failed, 0 skipped) and 14 fail-closed publisher scenarios. Meta readiness failed because of the expired/invalid/revoked token; Facebook publisher was skipped.
+- Latest completed full publishing workflow for exact head `1e60735075f694f511729363c8e0eb51802b6043` ([run 43297665520](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43297665520)): safety job passed 147 automated tests (0 failed, 0 skipped) and 17 fail-closed publisher scenarios. The test suites include 10 feed-guard, 53 Reel/media, 62 long-form/media, 7 Johannesburg cadence and 15 YouTube tests. Meta readiness failed because of the expired/invalid/revoked token; Facebook publisher was skipped. The check confirmed the Page ID, `PUBLISH_ENABLED` disabled, dry-run enabled and emergency stop active.
 - PR #12 is now based on `main`, 223 commits ahead and 0 behind, and GitHub reports it mergeable. It remains a draft and has not been merged. Do not treat mergeability as release approval.
 - Website items listed in the October snapshot (placeholder contact address/phone, privacy-policy and affiliate-disclosure review, mobile layout, embedded video playback, newsletter behaviour and checkout) were not rechecked or changed in this release. WordPress dashboard write access was not available. Keep those checks open until a current authenticated website review is completed.
 - Public publishing remains disabled. No campaign is approved by this checklist, and no live post or video upload is claimed.
+
+
+## Additional media intake verification — 12 November 2026
+
+The available ChatGPT Library was searched for the previously supplied media. Four accessible files were materialized and technically inspected; they are intake candidates only, not approved production assets:
+
+| File | Verified technical facts | Current decision |
+|---|---|---|
+| `Mongoose_dodges_cobra_attack_cb4adda4.mp4` | 4.032 s; 1280×720; H.264; AAC 48 kHz stereo; 24 fps; SHA-256 `2f4f5e82bc35119d4dde0fb223c55b105b77ca8e36d09713bd1bb57f1e0514d7` | HOLD — too short for a complete episode; original camera provenance, rights and human review are not evidenced |
+| `Mongoose_pushes_himself_up_3466079b.mp4` | 4.032 s; 1280×720; H.264; AAC 48 kHz stereo; 24 fps; SHA-256 `c31a346787e7071a376ab4b139dd6a778bc69d25477cf5921c1a3398726b040e` | HOLD — too short; sampled frames visibly contain a “LAST LIGHT: 2 MIN” overlay; provenance, rights and human review are not evidenced |
+| `MiniMax_2026-11-10_12_08_55_Man_With_Deep_Voice.mp3` | 8.464 s; MP3; mono; 44.1 kHz; SHA-256 `ce77791b99a6dea579b24295f1b0e963001151c55b3b1375c32184c8c7a5eb2b` | HOLD — short sample, not a complete narration; transcript/script match, usage rights and human listening review not evidenced |
+| `MiniMax_2026-11-10_12_25_34_Man_With_Deep_Voice.mp3` | 7.262 s; MP3; mono; 44.1 kHz; SHA-256 `588745e9ad4208554c891976f09ec133c94f0e74ed1fa64a8ec2e48b71dfb157` | HOLD — short sample, not a complete narration; transcript/script match, usage rights and human listening review not evidenced |
+
+The two Mongoose files were sampled visually but not approved as original camera recordings. A plausible wildlife image is not provenance evidence. The two MP3s were technically inspected for duration and format; no claim is made that their speech content or performance was human-reviewed. None of these four assets was added to a publishing campaign or uploaded.
+
+The earlier 193.886621-second documentary export and corrected audio export remain recorded in the prior technical-QC history, but the Google Drive connector is currently disabled by administrator policy. The exact Drive source and final-QC files could not be fetched for a fresh visual, provenance or rights review in this pass. The prior technical decode/loudness result must not be mistaken for a new full-playback or rights approval.
+
+## Newly corrected publisher/media defects
+
+- All three Facebook adapters now fail closed when `EMERGENCY_STOP` is absent or active; the workflow defaults it to `true`.
+- CI now runs the legacy feed-guard test suite and syntax-checks all three publishing adapters. Stale references to non-existent series test files were removed.
+- Long-form and Reel media preflight now rejects files with no AAC audio stream, audio/video duration mismatch over 1.5 seconds, sample rates below 44.1 kHz, or non-mono/stereo channel layouts.
+- Latest verified YouTube content workflow: [43297665575](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43297665575), PASS, 15/15 tests.
+- Latest verified safety workflow: [43297665520](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43297665520), safety PASS, 147/147 tests and 17/17 fail-closed scenarios; Meta token remains blocked and publisher skipped.
