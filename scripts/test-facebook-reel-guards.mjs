@@ -86,7 +86,9 @@ for (const [field, value] of [
   ["provenance_review_passed", false],
   ["provenance_reviewer", ""],
   ["provenance_reviewed_at", "not-a-date"],
-  ["media_url", "http://cdn.example.org/wildlife.mp4"]
+  ["media_url", "http://cdn.example.org/wildlife.mp4"],
+  ["media_url", "https://user:pass@cdn.example.org/wildlife.mp4"],
+  ["media_url", "https://cdn.example.org:8443/wildlife.mp4"]
 ]) {
   test(`blocks unsafe Reel when ${field} is ${String(value)}`, () => {
     const candidate = { ...valid, [field]: value };
@@ -114,6 +116,11 @@ test("requires Meta's explicit published state, not merely a completed upload or
   assert.equal(isReelPublished({ status: { video_status: "published" } }), false);
   assert.equal(isReelPublished({ status: { video_status: "ready", publishing_phase: { status: "not_started" } } }), false);
   assert.equal(isReelPublished({ status: { video_status: "processing", publishing_phase: { status: "in_progress" } } }), false);
+});
+
+test("requires the parent episode URL to be an HTTPS Facebook destination", () => {
+  const invalid = "https://evil.example/watch?v=123";
+  assert.ok(validateReelCampaign({ ...valid, full_video_url: invalid, caption: "Watch the full episode: " + invalid }).some((error) => error.includes("exact HTTPS Facebook URL")));
 });
 
 test("requires each Reel to lead to its already-published full episode", () => {
