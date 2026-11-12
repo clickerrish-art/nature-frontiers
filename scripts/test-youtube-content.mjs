@@ -34,13 +34,17 @@ const validPlan = {
   adBreaks: []
 };
 
-test("YouTube publishing remains disabled until authenticated channel identity is verified", () => {
+test("YouTube publishing stays disabled while the verified channel is mismapped in Metricool", () => {
   assert.equal(policy.youtubePublishing.enabled, false);
   assert.equal(policy.youtubePublishing.publicHandleResolved, true);
   assert.equal(policy.youtubePublishing.metricoolChannelMismatchConfirmed, true);
-  assert.equal(policy.youtubePublishing.authenticatedChannelIdentityVerified, false);
+  assert.equal(policy.youtubePublishing.authenticatedChannelIdentityVerified, true);
+  assert.equal(policy.youtubePublishing.verifiedChannelId, "UC41xXhw22o6Q2I2pTKB2kOg");
+  assert.equal(policy.youtubePublishing.verifiedChannelHandle, "@naturefrontiers-life");
+  assert.ok(policy.youtubePublishing.identityVerificationSource.includes("vidIQ"));
+  assert.ok(policy.youtubePublishing.requiredCheck.includes("UC41xXhw22o6Q2I2pTKB2kOg"));
+  assert.ok(policy.youtubePublishing.requiredCheck.includes("SonicVibes"));
   assert.equal(policy.youtubePublishing.nativePaidPromotionDeclarationRequiredWhenApplicable, true);
-  assert.ok(policy.youtubePublishing.requiredCheck.includes("authenticated YouTube channel ID"));
   assert.ok(policy.description.nativePaidPromotionSetting.includes("native setting"));
 });
 
