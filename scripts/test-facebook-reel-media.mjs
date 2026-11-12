@@ -10,7 +10,8 @@ const publicLookup = async () => [{ address: "93.184.216.34", family: 4 }];
 const validMetadata = {
   media: { track: [
     { "@type": "General", Format: "MPEG-4", Duration: "30" },
-    { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "29.970", Duration: "30" }
+    { "@type": "Video", Width: "1080", Height: "1920", FrameRate: "29.970", Duration: "30" },
+    { "@type": "Audio", Format: "AAC", Duration: "30", SamplingRate: "48000", Channels: "2" }
   ] }
 };
 const validProbe = async () => ({ stdout: JSON.stringify(validMetadata) });
@@ -39,9 +40,27 @@ test("stages exact hash-verified bytes and confirms Facebook Reel technical requ
     assert.equal(result.bytes, bytes.length);
     assert.equal(result.sha256, digest);
     assert.deepEqual(await readFile(result.filePath), bytes);
-    assert.deepEqual(result.videoMetadata, { width: 1080, height: 1920, duration: 30, frameRate: 29.97, formatName: "MPEG-4" });
+    assert.deepEqual(result.videoMetadata, { width: 1080, height: 1920, duration: 30, frameRate: 29.97, formatName: "MPEG-4", audioFormat: "AAC", audioDuration: 30, audioSampleRate: 48000, audioChannels: 2 });
   } finally {
     await result.cleanup();
+  }
+});
+
+test("rejects missing, unsynchronized, low-rate or unsupported audio before upload", async () => {
+  const invalidAudio = [
+    validMetadata.media.track.filter((track) => track["@type"] !== "Audio"),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, Duration: "20" } : track),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, SamplingRate: "22050" } : track),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, Format: "AC-3" } : track),
+    validMetadata.media.track.map((track) => track["@type"] === "Audio" ? { ...track, Channels: "6" } : track)
+  ];
+  for (const track of invalidAudio) {
+    const metadata = { media: { track } };
+    await assert.rejects(
+      verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response(), publicLookup, undefined,
+        async () => ({ stdout: JSON.stringify(metadata) })),
+      /audio stream|audio duration|AAC encoding|sample rate|mono or stereo/
+    );
   }
 });
 
