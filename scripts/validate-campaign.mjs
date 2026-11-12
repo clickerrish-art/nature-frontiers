@@ -4,6 +4,7 @@ const products = JSON.parse(await readFile(new URL("../data/products.json", impo
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const errors = [];
 const warnings = [];
+const YOUTUBE_CHANNEL_URL = "https://www.youtube.com/@naturefrontiers-life";
 
 if (!Array.isArray(products) || products.length === 0) {
   errors.push("Catalogue must be a non-empty array.");
@@ -50,6 +51,7 @@ if (!Array.isArray(campaigns)) {
     if (!["draft", "approved", "publishing", "published"].includes(campaign?.status)) errors.push(label + ": unsupported campaign status " + campaign?.status + ".");
     if (!["organic", "promotion"].includes(campaign?.campaign_type)) errors.push(label + ": campaign_type must be explicitly organic or promotion.");
     if (typeof campaign?.caption !== "string" || !campaign.caption.trim()) errors.push(label + ": caption is missing.");
+    else if (!campaign.caption.includes(YOUTUBE_CHANNEL_URL)) errors.push(label + ": caption must include the Nature Frontiers YouTube channel CTA.");
 
     let product = null;
     if (campaign?.campaign_type === "promotion") {
