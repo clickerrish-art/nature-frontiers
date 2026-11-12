@@ -150,6 +150,7 @@ if (!finished.ok || finishPayload.success !== true) {
 }
 
 let confirmed = false;
+let confirmedPayload;
 for (let attempt = 0; attempt < 12; attempt++) {
   const statusUrl = new URL(graph + "/" + encodeURIComponent(startPayload.video_id));
   statusUrl.searchParams.set("fields", "id,status,from,permalink_url");
@@ -162,7 +163,7 @@ for (let attempt = 0; attempt < 12; attempt++) {
   if (statusPayload?.id !== startPayload.video_id || statusPayload?.from?.id !== pageId) {
     throw new Error("Meta Reel receipt does not confirm the exact uploaded video ID and Nature Frontiers Page; state remains publishing.");
   }
-  if (isReelPublished(statusPayload) && typeof statusPayload.permalink_url === "string" && statusPayload.permalink_url.startsWith("https://")) { confirmed = true; break; }
+  if (isReelPublished(statusPayload) && typeof statusPayload.permalink_url === "string" && statusPayload.permalink_url.startsWith("https://")) { confirmed = true; confirmedPayload = statusPayload; break; }
   const phase = statusPayload?.status?.publishing_phase?.status;
   if (phase === "error" || statusPayload?.status?.video_status === "error") {
     throw new Error("Meta reports a Reel publishing error; state remains publishing for manual reconciliation.");
@@ -173,7 +174,7 @@ if (!confirmed) throw new Error("Meta did not return a confirmed published state
 
 const after = await getState();
 const completed = after.campaigns.map((item) => item.id === campaign.id && item.status === "publishing"
-  ? { ...item, status: "published", published_at: new Date().toISOString(), platform_video_id: startPayload.video_id, platform_video_url: statusPayload.permalink_url, platform_page_id: pageId }
+  ? { ...item, status: "published", published_at: new Date().toISOString(), platform_video_id: startPayload.video_id, platform_video_url: confirmedPayload.permalink_url, platform_page_id: pageId }
   : item);
 await saveState(after.sha, completed, "Record verified Facebook Reel publication " + campaign.id);
 console.log("Facebook Reel publication verified. Campaign: " + campaign.id + "; video id: " + startPayload.video_id);
