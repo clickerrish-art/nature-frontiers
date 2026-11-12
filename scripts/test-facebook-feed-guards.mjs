@@ -1,18 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateFeedRelease } from "./facebook-feed-guards.mjs";
+import { createFeedReviewDigest, validateFeedRelease } from "./facebook-feed-guards.mjs";
 
-const approved = {
+const approvedBase = {
   id: "nf-feed-001",
   network: "facebook",
   campaign_type: "organic",
   facebook_type: "POST",
   status: "approved",
+  caption: "A careful wildlife fact post.",
   policy_review_passed: true,
   content_accuracy_confirmed: true,
   brand_fit_confirmed: true,
   wildlife_welfare_confirmed: true,
   non_graphic_review_passed: true
+};
+const approved = {
+  ...approvedBase,
+  human_review: {
+    approved: true,
+    reviewer: "Nature Frontiers editorial reviewer",
+    reviewed_at: "2026-11-12T10:00:00.000Z",
+    release_sha256: createFeedReviewDigest(approvedBase)
+  }
 };
 
 test("accepts an explicitly approved organic wildlife feed post", () => {
@@ -58,4 +68,16 @@ test("requires rights and originality clearance and refuses unsupported media at
 test("blocks wildlife content without animal-welfare and non-graphic review", () => {
   assert.ok(validateFeedRelease({ ...approved, wildlife_welfare_confirmed: false }).some((e) => e.includes("baiting")));
   assert.ok(validateFeedRelease({ ...approved, non_graphic_review_passed: false }).some((e) => e.includes("non-graphic")));
+});
+
+test("requires a named, timestamped human approval bound to the exact release metadata", () => {
+  assert.ok(validateFeedRelease({ ...approved, human_review: undefined }).some((e) => e.includes("named, timestamped human review")));
+  assert.ok(validateFeedRelease({ ...approved, human_review: { ...approved.human_review, reviewer: "" } }).some((e) => e.includes("named, timestamped human review")));
+  assert.ok(validateFeedRelease({ ...approved, human_review: { ...approved.human_review, reviewed_at: "not-a-date" } }).some((e) => e.includes("named, timestamped human review")));
+  assert.ok(validateFeedRelease({ ...approved, human_review: { ...approved.human_review, release_sha256: "0".repeat(64) } }).some((e) => e.includes("named, timestamped human review")));
+});
+
+test("invalidates the feed approval when caption or reviewed metadata changes", () => {
+  assert.ok(validateFeedRelease({ ...approved, caption: "Changed after review." }).some((e) => e.includes("bound to the exact release metadata")));
+  assert.ok(validateFeedRelease({ ...approved, brand_fit_confirmed: false }).some((e) => e.includes("bound to the exact release metadata")));
 });
