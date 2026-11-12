@@ -83,6 +83,14 @@ export function validateReelCampaign(campaign) {
   return errors;
 }
 
+export function isReelPublishedForPage(payload, expectedVideoId, expectedPageId) {
+  return isReelPublished(payload) &&
+    payload?.id === expectedVideoId &&
+    payload?.from?.id === expectedPageId &&
+    typeof payload?.permalink_url === "string" &&
+    payload.permalink_url.startsWith("https://");
+}
+
 export function isReelPublished(payload) {
   // A completed publishing phase can still represent a scheduled or draft Reel.
   // Require Meta's explicit published state; upload/processing completion is not enough.
