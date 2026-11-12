@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { validateFeedRelease } from "./facebook-feed-guards.mjs";
+import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
@@ -136,6 +137,13 @@ const liveCampaign = initial.campaigns.find((c) => c.id === campaign.id);
 if (!liveCampaign || JSON.stringify(liveCampaign) !== JSON.stringify(campaign)) {
   stop("The live GitHub campaign snapshot changed after checkout; no post was sent.");
 }
+if (initial.campaigns.some((item) => item.status === "publishing")) {
+  stop("Another campaign is already in an uncertain publishing state; reconcile it before any feed post.");
+}
+assertApprovedPostingWindow();
+const dailyCapacity = assertDailyReleaseCapacity(initial.campaigns, "POST");
+console.log("Johannesburg daily release capacity: " + dailyCapacity.feedPosts + "/1 feed posts, " +
+  dailyCapacity.reels + "/2 Reels, " + dailyCapacity.total + "/3 total releases used.");
 const reservation = initial.campaigns.map((c) =>
   c.id === campaign.id ? { ...c, status: "publishing", publishing_started_at: new Date().toISOString() } : c
 );
