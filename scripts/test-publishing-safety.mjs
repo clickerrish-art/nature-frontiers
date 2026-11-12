@@ -6,11 +6,29 @@ const sharedEnv = {
   META_PAGE_ACCESS_TOKEN: "not-a-real-token-used-only-for-safe-stop-tests",
   META_GRAPH_API_VERSION: "v27.0",
   GITHUB_REPOSITORY: "clickerrish-art/nature-frontiers",
-  GITHUB_REF_NAME: "codex/facebook-reels-publisher",
+  GITHUB_REF_NAME: "codex/nature-frontiers-youtube-series",
   GITHUB_TOKEN: "not-a-real-token-used-only-for-safe-stop-tests"
 };
 
 const cases = [
+  {
+    name: "legacy feed publisher rejects a different live branch",
+    script: "scripts/publish-facebook.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
+    expected: "Live publishing is restricted to the exact implementation branch codex/nature-frontiers-youtube-series."
+  },
+  {
+    name: "long-form publisher rejects a different live branch",
+    script: "scripts/publish-facebook-video.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
+    expected: "Live publishing is restricted to the exact implementation branch codex/nature-frontiers-youtube-series."
+  },
+  {
+    name: "Reel publisher rejects a different live branch",
+    script: "scripts/publish-facebook-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", PUBLISH_RUN_AUTHORIZED: "true", GITHUB_REF_NAME: "codex/facebook-reels-publisher" },
+    expected: "Live publishing is restricted to the exact implementation branch codex/nature-frontiers-youtube-series."
+  },
   {
     name: "legacy feed publisher remains disabled by default",
     script: "scripts/publish-facebook.mjs",
