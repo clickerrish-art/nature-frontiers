@@ -15,8 +15,8 @@ export function assertApprovedPostingWindow(value = new Date()) {
   const hour = Number(fields.hour);
   const minute = Number(fields.minute);
   const second = Number(fields.second);
-  if (second !== 0 || date.getUTCMilliseconds() !== 0 || !APPROVED_POSTING_SLOTS.some((slot) => slot.hour === hour && slot.minute === minute)) {
-    throw new Error("Publication is restricted to exactly 11:00:00 and 16:00:00 Africa/Johannesburg (10:00:00 and 15:00:00 WAT).");
+  if (!APPROVED_POSTING_SLOTS.some((slot) => slot.hour === hour && slot.minute === minute)) {
+    throw new Error("Publication is restricted to the 11:00 and 16:00 Africa/Johannesburg posting minutes (10:00 and 15:00 WAT).");
   }
   return { timeZone: TIME_ZONE, hour, minute, second };
 }
