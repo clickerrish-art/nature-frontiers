@@ -126,9 +126,25 @@ async function inspectVideo(filePath, probeImpl) {
     throw new Error("Long-form video frame rate must be at least 23 fps.");
   }
   if (!/(mpeg-4|quicktime)/i.test(formatName)) {
-    throw new Error("Long-form Facebook video must use an MP4/MOV video container.");
+    throw new Error("Long-form Facebook video must use a supported MP4/MOV video container.");
   }
-  return { width, height, duration, frameRate, formatName };
+  const audio = tracks.find((track) => track?.["@type"] === "Audio");
+  if (!audio) throw new Error("Long-form Facebook video must contain a synchronized audio stream.");
+  const audioFormat = String(audio.Format ?? "");
+  const audioDuration = Number(audio.Duration);
+  const audioSampleRate = Number(audio.SamplingRate);
+  const audioChannels = Number(audio.Channels);
+  if (!/aac/i.test(audioFormat)) throw new Error("Long-form Facebook video audio must use AAC encoding.");
+  if (!Number.isFinite(audioDuration) || Math.abs(audioDuration - duration) > 1.5) {
+    throw new Error("Long-form Facebook video audio duration must match the video within 1.5 seconds.");
+  }
+  if (!Number.isFinite(audioSampleRate) || audioSampleRate < 44100) {
+    throw new Error("Long-form Facebook video audio sample rate must be at least 44.1 kHz.");
+  }
+  if (!Number.isInteger(audioChannels) || audioChannels < 1 || audioChannels > 2) {
+    throw new Error("Long-form Facebook video audio must be mono or stereo.");
+  }
+  return { width, height, duration, frameRate, formatName, audioFormat, audioDuration, audioSampleRate, audioChannels };
 }
 
 export async function verifyRemoteLongFormVideo(
