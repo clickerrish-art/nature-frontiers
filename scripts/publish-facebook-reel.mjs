@@ -1,7 +1,7 @@
 import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
-import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
+import { validateReelCampaign, isReelPublished, isReelPublishedForPage } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 
 function stop(message) {
@@ -163,7 +163,7 @@ for (let attempt = 0; attempt < 12; attempt++) {
   if (statusPayload?.id !== startPayload.video_id || statusPayload?.from?.id !== pageId) {
     throw new Error("Meta Reel receipt does not confirm the exact uploaded video ID and Nature Frontiers Page; state remains publishing.");
   }
-  if (isReelPublished(statusPayload) && typeof statusPayload.permalink_url === "string" && statusPayload.permalink_url.startsWith("https://")) { confirmed = true; confirmedPayload = statusPayload; break; }
+  if (isReelPublishedForPage(statusPayload, startPayload.video_id, pageId)) { confirmed = true; confirmedPayload = statusPayload; break; }
   const phase = statusPayload?.status?.publishing_phase?.status;
   if (phase === "error" || statusPayload?.status?.video_status === "error") {
     throw new Error("Meta reports a Reel publishing error; state remains publishing for manual reconciliation.");
