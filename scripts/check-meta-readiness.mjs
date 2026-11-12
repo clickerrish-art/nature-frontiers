@@ -21,8 +21,8 @@ if (pageId === expectedPageId && pageToken && validVersion) {
     } else {
       const code = payload?.error?.code ?? "unknown";
       const subcode = payload?.error?.error_subcode ?? "none";
-      tokenPageCheck = code === 190 && subcode === 467
-        ? "BLOCKED: Meta says this Page token is invalid or revoked; a fresh authorization is required (HTTP " + response.status + ")."
+      tokenPageCheck = code === 190 && (subcode === 463 || subcode === 467)
+        ? "BLOCKED: Meta says this Page token is expired, invalid or revoked; a fresh authorization is required (HTTP " + response.status + ")."
         : "BLOCKED: Meta rejected the read-only Page check (HTTP " + response.status + ", code " + code + ", subcode " + subcode + ", type " + (payload?.error?.type ?? "unknown") + ").";
     }
   } catch (error) {
