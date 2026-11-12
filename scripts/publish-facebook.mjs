@@ -26,7 +26,7 @@ if (process.env.EMERGENCY_STOP !== "false") stop("EMERGENCY_STOP is active; publ
 if (!dryRun && process.env.PUBLISH_RUN_AUTHORIZED !== "true") {
   stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
 }
-if (!dryRun && process.env.GITHUB_REF_NAME !== expectedBranch) stop("Live publishing is restricted to the exact implementation branch " + expectedBranch + ".");
+if (!dryRun && process.env.GITHUB_REF_NAME !== expectedBranch) stop("Live publishing is restricted to the protected production branch " + expectedBranch + ".");
 if (!dryRun && pageId !== expectedPageId) {
   stop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
 }
