@@ -28,7 +28,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 - Runs fail-closed publishing safety tests.
 - Has a gated Facebook Page adapter. The adapter requires an explicitly approved campaign and product, human-verified links, a paid-product disclosure, a valid Page configuration, and durable state reservation before a live post attempt. Live publishing additionally requires repository opt-in and a separate manual per-run authorization; scheduled runs cannot publish.
 - Does not automatically discover products or approve product pages/campaign copy.
-- Facebook long-form approvals require separate footage/audio rights evidence and exact SHA-256 hashes for video, script, voiceover, captions, thumbnail and metadata, all matched to the named/timestamped human-review record. Facebook Reel requests use explicit network timeouts and retain uncertain outcomes for reconciliation.
+- Facebook long-form and Reel approvals require separate footage/audio rights evidence and SHA-256 hashes for video, script, voiceover, captions, thumbnail and metadata, all matched to the named/timestamped human-review record. Both publishers verify the exact remote video ID and Page owner before recording success; a Reel must link to a parent long-form video from the same Page. Reel requests use explicit network timeouts and retain uncertain outcomes for reconciliation.
 
 ## Before launch
 
