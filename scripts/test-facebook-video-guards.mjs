@@ -17,6 +17,23 @@ const valid = {
   media_url: "https://cdn.example.org/sha256/wildlife.mp4",
   media_sha256: "a".repeat(64),
   media_url_immutable_confirmed: true,
+  script_sha256: "c".repeat(64),
+  voiceover_sha256: "d".repeat(64),
+  captions_sha256: "e".repeat(64),
+  thumbnail_sha256: "f".repeat(64),
+  metadata_sha256: "g".repeat(64),
+  media_rights_evidence_ref: "rights-record://wildlife-video-001",
+  audio_rights_evidence_ref: "rights-record://wildlife-audio-001",
+  human_review: {
+    reviewer: "wildlife-editor",
+    reviewed_at: "2026-11-11T10:30:00Z",
+    video_sha256: "a".repeat(64),
+    script_sha256: "c".repeat(64),
+    voiceover_sha256: "d".repeat(64),
+    captions_sha256: "e".repeat(64),
+    thumbnail_sha256: "f".repeat(64),
+    metadata_sha256: "g".repeat(64)
+  },
   script_originality_confirmed: true,
   voiceover_originality_confirmed: true,
   media_rights_confirmed: true,
@@ -59,6 +76,13 @@ for (const [field, value] of [
   ["media_url", "http://cdn.example.org/video.mp4"],
   ["media_sha256", "missing"],
   ["media_url_immutable_confirmed", false],
+  ["script_sha256", "missing"],
+  ["voiceover_sha256", "missing"],
+  ["captions_sha256", "missing"],
+  ["thumbnail_sha256", "missing"],
+  ["metadata_sha256", "missing"],
+  ["media_rights_evidence_ref", ""],
+  ["audio_rights_evidence_ref", ""],
   ["script_originality_confirmed", false],
   ["voiceover_originality_confirmed", false],
   ["media_rights_confirmed", false],
@@ -86,6 +110,16 @@ for (const [field, value] of [
     assert.ok(validateLongFormVideoCampaign({ ...valid, [field]: value }).length > 0);
   });
 }
+
+test("human approval must match the exact final video, script, narration, captions, thumbnail and metadata hashes", () => {
+  const errors = validateLongFormVideoCampaign({
+    ...valid,
+    human_review: { ...valid.human_review, video_sha256: "z".repeat(64) }
+  });
+  assert.ok(errors.some((error) => error.includes("exact approved media SHA-256")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, human_review: { ...valid.human_review, metadata_sha256: "z".repeat(64) } }).some((error) => error.includes("exact approved metadata SHA-256")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, human_review: { ...valid.human_review, reviewer: "" } }).some((error) => error.includes("named reviewer and valid timestamp")));
+});
 
 test("rejects synthetic wildlife video even when fully disclosed", () => {
   const disclosure = "Visual disclosure: AI-generated illustrative scenes, not documentary footage.";
