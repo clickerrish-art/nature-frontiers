@@ -124,7 +124,7 @@ test("requires the parent episode URL to be an HTTPS Facebook destination", () =
 });
 
 test("requires each Reel to lead to its already-published full episode", () => {
-  assert.ok(validateReelCampaign({ ...valid, caption: "A short clip without the full episode link." }).some((e) => e.includes("exact HTTPS URL")));
+  assert.ok(validateReelCampaign({ ...valid, caption: "A short clip without the full episode link." }).some((e) => e.includes("exact HTTPS Facebook URL")));
   assert.deepEqual(validateReelCampaign(valid), []);
 });
 
