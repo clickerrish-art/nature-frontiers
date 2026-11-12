@@ -16,6 +16,7 @@ export function getRequiredDescriptionLinks() {
 export function validateYouTubeDescription(description) {
   const errors = [];
   if (!isNonEmptyString(description)) return ["YouTube description must be a non-empty string."];
+  if (description.length > 5000) errors.push("YouTube descriptions must not exceed 5,000 characters.");
 
   const links = getRequiredDescriptionLinks();
   if (!description.includes(links.channel)) errors.push("Description must include the Nature Frontiers YouTube channel link.");
@@ -35,7 +36,7 @@ export function validateYouTubeDescription(description) {
     if (!description.includes(affiliate.url)) errors.push("Description is missing Safari.com affiliate link: " + affiliate.label + ".");
     try {
       const parsed = new URL(affiliate.url);
-      if (parsed.hostname !== "www.safari.com" || parsed.searchParams.get("a") !== policy.affiliateId) {
+      if (parsed.protocol !== "https:" || parsed.hostname !== "www.safari.com" || parsed.searchParams.get("a") !== policy.affiliateId) {
         errors.push("Safari.com affiliate link has an unexpected destination or tracking identifier: " + affiliate.label + ".");
       }
     } catch {
@@ -112,6 +113,9 @@ export function validateEpisodePlan(plan) {
   if (!Number.isInteger(plan.seasonNumber) || plan.seasonNumber < 1) errors.push("seasonNumber must be a positive integer.");
   if (!Number.isInteger(plan.episodeNumber) || plan.episodeNumber < 1) errors.push("episodeNumber must be a positive integer.");
   if (!isNonEmptyString(plan.title)) errors.push("Episode title is required.");
+  if (!["concept_only", "draft", "review", "approved"].includes(plan.status)) {
+    errors.push("Episode status must be concept_only, draft, review or approved; publication is tracked separately.");
+  }
 
   const duration = plan.durationSeconds;
   if (!Number.isInteger(duration) || duration < policy.videoDurationSeconds.minimum || duration > policy.videoDurationSeconds.maximum) {
@@ -149,9 +153,11 @@ export function validateEpisodePlan(plan) {
         continue;
       }
       if (segment.startSeconds < previousEnd) errors.push("Episode segments must be ordered and must not overlap.");
+      else if (segment.startSeconds > previousEnd) errors.push("Episode segments must cover the timeline continuously without gaps.");
       if (Number.isInteger(duration) && segment.endSeconds > duration) errors.push("Segment " + (index + 1) + " extends beyond the episode duration.");
       previousEnd = segment.endSeconds;
     }
+    if (Number.isInteger(duration) && previousEnd !== duration) errors.push("Episode segments must cover the full episode duration.");
   }
 
   const adBreaks = plan.adBreaks ?? [];
@@ -160,6 +166,9 @@ export function validateEpisodePlan(plan) {
   } else if (adBreaks.length && Number.isInteger(duration) && duration < policy.midroll.minimumEligibleDurationSeconds) {
     errors.push("Mid-rolls are not eligible below 8 minutes; remove ad breaks from this episode.");
   } else {
+    if (adBreaks.length && policy.midroll.requiresMonetizationEligibility && plan.monetizationEligibilityVerified !== true) {
+      errors.push("Mid-rolls require verified channel monetization eligibility before they can be approved.");
+    }
     const segments = Array.isArray(plan.segments) ? plan.segments : [];
     const hookEnd = segments[0]?.endSeconds;
     let previousAd = -1;
