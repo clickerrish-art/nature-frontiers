@@ -18,6 +18,25 @@ const valid = {
   media_accessibility_confirmed: true,
   media_technical_review_passed: true,
   media_sha256: "a".repeat(64),
+  script_sha256: "c".repeat(64),
+  voiceover_sha256: "d".repeat(64),
+  captions_sha256: "e".repeat(64),
+  thumbnail_sha256: "f".repeat(64),
+  metadata_sha256: "1".repeat(64),
+  media_rights_evidence_ref: "rights-record://reel-video-001",
+  audio_rights_evidence_ref: "rights-record://reel-audio-001",
+  fact_check_sources: ["https://example.org/wildlife-research"],
+  human_review_confirmed: true,
+  human_review: {
+    reviewer: "wildlife-editor",
+    reviewed_at: "2026-11-11T10:30:00Z",
+    video_sha256: "a".repeat(64),
+    script_sha256: "c".repeat(64),
+    voiceover_sha256: "d".repeat(64),
+    captions_sha256: "e".repeat(64),
+    thumbnail_sha256: "f".repeat(64),
+    metadata_sha256: "1".repeat(64)
+  },
   related_longform_campaign_id: "nf-video-001",
   full_video_url: "https://www.facebook.com/watch/?v=123456789",
   synthetic_visuals: false,
@@ -47,6 +66,14 @@ for (const [field, value] of [
   ["media_accessibility_confirmed", false],
   ["media_technical_review_passed", false],
   ["media_sha256", "missing"],
+  ["script_sha256", "missing"],
+  ["voiceover_sha256", "missing"],
+  ["captions_sha256", "missing"],
+  ["thumbnail_sha256", "missing"],
+  ["metadata_sha256", "missing"],
+  ["media_rights_evidence_ref", ""],
+  ["audio_rights_evidence_ref", ""],
+  ["human_review_confirmed", false],
   ["related_longform_campaign_id", ""],
   ["full_video_url", "not-a-url"],
   ["synthetic_visuals", true],
@@ -66,6 +93,12 @@ for (const [field, value] of [
     assert.ok(validateReelCampaign(candidate).length > 0);
   });
 }
+
+test("Reel human approval is bound to exact media and metadata hashes", () => {
+  assert.ok(validateReelCampaign({ ...valid, human_review: { ...valid.human_review, video_sha256: "z".repeat(64) } }).some((error) => error.includes("exact approved media SHA-256")));
+  assert.ok(validateReelCampaign({ ...valid, human_review: { ...valid.human_review, metadata_sha256: "z".repeat(64) } }).some((error) => error.includes("exact approved metadata SHA-256")));
+  assert.ok(validateReelCampaign({ ...valid, human_review: { ...valid.human_review, reviewer: "" } }).some((error) => error.includes("named reviewer and valid timestamp")));
+});
 
 test("rejects synthetic wildlife video even when fully disclosed", () => {
   const disclosure = "Visual disclosure: AI-generated illustrative animation, not documentary footage.";
