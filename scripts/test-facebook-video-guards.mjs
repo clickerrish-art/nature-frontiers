@@ -76,6 +76,8 @@ for (const [field, value] of [
   ["media_url", "http://cdn.example.org/video.mp4"],
   ["media_sha256", "missing"],
   ["media_url_immutable_confirmed", false],
+  ["media_rights_evidence_ref", ""],
+  ["audio_rights_evidence_ref", ""],
   ["script_sha256", "missing"],
   ["voiceover_sha256", "missing"],
   ["captions_sha256", "missing"],
@@ -118,6 +120,7 @@ test("human approval must match the exact final video, script, narration, captio
   });
   assert.ok(errors.some((error) => error.includes("exact approved media SHA-256")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, human_review: { ...valid.human_review, metadata_sha256: "z".repeat(64) } }).some((error) => error.includes("exact approved metadata SHA-256")));
+  assert.ok(validateLongFormVideoCampaign({ ...valid, human_review: { ...valid.human_review, captions_sha256: "z".repeat(64) } }).some((error) => error.includes("exact approved captions SHA-256")));
   assert.ok(validateLongFormVideoCampaign({ ...valid, human_review: { ...valid.human_review, reviewer: "" } }).some((error) => error.includes("named reviewer and valid timestamp")));
 });
 
