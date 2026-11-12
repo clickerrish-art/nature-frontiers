@@ -161,6 +161,25 @@ The earlier 193.886621-second documentary export and corrected audio export rema
 - Latest publishing workflow: [43303189463](https://github.com/clickerrish-art/nature-frontiers/actions/runs/43303189463). Safety job PASS: complete `npm test` 150/150, 0 failed, 0 skipped; 23/23 fail-closed scenarios and 5/5 workflow wiring assertions. Meta readiness FAIL because the Page token is expired/invalid/revoked; publisher job SKIPPED.
 
 
+## Library media inventory — 12 November 2026
+
+The following available Library media files were materialized and inspected in this review. Technical inspection does not establish ownership, commercial-use rights, source provenance or editorial approval. **None is approved for publication.**
+
+| File | Technical / visual findings | Decision |
+|---|---|---|
+| `Mongoose_dodges_cobra_attack_cb4adda4.mp4` | 4.032 s; 1280×720; H.264; AAC 48 kHz stereo; 24 fps; SHA-256 `2f4f5e82bc35119d4dde0fb223c55b105b77ca8e36d09713bd1bb57f1e0514d7`. Shows a mongoose facing/engaging a cobra. No camera-original source, provenance, licence or review record supplied. | HOLD — far too short for a Reel or documentary segment; original camera provenance and rights not evidenced |
+| `Mongoose_pushes_himself_up_3466079b.mp4` | 4.032 s; 1280×720; H.264; AAC 48 kHz stereo; 24 fps; SHA-256 `c31a346787e7071a376ab4b139dd6a778bc69d25477cf5921c1a3398726b040e`. Frames visibly carry the overlay “LAST LIGHT: 2 MIN”. | HOLD — overlay contaminates the footage; source provenance, rights and human review not evidenced |
+| `nature_frontiers_crocodile_reel_h264.mp4` | 10.000 s; 720×1280; H.264; 24 fps; no audio; SHA-256 `91abbcea857393cffe773ea0501d59899a5da31cf4dcebfea30ec69e806f46de`. Visual review identifies a stylized illustrated/animated crocodile, not camera footage. | PROHIBITED as documentary wildlife footage — animation is outside the approved original-camera-footage policy |
+| `NOAA-spiny-lobster-shot-review-55s.mp4` | 55.000 s; 360×640; H.264; 15 fps; no audio; SHA-256 `d81220b7aad2c0e6db55f6b65d8e36b32ae09ce7f36885d80e35d00a90a6fd12`. | HOLD — no audio, low resolution/frame rate, not an approved export |
+| `NOAA-california-spiny-lobster-short-review.mp4` | 55.235 s; 1080×1920; H.264; AAC mono 22.05 kHz; 30 fps; SHA-256 `c0735b95efa5a70fba2eba3a87cbacd2355c400288b320d97dd3190dce1cf280`. Frames show “REVIEW DRAFT — NOT FOR PUBLICATION” and NOAA credit. | HOLD — explicit review-only watermark; audio sample rate fails the 44.1 kHz minimum; source licence and editorial approval not evidenced |
+| `NOAA-spiny-lobster-review-cut.mp4` | 64.000 s; 1280×720; H.264; 30 fps; no audio; SHA-256 `74fe43b1beae68574d2f75fd7b95737bde87be1ebad48451d4b50b94645b9181`. Frames show “REVIEW ONLY — NOT FOR PUBLICATION” and NOAA credit. | HOLD — explicit review-only watermark; no audio; not a 3–8 minute documentary or approved Reel |
+| `MiniMax_2026-11-10_12_08_55_Man_With_Deep_Voice.mp3` | 8.464 s; MP3; mono; 44.1 kHz; SHA-256 `ce77791b99a6dea579b24295f1b0e963001151c55b3b1375c32184c8c7a5eb2b`. | HOLD — sample only; script match, commercial-use terms and human listening approval not evidenced |
+| `MiniMax_2026-11-10_12_25_34_Man_With_Deep_Voice.mp3` | 7.262 s; MP3; mono; 44.1 kHz; SHA-256 `588745e9ad4208554c891976f09ec133c94f0e74ed1fa64a8ec2e48b71dfb157`. | HOLD — sample only; script match, commercial-use terms and human listening approval not evidenced |
+
+The NOAA review cuts are visibly marked not for publication and are not original Nature Frontiers camera recordings. The crocodile file is animation. The Mongoose clips are too short and lack source provenance. These assets must not be assembled into a documentary or uploaded merely because their codecs decode successfully.
+
+The earlier 193.886621-second Drive documentary and corrected audio export are not present in the accessible Library or current conversation files. The Google Drive connector is disabled by administrator policy in this session; historical technical-QC results remain historical and do not substitute for current playback, rights and human review.
+
 ## Daily Facebook publishing cadence — 12 November 2026
 
 The daily quota now reflects the owner's operating target:
