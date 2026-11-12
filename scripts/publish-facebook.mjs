@@ -148,7 +148,7 @@ try {
   if (error instanceof Error && /Daily (publishing ceiling|feed-post limit)/.test(error.message)) stop(error.message);
   throw error;
 }
-console.log("Johannesburg daily release capacity: " + dailyCapacity.feedPosts + "/1 feed posts, "
+console.log("Johannesburg daily release capacity: " + dailyCapacity.feedPosts + "/1 feed posts, " +
   dailyCapacity.reels + "/2 Reels, " + dailyCapacity.total + "/3 total releases used.");
 const reservation = initial.campaigns.map((c) =>
   c.id === campaign.id ? { ...c, status: "publishing", publishing_started_at: new Date().toISOString() } : c
