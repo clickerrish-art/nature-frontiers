@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
+import { validateReelCampaign, isReelPublished, isReelPublishedForPage } from "./facebook-reel-guards.mjs";
 
 const valid = {
   id: "nf-reel-001",
@@ -119,4 +119,17 @@ test("requires Meta's explicit published state, not merely a completed upload or
 test("requires each Reel to lead to its already-published full episode", () => {
   assert.ok(validateReelCampaign({ ...valid, caption: "A short clip without the full episode link." }).some((e) => e.includes("exact HTTPS URL")));
   assert.deepEqual(validateReelCampaign(valid), []);
+});
+
+test("Reel receipt must confirm the exact video ID, Page owner and HTTPS permalink", () => {
+  const receipt = {
+    id: "reel-123",
+    from: { id: "1003575786161492" },
+    permalink_url: "https://www.facebook.com/reel/123",
+    status: { publishing_phase: { publish_status: "published" } }
+  };
+  assert.equal(isReelPublishedForPage(receipt, "reel-123", "1003575786161492"), true);
+  assert.equal(isReelPublishedForPage({ ...receipt, from: { id: "wrong-page" } }, "reel-123", "1003575786161492"), false);
+  assert.equal(isReelPublishedForPage({ ...receipt, id: "other-video" }, "reel-123", "1003575786161492"), false);
+  assert.equal(isReelPublishedForPage({ ...receipt, permalink_url: "http://www.facebook.com/reel/123" }, "reel-123", "1003575786161492"), false);
 });
