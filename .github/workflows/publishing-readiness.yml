@@ -55,6 +55,9 @@ on:
       - "docs/YOUTUBE_SERIES_AND_DESCRIPTION_STANDARD.md"
   pull_request:
     paths:
+      - "scripts/publish-facebook.mjs"
+      - "scripts/facebook-feed-guards.mjs"
+      - "scripts/test-facebook-feed-guards.mjs"
       - "scripts/check-meta-readiness.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
