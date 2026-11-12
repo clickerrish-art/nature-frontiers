@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 
 const sharedEnv = {
   META_PAGE_ID: "1003575786161492",
+  EMERGENCY_STOP: "false",
   META_PAGE_ACCESS_TOKEN: "not-a-real-token-used-only-for-safe-stop-tests",
   META_GRAPH_API_VERSION: "v27.0",
   GITHUB_REPOSITORY: "clickerrish-art/nature-frontiers",
@@ -15,6 +16,12 @@ const cases = [
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "false", PUBLISH_DRY_RUN: "true" },
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
+  },
+  {
+    name: "legacy feed publisher respects the emergency stop before live mode",
+    script: "scripts/publish-facebook.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true", EMERGENCY_STOP: "" },
+    expected: "EMERGENCY_STOP is active; public publishing is blocked."
   },
   {
     name: "legacy feed publisher requires separate per-run authorization before live mode",
@@ -39,6 +46,12 @@ const cases = [
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "false", PUBLISH_DRY_RUN: "true" },
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
+  },
+  {
+    name: "long-form publisher respects the emergency stop before live mode",
+    script: "scripts/publish-facebook-video.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true", EMERGENCY_STOP: "true" },
+    expected: "EMERGENCY_STOP is active; public publishing is blocked."
   },
   {
     name: "long-form publisher requires one-shot authorization for live mode",
@@ -69,6 +82,12 @@ const cases = [
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "false", PUBLISH_DRY_RUN: "true" },
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
+  },
+  {
+    name: "discovery Reel publisher respects the emergency stop before live mode",
+    script: "scripts/publish-facebook-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true", EMERGENCY_STOP: "true" },
+    expected: "EMERGENCY_STOP is active; public publishing is blocked."
   },
   {
     name: "discovery Reel publisher requires one-shot authorization for live mode",
