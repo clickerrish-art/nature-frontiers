@@ -1,3 +1,5 @@
+const isSha256 = (value) => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+
 export function validateReelCampaign(campaign) {
   const errors = [];
   if (!campaign || campaign.network !== "facebook") errors.push("campaign must target Facebook.");
@@ -18,7 +20,44 @@ export function validateReelCampaign(campaign) {
   if (campaign?.non_graphic_review_passed !== true) errors.push("wildlife footage must pass a human non-graphic imagery review.");
   if (campaign?.media_accessibility_confirmed !== true) errors.push("public media URL accessibility must be verified.");
   if (campaign?.media_technical_review_passed !== true) errors.push("media technical specifications must be reviewed and confirmed.");
-  if (typeof campaign?.media_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(campaign.media_sha256)) errors.push("a verified 64-character SHA-256 media hash is required.");
+  if (!isSha256(campaign?.media_sha256)) errors.push("a verified 64-character SHA-256 media hash is required.");
+  for (const [field, label] of [
+    ["script_sha256", "approved script"],
+    ["voiceover_sha256", "final voiceover"],
+    ["captions_sha256", "final captions"],
+    ["thumbnail_sha256", "final thumbnail"],
+    ["metadata_sha256", "approved metadata"]
+  ]) {
+    if (!isSha256(campaign?.[field])) errors.push(label + " must have a verified SHA-256 hash.");
+  }
+  if (typeof campaign?.media_rights_evidence_ref !== "string" || !campaign.media_rights_evidence_ref.trim()) errors.push("video footage rights must include a licence or ownership evidence reference.");
+  if (typeof campaign?.audio_rights_evidence_ref !== "string" || !campaign.audio_rights_evidence_ref.trim()) errors.push("music and sound-effect rights must include a licence or ownership evidence reference.");
+  if (!Array.isArray(campaign?.fact_check_sources) || campaign.fact_check_sources.length === 0 ||
+      campaign.fact_check_sources.some((source) => typeof source !== "string" || !/^https:\/\//i.test(source))) {
+    errors.push("at least one HTTPS fact-check source is required.");
+  }
+  if (campaign?.human_review_confirmed !== true) errors.push("the exact final Reel must receive recorded human approval.");
+  const review = campaign?.human_review;
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    errors.push("a hash-bound human-review record is required.");
+  } else {
+    if (typeof review.reviewer !== "string" || !review.reviewer.trim() ||
+        typeof review.reviewed_at !== "string" || !Number.isFinite(Date.parse(review.reviewed_at))) {
+      errors.push("the human-review record requires a named reviewer and valid timestamp.");
+    }
+    for (const [reviewField, campaignField] of [
+      ["video_sha256", "media_sha256"],
+      ["script_sha256", "script_sha256"],
+      ["voiceover_sha256", "voiceover_sha256"],
+      ["captions_sha256", "captions_sha256"],
+      ["thumbnail_sha256", "thumbnail_sha256"],
+      ["metadata_sha256", "metadata_sha256"]
+    ]) {
+      if (!isSha256(review[reviewField]) || review[reviewField].toLowerCase() !== String(campaign?.[campaignField] ?? "").toLowerCase()) {
+        errors.push("human review must be bound to the exact approved " + campaignField.replaceAll("_sha256", "") + " SHA-256.");
+      }
+    }
+  }
   if (typeof campaign?.related_longform_campaign_id !== "string" || !campaign.related_longform_campaign_id.trim()) errors.push("Reel must reference its parent long-form video campaign.");
   if (typeof campaign?.full_video_url !== "string") errors.push("Reel must include the URL of its already-published full video.");
   else {
