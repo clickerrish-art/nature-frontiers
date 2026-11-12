@@ -4,6 +4,8 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 
 ## Current status
 
+Run `npm test` to execute the complete repository test suite (feed guards, fail-closed publishing, cadence, YouTube, Reel and long-form video/media tests).
+
 - **Catalogue validation:** the `main` result at `9a9fa33` (21 October 2026) is a historical baseline, not the latest branch verification. The current implementation branch is verified by the GitHub Actions runs recorded below.
 - **Catalogue:** six products with canonical HTTPS Selar links.
 - **Repository campaign fixtures:** six Facebook draft records, each linked to a catalogue product. This is separate from the live Metricool planner queue.
