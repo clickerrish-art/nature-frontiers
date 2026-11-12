@@ -1,6 +1,8 @@
 const MIN_SECONDS = 180;
 const MAX_SECONDS = 480;
 
+const isSha256 = (value) => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+
 function isHttpsPublicCandidate(value) {
   try {
     const url = new URL(value);
@@ -44,6 +46,42 @@ export function validateLongFormVideoCampaign(campaign) {
     errors.push("a verified 64-character SHA-256 media hash is required.");
   }
   if (campaign?.media_url_immutable_confirmed !== true) errors.push("the media URL must be human-confirmed immutable between verification and Meta retrieval.");
+  for (const [field, label] of [
+    ["script_sha256", "approved script"],
+    ["voiceover_sha256", "final voiceover"],
+    ["captions_sha256", "final captions"],
+    ["thumbnail_sha256", "final thumbnail"],
+    ["metadata_sha256", "approved metadata"]
+  ]) {
+    if (!isSha256(campaign?.[field])) errors.push(label + " must have a verified SHA-256 hash.");
+  }
+  if (typeof campaign?.media_rights_evidence_ref !== "string" || !campaign.media_rights_evidence_ref.trim()) {
+    errors.push("video footage rights must include a licence or ownership evidence reference.");
+  }
+  if (typeof campaign?.audio_rights_evidence_ref !== "string" || !campaign.audio_rights_evidence_ref.trim()) {
+    errors.push("music and sound-effect rights must include a licence or ownership evidence reference.");
+  }
+  const review = campaign?.human_review;
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    errors.push("a hash-bound human-review record is required.");
+  } else {
+    if (typeof review.reviewer !== "string" || !review.reviewer.trim() ||
+        typeof review.reviewed_at !== "string" || !Number.isFinite(Date.parse(review.reviewed_at))) {
+      errors.push("the human-review record requires a named reviewer and valid timestamp.");
+    }
+    for (const [reviewField, campaignField] of [
+      ["video_sha256", "media_sha256"],
+      ["script_sha256", "script_sha256"],
+      ["voiceover_sha256", "voiceover_sha256"],
+      ["captions_sha256", "captions_sha256"],
+      ["thumbnail_sha256", "thumbnail_sha256"],
+      ["metadata_sha256", "metadata_sha256"]
+    ]) {
+      if (!isSha256(review[reviewField]) || review[reviewField].toLowerCase() !== String(campaign?.[campaignField] ?? "").toLowerCase()) {
+        errors.push("human review must be bound to the exact approved " + campaignField.replaceAll("_sha256", "") + " SHA-256.");
+      }
+    }
+  }
   const requiredReviews = [
     ["script_originality_confirmed", "the complete script must pass human originality review."],
     ["voiceover_originality_confirmed", "voiceover must be original or appropriately licensed."],
