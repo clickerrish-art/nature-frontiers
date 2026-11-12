@@ -40,7 +40,7 @@ If the video itself contains a paid product placement, sponsorship, endorsement 
 
 ## Content, rights and release gates
 - Use original, naturally realistic wildlife camera recordings only. Stock wildlife compilations, AI-generated wildlife video, synthetic encounters and animation presented as documentary footage are prohibited.
-- Preserve original source files, provenance, ownership/licence evidence and asset hashes.
+- Preserve original source files, provenance, ownership/licence evidence and asset hashes. Facebook release approval must also include video, script, voiceover, captions, thumbnail and metadata SHA-256 values; the recorded human-review hash set must match those exact final artefacts. Video and audio rights each need a recorded licence/ownership evidence reference.
 - Fact-check species-specific claims and ensure the narration matches what the footage actually shows.
 - Do not stage, provoke, bait, chase, handle or otherwise disturb wildlife for footage.
 - A plan cannot be marked approved unless original footage has a source reference and SHA-256, rights have a licence/ownership evidence reference, factual review has source references, and final editorial/metadata review has a named reviewer, timestamp, final-video SHA-256 and metadata SHA-256. A season cannot be approved while any episode remains unapproved.
