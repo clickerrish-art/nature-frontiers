@@ -21,6 +21,7 @@ on:
     branches:
       - "codex/facebook-reels-publisher"
       - "codex/nature-frontiers-youtube-series"
+      - "main"
     paths:
       - "scripts/check-meta-readiness.mjs"
       - "scripts/publish-facebook.mjs"
@@ -144,7 +145,7 @@ jobs:
         run: node scripts/check-meta-readiness.mjs
 
   facebook-publisher:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nature-frontiers-youtube-series'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
     needs: [safety-tests, meta-readiness]
@@ -160,8 +161,8 @@ jobs:
       - name: Run gated long-form Facebook Page video adapter
         if: inputs.publisher == 'video'
         env:
-          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nature-frontiers-youtube-series' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
-          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nature-frontiers-youtube-series' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
@@ -174,8 +175,8 @@ jobs:
       - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
         if: inputs.publisher == 'reel'
         env:
-          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nature-frontiers-youtube-series' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
-          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nature-frontiers-youtube-series' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
@@ -188,8 +189,8 @@ jobs:
       - name: Run gated Facebook feed post adapter
         if: inputs.publisher == 'feed'
         env:
-          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nature-frontiers-youtube-series' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
-          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nature-frontiers-youtube-series' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_RUN_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           EMERGENCY_STOP: ${{ vars.EMERGENCY_STOP || 'true' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           META_GRAPH_API_VERSION: "v27.0"
