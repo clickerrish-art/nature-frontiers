@@ -14,6 +14,7 @@ const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 const expectedPageId = "1003575786161492";
+const expectedBranch = "codex/nature-frontiers-youtube-series";
 const repo = process.env.GITHUB_REPOSITORY;
 const ref = process.env.GITHUB_REF_NAME;
 const githubToken = process.env.GITHUB_TOKEN;
@@ -21,6 +22,7 @@ if (!enabled) safeStop("PUBLISH_ENABLED is not true; public publishing is disabl
 if (process.env.EMERGENCY_STOP !== "false") safeStop("EMERGENCY_STOP is active; public publishing is blocked.");
 if (dryRun) safeStop("PUBLISH_DRY_RUN is not false; no public publishing is permitted.");
 if (process.env.PUBLISH_RUN_AUTHORIZED !== "true") safeStop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
+if (!dryRun && process.env.GITHUB_REF_NAME !== expectedBranch) safeStop("Live publishing is restricted to the exact implementation branch " + expectedBranch + ".");
 if (pageId !== expectedPageId) safeStop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
 
 const versionParts = typeof graphVersion === "string" ? graphVersion.replace("v", "").split(".") : [];
