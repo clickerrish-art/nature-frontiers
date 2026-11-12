@@ -1,4 +1,20 @@
 const isSha256 = (value) => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+const isSafeHttpsUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && Boolean(url.hostname) &&
+      !url.username && !url.password && !url.hash && !url.port &&
+      url.hostname !== "localhost" && !url.hostname.endsWith(".localhost") &&
+      !url.hostname.endsWith(".local") && !url.hostname.endsWith(".internal");
+  } catch {
+    return false;
+  }
+};
+const isAllowedFacebookEpisodeUrl = (value) => {
+  if (!isSafeHttpsUrl(value)) return false;
+  const url = new URL(value);
+  return ["facebook.com", "www.facebook.com", "m.facebook.com", "fb.watch"].includes(url.hostname);
+};
 
 export function validateReelCampaign(campaign) {
   const errors = [];
@@ -8,11 +24,7 @@ export function validateReelCampaign(campaign) {
   if (typeof campaign?.id !== "string" || !campaign.id.trim()) errors.push("campaign needs a stable id.");
   if (typeof campaign?.caption !== "string" || !campaign.caption.trim()) errors.push("campaign needs a caption.");
   if (typeof campaign?.title !== "string" || !campaign.title.trim()) errors.push("campaign needs a Reel title.");
-  if (typeof campaign?.media_url !== "string") errors.push("campaign needs a public media_url.");
-  try {
-    const url = new URL(campaign.media_url);
-    if (url.protocol !== "https:" || !url.hostname || url.hostname === "localhost") errors.push("media_url must be a public HTTPS URL.");
-  } catch { errors.push("media_url must be a valid public HTTPS URL."); }
+  if (typeof campaign?.media_url !== "string" || !isSafeHttpsUrl(campaign.media_url)) errors.push("media_url must be a public HTTPS URL without credentials, fragments, or non-standard ports.");
   if (campaign?.media_rights_confirmed !== true) errors.push("media rights must be explicitly human-confirmed.");
   if (campaign?.originality_confirmed !== true) errors.push("media originality must be explicitly human-confirmed.");
   if (campaign?.policy_review_passed !== true) errors.push("the exact Reel and caption must pass human policy review.");
@@ -33,7 +45,7 @@ export function validateReelCampaign(campaign) {
   if (typeof campaign?.media_rights_evidence_ref !== "string" || !campaign.media_rights_evidence_ref.trim()) errors.push("video footage rights must include a licence or ownership evidence reference.");
   if (typeof campaign?.audio_rights_evidence_ref !== "string" || !campaign.audio_rights_evidence_ref.trim()) errors.push("music and sound-effect rights must include a licence or ownership evidence reference.");
   if (!Array.isArray(campaign?.fact_check_sources) || campaign.fact_check_sources.length === 0 ||
-      campaign.fact_check_sources.some((source) => typeof source !== "string" || !/^https:\/\//i.test(source))) {
+      campaign.fact_check_sources.some((source) => !isSafeHttpsUrl(source))) {
     errors.push("at least one HTTPS fact-check source is required.");
   }
   if (campaign?.human_review_confirmed !== true) errors.push("the exact final Reel must receive recorded human approval.");
@@ -63,7 +75,7 @@ export function validateReelCampaign(campaign) {
   else {
     try {
       const fullUrl = new URL(campaign.full_video_url);
-      if (fullUrl.protocol !== "https:" || !fullUrl.hostname || !campaign.caption.includes(campaign.full_video_url)) errors.push("Reel caption must include the exact HTTPS URL of the full video.");
+      if (!isAllowedFacebookEpisodeUrl(campaign.full_video_url) || !campaign.caption.includes(campaign.full_video_url)) errors.push("Reel caption must include the exact HTTPS Facebook URL of the full video.");
     } catch { errors.push("full_video_url must be a valid HTTPS URL."); }
   }
   // Nature Frontiers accepts only genuine original wildlife camera recordings.
