@@ -23,7 +23,7 @@ if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled."
 if (process.env.EMERGENCY_STOP !== "false") stop("EMERGENCY_STOP is active; public publishing is blocked.");
 if (dryRun) stop("PUBLISH_DRY_RUN is not false; no public publishing is permitted.");
 if (process.env.PUBLISH_RUN_AUTHORIZED !== "true") stop("PUBLISH_RUN_AUTHORIZED is not true; a separate per-run authorization is required.");
-if (!dryRun && process.env.GITHUB_REF_NAME !== expectedBranch) stop("Live publishing is restricted to the exact implementation branch " + expectedBranch + ".");
+if (!dryRun && process.env.GITHUB_REF_NAME !== expectedBranch) stop("Live publishing is restricted to the protected production branch " + expectedBranch + ".");
 if (pageId !== expectedPageId) stop("META_PAGE_ID does not match the exact Nature Frontiers Page ID; refusing to publish to another Page.");
 
 const versionParts = typeof graphVersion === "string" ? graphVersion.replace("v", "").split(".") : [];
