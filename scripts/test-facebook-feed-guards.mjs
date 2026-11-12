@@ -43,7 +43,9 @@ test("blocks missing or unsupported campaign types", () => {
 test("requires a product reference for promotions and forbids it on organic posts", () => {
   assert.ok(validateFeedRelease({ ...approved, campaign_type: "promotion" }).some((e) => e.includes("approved product")));
   assert.ok(validateFeedRelease({ ...approved, product_id: "product-1" }).some((e) => e.includes("must not reference a product")));
-  assert.deepEqual(validateFeedRelease({ ...approved, campaign_type: "promotion", product_id: "product-1" }), []);
+  const approvedPromotion = { ...approved, campaign_type: "promotion", product_id: "product-1" };
+  approvedPromotion.human_review = { ...approved.human_review, release_sha256: createFeedReviewDigest(approvedPromotion) };
+  assert.deepEqual(validateFeedRelease(approvedPromotion), []);
 });
 
 for (const [field, value] of [
