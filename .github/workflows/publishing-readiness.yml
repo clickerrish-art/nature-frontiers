@@ -16,6 +16,9 @@ on:
       - "data/products.json"
       - "scripts/validate-campaign.mjs"
       - "package.json"
+      - "scripts/check-meta-api-version.mjs"
+      - ".github/workflows/meta-api-version-monitor.yml"
+      - "docs/META_PROACTIVE_OPERATIONS.md"
       - ".github/workflows/publishing-readiness.yml"
   schedule:
     - cron: "30 7 * * *"
@@ -37,6 +40,8 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "24"
+      - name: Check Meta version monitor syntax
+        run: node --check scripts/check-meta-api-version.mjs
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
