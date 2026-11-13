@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 const now = new Date("2026-11-13T08:00:00.000Z");
@@ -6,13 +7,9 @@ const policy = { banned_phrases: ["guaranteed income"], allowed_link_hosts: ["se
 const media = { sha256: "a".repeat(64), rights: { status: "cleared", written_permission_ref: "permission:123", commercial_worldwide: true, editing_allowed: true, social_platforms: ["facebook"] }, originality: { status: "verified", source_ref: "source:123" }, watermark_scan: { status: "clean" }, audio: { present: false }, ai_generated: false };
 function validCampaign() {
   const campaign = { id: "c1", status: "approved", destination: "facebook:nature-frontiers", caption: "Nature is extraordinary. https://selar.com/example", link_check: { status: 200, checked_at: "2026-11-13T07:00:00.000Z", final_url: "https://selar.com/example" }, media_assets: [structuredClone(media)], disclosure: { paid_promotion: true } };
-  campaign.human_approval = { reviewer: "human-reviewer", approved_at: "2026-11-13T07:30:00.000Z", destination: campaign.destination, caption_sha256: "", media_sha256: [media.sha256] };
-  const { createHash } = awaitlessCrypto();
-  campaign.human_approval.caption_sha256 = createHash("sha256").update(campaign.caption.trim()).digest("hex");
+  campaign.human_approval = { reviewer: "human-reviewer", approved_at: "2026-11-13T07:30:00.000Z", destination: campaign.destination, caption_sha256: createHash("sha256").update(campaign.caption.trim()).digest("hex"), media_sha256: [media.sha256] };
   return campaign;
 }
-function awaitlessCrypto() { return requireCrypto; }
-import { createHash as requireCrypto } from "node:crypto";
 const tests = [
   ["complete evidence passes", () => { assert.equal(validatePrepublishCampaign(validCampaign(), [], policy, now).ok, true); }],
   ["duplicate caption blocked", () => { const c=validCampaign(); assert.ok(validatePrepublishCampaign(c,[{id:"old",caption:c.caption}],policy,now).issues.some(x=>x.code==="DUPLICATE_CAPTION")); }],
@@ -28,4 +25,4 @@ const tests = [
 let failures=0;
 for (const [name,fn] of tests) { try { fn(); console.log("PASS:",name); } catch(e) { failures++; console.error("FAIL:",name,e); } }
 if (failures) process.exit(1);
-console.log(`Pre-publish gate tests: ${tests.length-failures}/${tests.length} passed.`);
+console.log("Pre-publish gate tests: " + (tests.length-failures) + "/" + tests.length + " passed.");
