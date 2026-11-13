@@ -2,7 +2,7 @@
 
 ## Current status
 
-The catalogue validator is active. The publishing readiness checker is a diagnostic only. **There is no publisher enabled by these files.** Neither workflow sends posts, uploads media, schedules posts, or contacts social APIs.
+The catalogue validator and fail-closed Facebook Page publisher adapter are present. The scheduled publishing workflow always forces `PUBLISH_ENABLED=false`; the manual workflow additionally requires an explicit per-run authorization input and the repository opt-in. `PUBLISH_DRY_RUN` defaults to `true`, and the independent `PUBLISH_EMERGENCY_STOP` defaults to `true`. No live post is sent while the emergency stop is active, publishing is disabled, dry-run is enabled, or no campaign has explicit approval. The repository does not yet provide a verified end-to-end Meta publishing test.
 
 Products in `data/products.json` remain `review-required`. Do not change a product to an approved status until its checkout link, title, price, promotional claims, and usage rights are checked.
 
@@ -14,7 +14,7 @@ Products in `data/products.json` remain `review-required`. Do not change a produ
 4. Add secrets through GitHub repository **Settings → Secrets and variables → Actions**. Never put credentials in JSON, source code, commits, issues, logs, or chat.
 5. Run the **Publishing readiness (diagnostic only)** workflow. It reports whether expected secret names are present; it does not validate whether tokens are genuine, current, or authorized.
 6. Test the platform API using a private/draft or otherwise non-public method where that platform supports it. Confirm account identity, media requirements, response handling, rate limits, and error handling.
-7. Only after the above checks, implement platform-specific publishing adapters. The final publisher must require an explicit approved product and approved post payload, verify links and claims, prevent duplicate sends, log platform post IDs without secrets, and fail closed when any prerequisite is missing.
+7. The Facebook adapter is already implemented and gated. Additional platform-specific adapters remain unimplemented. Before any one-shot live Facebook run, verify all external prerequisites, keep the emergency stop active by default, and obtain explicit approval for the exact campaign. The publisher must continue to fail closed when any prerequisite is missing.
 
 ## Expected GitHub Actions secret names
 
