@@ -1,6 +1,6 @@
 # Meta API proactive operations and release controls
 
-Status: implementation plan and owner operating controls; not evidence of a deployed service.
+Status: implementation plan and owner operating controls; not evidence of a deployed service. The daily version monitor is deliberately read-only and never changes the pinned production version.
 
 ## Non-negotiable safety boundary
 
