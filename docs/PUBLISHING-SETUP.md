@@ -2,7 +2,7 @@
 
 ## Current status
 
-The catalogue validator and fail-closed Facebook Page publisher adapter are present. The scheduled publishing workflow always forces `PUBLISH_ENABLED=false`; the manual workflow additionally requires an explicit per-run authorization input and the repository opt-in. `PUBLISH_DRY_RUN` defaults to `true`, and the independent `PUBLISH_EMERGENCY_STOP` defaults to `true`. No live post is sent while the emergency stop is active, publishing is disabled, dry-run is enabled, or no campaign has explicit approval. The repository does not yet provide a verified end-to-end Meta publishing test.
+The catalogue validator and fail-closed Facebook Page publisher adapter are present. The scheduled publishing workflow always forces `PUBLISH_ENABLED=false`; `FACEBOOK_PUBLISH_ENABLED` defaults to `NO`; the manual workflow additionally requires an explicit per-run authorization input and the repository opt-in. `PUBLISH_DRY_RUN` defaults to `true`, and the independent `PUBLISH_EMERGENCY_STOP` defaults to `true`. No live post is sent while the emergency stop is active, publishing is disabled, dry-run is enabled, or no campaign has explicit approval. The repository does not yet provide a verified end-to-end Meta publishing test.
 
 Products in `data/products.json` remain `review-required`. Do not change a product to an approved status until its checkout link, title, price, promotional claims, and usage rights are checked.
 
