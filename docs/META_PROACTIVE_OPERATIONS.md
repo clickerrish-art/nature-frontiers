@@ -84,6 +84,13 @@ No exact-timestamp repetitive bot cadence. A future scheduler must enforce owner
 
 Use a separate Meta development app, Meta test users/test assets and (where available) a test Page. Development CI must never receive production Page credentials. Contract tests use mocks/fixtures; integration tests use only the development app and test assets. A production smoke test must be read-only unless the owner separately authorizes a single exact operation.
 
+
+## Meta webhook handler (code-level, not deployed)
+
+`scripts/meta-webhook.mjs` implements the Meta GET subscription challenge and POST `X-Hub-Signature-256` HMAC-SHA256 verification using the raw request body, constant-time comparison, a 1 MiB body limit, JSON/schema validation, and an event digest for idempotency. It returns 200 only after the injected persistence adapter succeeds; absent/failing durable persistence returns 503 so delivery is not falsely acknowledged. The persistence adapter must enforce a unique constraint on `event_id`, encrypt retained event data, minimise personal data, and implement retention/deletion. The handler never publishes or sends messages.
+
+This is a tested handler module, not a deployed HTTPS endpoint. The production callback URL, TLS, Meta app subscription, verify token, app secret, durable event store and alerting remain unconfigured. Do not enter production webhook settings until those components are deployed and verified.
+
 ## Business Manager and infrastructure
 
 Owner must verify that the Page, Instagram professional account, app/business portfolio, relevant ad account (if any), system users and assigned people/partners are owned/managed by the intended verified Meta Business Portfolio, with least privilege and 2FA. The repository currently has no evidence of this ownership/assignment state.
