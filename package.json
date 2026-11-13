@@ -7,6 +7,7 @@
     "test:publishing": "node scripts/test-publishing-safety.mjs",
     "publish:facebook": "node scripts/publish-facebook.mjs",
     "test:meta-policy": "node scripts/test-meta-error-policy.mjs",
-    "test:prepublish": "node scripts/test-prepublish-gate.mjs"
+    "test:prepublish": "node scripts/test-prepublish-gate.mjs",
+    "test:meta-webhook": "node scripts/test-meta-webhook.mjs"
   }
 }
