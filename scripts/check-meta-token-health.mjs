@@ -12,7 +12,8 @@ export function assessTokenDebugInfo(debug, expectedAppId, nowSeconds = Math.flo
   const scopes = new Set(Array.isArray(debug?.scopes) ? debug.scopes : []);
   for (const scope of ["pages_manage_posts", "pages_read_engagement"]) if (!scopes.has(scope)) issues.push("Required permission is missing: " + scope);
   for (const [field, label] of [["expires_at", "token"], ["data_access_expires_at", "data access"]]) {
-    const expiry = Number(debug?.[field] ?? 0);
+    if (!debug || !Object.hasOwn(debug, field)) { issues.push("The " + label + " expiry field is missing."); continue; }
+    const expiry = Number(debug[field]);
     if (!Number.isFinite(expiry) || expiry < 0) issues.push("The " + label + " expiry value is invalid.");
     else if (expiry > 0 && expiry - nowSeconds < 14 * 86400) issues.push("The " + label + " expires in fewer than 14 days.");
   }
