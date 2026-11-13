@@ -8,6 +8,7 @@
     "publish:facebook": "node scripts/publish-facebook.mjs",
     "test:meta-policy": "node scripts/test-meta-error-policy.mjs",
     "test:prepublish": "node scripts/test-prepublish-gate.mjs",
-    "test:meta-webhook": "node scripts/test-meta-webhook.mjs"
+    "test:meta-webhook": "node scripts/test-meta-webhook.mjs",
+    "test:meta-token": "node scripts/test-meta-token-health.mjs"
   }
 }

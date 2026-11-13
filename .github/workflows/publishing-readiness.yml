@@ -22,6 +22,9 @@ on:
       - "scripts/prepublish-gate.mjs"
       - "scripts/test-prepublish-gate.mjs"
       - "data/prepublish-policy.json"
+      - "scripts/check-meta-token-health.mjs"
+      - "scripts/test-meta-token-health.mjs"
+      - ".github/workflows/meta-token-health.yml"
       - "scripts/meta-webhook.mjs"
       - "scripts/test-meta-webhook.mjs"
       - "data/meta-circuit-breaker.json"
@@ -55,12 +58,15 @@ jobs:
           node --check scripts/publish-facebook.mjs
           node --check scripts/prepublish-gate.mjs
           node --check scripts/meta-webhook.mjs
+          node --check scripts/check-meta-token-health.mjs
           node -e "JSON.parse(require('node:fs').readFileSync('data/meta-api-audit.json', 'utf8'))"
           node -e "JSON.parse(require('node:fs').readFileSync('data/meta-circuit-breaker.json', 'utf8'))"
       - name: Test Meta circuit-breaker policy
         run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
+      - name: Test Meta token health assessment
+        run: node scripts/test-meta-token-health.mjs
       - name: Test Meta webhook verification
         run: node scripts/test-meta-webhook.mjs
       - name: Test pre-publish content and rights gate
