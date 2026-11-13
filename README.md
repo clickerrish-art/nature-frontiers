@@ -8,7 +8,7 @@ This repository maintains a fixed catalogue of Selar digital products, review-fi
 - **Catalogue:** six products with canonical HTTPS Selar links.
 - **Campaign queue:** six Facebook drafts, each linked to a catalogue product.
 - **Approval:** all products remain `review-required`; all campaigns remain `draft`.
-- **Publishing:** keep `PUBLISH_ENABLED=false` and `PUBLISH_DRY_RUN=true`. Do not enable live publishing until the human launch checklist is complete.
+- **Publishing:** keep `PUBLISH_ENABLED=false`, `PUBLISH_DRY_RUN=true`, and `PUBLISH_EMERGENCY_STOP=true`. Live publishing also requires a separate explicit per-run authorization; the independent emergency stop is active by default.
 - **Website and social accounts:** check these separately; a passing repository validator does not verify the live website, current checkout price, Meta permissions, or published social posts.
 
 ## What the automation does
