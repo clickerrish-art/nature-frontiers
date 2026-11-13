@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
-import { shouldOpenMetaCircuit, redactMetaError } from "./meta-error-policy.mjs";
+import { shouldOpenMetaCircuit, shouldOpenMetaCircuitFromUsage, redactMetaError } from "./meta-error-policy.mjs";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
@@ -217,6 +217,19 @@ const responseText = await response.text();
 let payload;
 try { payload = JSON.parse(responseText); } catch { payload = {}; }
 const responseError = redactMetaError(payload?.error ?? {});
+const usageHeaders = {
+  app: response.headers.get("x-app-usage"),
+  page: response.headers.get("x-page-usage"),
+  business_use_case: response.headers.get("x-business-use-case-usage"),
+  retry_after: response.headers.get("retry-after")
+};
+const usageCircuitSignal = shouldOpenMetaCircuitFromUsage({
+  app: usageHeaders.app,
+  page: usageHeaders.page,
+  businessUseCase: usageHeaders.business_use_case,
+  retryAfter: usageHeaders.retry_after
+});
+const errorCircuitSignal = shouldOpenMetaCircuit({ status: response.status, code: responseError.code, message: responseError.message });
 await persistAuditEvent({
   timestamp: new Date().toISOString(),
   correlation_id: correlationId,
@@ -224,35 +237,34 @@ await persistAuditEvent({
   http_status: response.status,
   meta_error: payload?.error ? responseError : null,
   platform_object_id: typeof payload?.id === "string" ? payload.id : null,
-  usage_headers: {
-    app: response.headers.get("x-app-usage"),
-    page: response.headers.get("x-page-usage"),
-    business_use_case: response.headers.get("x-business-use-case-usage"),
-    retry_after: response.headers.get("retry-after")
-  }
+  usage_headers: usageHeaders,
+  circuit_signal: usageCircuitSignal || errorCircuitSignal ? (usageCircuitSignal ? "usage_threshold" : "meta_error") : null
 });
 
+if (usageCircuitSignal || errorCircuitSignal) {
+  const safeError = responseError;
+  const opened = {
+    open: true,
+    opened_at: new Date().toISOString(),
+    reason: usageCircuitSignal
+      ? "Meta API usage reached the proactive 90% threshold or Retry-After was supplied."
+      : `Meta API safety signal (HTTP ${response.status}, code ${safeError.code ?? "unknown"}).`,
+    http_status: response.status,
+    meta_error_code: safeError.code,
+    meta_error_subcode: safeError.error_subcode,
+    fbtrace_id: safeError.fbtrace_id,
+    api_version: graphVersion,
+    page_id: pageId,
+    manual_review_required: true,
+    closed_at: null,
+    closed_by: null
+  };
+  await persistCircuitState(opened);
+  console.error("META CIRCUIT BREAKER OPENED. Future publishing runs stop until human review and explicit reset.");
+}
+
 if (!response.ok || payload.error || !payload.id) {
-  const metaError = payload?.error ?? {};
-  const safeError = redactMetaError(metaError);
-  if (shouldOpenMetaCircuit({ status: response.status, code: safeError.code, message: safeError.message })) {
-    const opened = {
-      open: true,
-      opened_at: new Date().toISOString(),
-      reason: `Meta API safety signal (HTTP ${response.status}, code ${safeError.code ?? "unknown"}).`,
-      http_status: response.status,
-      meta_error_code: safeError.code,
-      meta_error_subcode: safeError.error_subcode,
-      fbtrace_id: safeError.fbtrace_id,
-      api_version: graphVersion,
-      page_id: pageId,
-      manual_review_required: true,
-      closed_at: null,
-      closed_by: null
-    };
-    await persistCircuitState(opened);
-    console.error("META CIRCUIT BREAKER OPENED. All future publishing runs will stop until a human reviews the Page/account and explicitly resets the breaker.");
-  }
+  const safeError = responseError;
   throw new Error(`Facebook publish failed or returned an ambiguous result (HTTP ${response.status}, code ${safeError.code ?? "unknown"}, type ${safeError.type ?? "unknown"}). State remains 'publishing' to prevent accidental duplicate retries; inspect the Page before manual recovery. No automatic retry was attempted.`);
 }
 
