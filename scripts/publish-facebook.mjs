@@ -146,7 +146,7 @@ async function persistAuditEvent(event) {
   const current = await fetch(`${url}?ref=${encodeURIComponent(process.env.GITHUB_REF_NAME)}`, { headers: ghHeaders });
   if (!current.ok) throw new Error(`Meta API audit trail could not be read (HTTP ${current.status}); no further API call is allowed.`);
   const currentFile = await current.json();
-  const existing = JSON.parse(Buffer.from(currentFile.content.replace(/\\s/g, ""), "base64").toString("utf8"));
+  const existing = JSON.parse(Buffer.from(currentFile.content.replace(/\s/g, ""), "base64").toString("utf8"));
   if (!Array.isArray(existing)) throw new Error("Meta API audit trail is malformed; no further API call is allowed.");
   const next = [...existing, event].slice(-500);
   const content = Buffer.from(JSON.stringify(next, null, 2) + "\n").toString("base64");
@@ -186,10 +186,10 @@ await persistAuditEvent({
   correlation_id: correlationId,
   event: "request",
   method: "POST",
-  endpoint: `/\${graphVersion}/\${encodeURIComponent(pageId)}/feed`,
+  endpoint: `/${graphVersion}/${encodeURIComponent(pageId)}/feed`,
   api_version: graphVersion,
   page_id: pageId,
-  payload_redacted: { message_sha256: messageHash, message_length: message.length, has_link: /https?:\\/\\//i.test(message), access_token: "[REDACTED]" }
+  payload_redacted: { message_sha256: messageHash, message_length: message.length, has_link: /https?:\/\//i.test(message), access_token: "[REDACTED]" }
 });
 let response;
 try {
