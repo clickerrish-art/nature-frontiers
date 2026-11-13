@@ -7,10 +7,11 @@ import { createMetaWebhookHandler } from "./meta-webhook.mjs";
 const verifyToken = "test-verify-token";
 const appSecret = "test-app-secret";
 const saved = [];
+let failPersistence = false;
 const server = createServer(createMetaWebhookHandler({
   verifyToken,
   appSecret,
-  persistEvent: async (item) => { saved.push(item); }
+  persistEvent: async (item) => { if (failPersistence) throw new Error("database unavailable"); saved.push(item); }
 }));
 server.listen(0, "127.0.0.1");
 await once(server, "listening");
@@ -36,12 +37,18 @@ try {
   assert.equal(badSignature.status, 401);
   assert.equal(saved.length, 1);
 
-  const malformed = await fetch(base + "/webhooks/meta", { method: "POST", headers: { "x-hub-signature-256": signature }, body: "not-json" });
+  const malformedBody = "not-json";
+  const malformedSignature = "sha256=" + createHmac("sha256", appSecret).update(malformedBody).digest("hex");
+  const malformed = await fetch(base + "/webhooks/meta", { method: "POST", headers: { "x-hub-signature-256": malformedSignature }, body: malformedBody });
   assert.equal(malformed.status, 400);
+
+  failPersistence = true;
+  const unavailable = await fetch(base + "/webhooks/meta", { method: "POST", headers: { "x-hub-signature-256": signature }, body: event });
+  assert.equal(unavailable.status, 503);
 
   const wrongPath = await fetch(base + "/wrong");
   assert.equal(wrongPath.status, 404);
-  console.log("Meta webhook tests: 6/6 passed.");
+  console.log("Meta webhook tests: 7/7 passed.");
 } finally {
   server.close();
   await once(server, "close");
