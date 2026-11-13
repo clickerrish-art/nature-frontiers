@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
 import { shouldOpenMetaCircuit, redactMetaError } from "./meta-error-policy.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
@@ -139,6 +140,30 @@ async function persistCircuitState(nextState) {
   return saved.json();
 }
 
+async function persistAuditEvent(event) {
+  const path = "data/meta-api-audit.json";
+  const url = `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/contents/${path}`;
+  const current = await fetch(`${url}?ref=${encodeURIComponent(process.env.GITHUB_REF_NAME)}`, { headers: ghHeaders });
+  if (!current.ok) throw new Error(`Meta API audit trail could not be read (HTTP ${current.status}); no further API call is allowed.`);
+  const currentFile = await current.json();
+  const existing = JSON.parse(Buffer.from(currentFile.content.replace(/\\s/g, ""), "base64").toString("utf8"));
+  if (!Array.isArray(existing)) throw new Error("Meta API audit trail is malformed; no further API call is allowed.");
+  const next = [...existing, event].slice(-500);
+  const content = Buffer.from(JSON.stringify(next, null, 2) + "\n").toString("base64");
+  const saved = await fetch(url, {
+    method: "PUT",
+    headers: { ...ghHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "Record redacted Meta API audit event",
+      content,
+      sha: currentFile.sha,
+      branch: process.env.GITHUB_REF_NAME
+    })
+  });
+  if (!saved.ok) throw new Error(`Meta API audit event could not be persisted (HTTP ${saved.status}); do not retry or publish until state is inspected.`);
+  return saved.json();
+}
+
 // Reserve the campaign in durable GitHub state BEFORE calling Meta. If the run
 // fails after reservation, it will not auto-retry this campaign and risk a duplicate.
 const initial = await getState();
@@ -153,10 +178,51 @@ await saveState(initial.sha, reservation, `Reserve campaign ${campaign.id} befor
 
 const endpoint = `https://graph.facebook.com/${graphVersion}/${encodeURIComponent(pageId)}/feed`;
 const body = new URLSearchParams({ message, access_token: accessToken });
-const response = await fetch(endpoint, { method: "POST", body });
+const correlationId = randomUUID();
+const requestStartedAt = new Date().toISOString();
+const messageHash = createHash("sha256").update(message).digest("hex");
+await persistAuditEvent({
+  timestamp: requestStartedAt,
+  correlation_id: correlationId,
+  event: "request",
+  method: "POST",
+  endpoint: `/\${graphVersion}/\${encodeURIComponent(pageId)}/feed`,
+  api_version: graphVersion,
+  page_id: pageId,
+  payload_redacted: { message_sha256: messageHash, message_length: message.length, has_link: /https?:\\/\\//i.test(message), access_token: "[REDACTED]" }
+});
+let response;
+try {
+  response = await fetch(endpoint, { method: "POST", body });
+} catch (error) {
+  await persistAuditEvent({
+    timestamp: new Date().toISOString(),
+    correlation_id: correlationId,
+    event: "transport_error",
+    error_type: error?.name ?? "Error",
+    error_message: String(error?.message ?? "Network error").slice(0, 300),
+    retry: "NEVER — ambiguous publish result; inspect the Page"
+  });
+  throw new Error("Meta request transport failed or returned an ambiguous result. Campaign remains 'publishing'; inspect the Page before any manual recovery. No retry was attempted.");
+}
 const responseText = await response.text();
 let payload;
 try { payload = JSON.parse(responseText); } catch { payload = {}; }
+const responseError = redactMetaError(payload?.error ?? {});
+await persistAuditEvent({
+  timestamp: new Date().toISOString(),
+  correlation_id: correlationId,
+  event: "response",
+  http_status: response.status,
+  meta_error: payload?.error ? responseError : null,
+  platform_object_id: typeof payload?.id === "string" ? payload.id : null,
+  usage_headers: {
+    app: response.headers.get("x-app-usage"),
+    page: response.headers.get("x-page-usage"),
+    business_use_case: response.headers.get("x-business-use-case-usage"),
+    retry_after: response.headers.get("retry-after")
+  }
+});
 
 if (!response.ok || payload.error || !payload.id) {
   const metaError = payload?.error ?? {};
