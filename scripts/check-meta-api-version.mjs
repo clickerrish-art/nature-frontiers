@@ -23,7 +23,7 @@ try {
 }
 
 if (response && !response.ok) {
-  await summary(\`WARNING: Meta versioning page returned HTTP \${response.status}; version status is unverified.\`);
+  await summary(`WARNING: Meta versioning page returned HTTP \${response.status}; version status is unverified.`);
   process.exitCode = 1;
 }
 
@@ -40,8 +40,8 @@ if (response?.ok) {
 }
 
 if (latest) {
-  await summary(\`Official Meta Graph API version currently documented: \${latest}\`);
-  await summary(\`Repository pinned version: \${pinned || "NOT CONFIGURED"}\`);
+  await summary(`Official Meta Graph API version currently documented: \${latest}`);
+  await summary(`Repository pinned version: \${pinned || "NOT CONFIGURED"}`);
   if (!pinned || !/^v\d+\.\d+$/.test(pinned)) {
     await summary("HOLD: Set an explicitly tested META_GRAPH_API_VERSION repository variable. No automatic version change was made.");
     process.exitCode = 1;
@@ -54,28 +54,28 @@ if (latest) {
 
   if (process.env.GITHUB_ACTIONS === "true" && token && repository && process.exitCode) {
     const [owner, repo] = repository.split("/");
-    const title = \`Meta Graph API version review required: pinned \${pinned || "unset"}, latest \${latest}\`;
+    const title = `Meta Graph API version review required: pinned \${pinned || "unset"}, latest \${latest}`;
     const headers = {
       Accept: "application/vnd.github+json",
-      Authorization: \`Bearer \${token}\`,
+      Authorization: `Bearer \${token}`,
       "X-GitHub-Api-Version": "2022-11-28"
     };
-    const existing = await fetch(\`https://api.github.com/repos/\${owner}/\${repo}/issues?state=open&per_page=100\`, { headers });
+    const existing = await fetch(`https://api.github.com/repos/\${owner}/\${repo}/issues?state=open&per_page=100`, { headers });
     if (existing.ok) {
       const issues = await existing.json();
       if (!issues.some((issue) => issue.title === title)) {
-        const created = await fetch(\`https://api.github.com/repos/\${owner}/\${repo}/issues\`, {
+        const created = await fetch(`https://api.github.com/repos/\${owner}/\${repo}/issues`, {
           method: "POST",
           headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify({
             title,
-            body: \`The daily version monitor found a version mismatch or unconfigured pin. Official source: \${docsUrl}. Latest: \${latest}. Pinned: \${pinned || "unset"}. Do not update production until development-app tests and owner review pass. This issue contains no credentials and no production API mutation was made.\`
+            body: `The daily version monitor found a version mismatch or unconfigured pin. Official source: \${docsUrl}. Latest: \${latest}. Pinned: \${pinned || "unset"}. Do not update production until development-app tests and owner review pass. This issue contains no credentials and no production API mutation was made.`
           })
         });
-        if (!created.ok) await summary(\`WARNING: Could not open a GitHub maintenance issue (HTTP \${created.status}).\`);
+        if (!created.ok) await summary(`WARNING: Could not open a GitHub maintenance issue (HTTP \${created.status}).`);
       }
     } else {
-      await summary(\`WARNING: Could not inspect open maintenance issues (HTTP \${existing.status}).\`);
+      await summary(`WARNING: Could not inspect open maintenance issues (HTTP \${existing.status}).`);
     }
   }
 }
