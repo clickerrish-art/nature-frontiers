@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "banned_phrases": [
+    "guaranteed income",
+    "guaranteed profits",
+    "guaranteed earnings",
+    "guaranteed viral",
+    "risk-free income",
+    "get rich quick"
+  ],
+  "allowed_link_hosts": ["selar.com"],
+  "link_max_age_hours": 24,
+  "approval_max_age_days": 30
+}

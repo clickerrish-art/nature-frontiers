@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { shouldOpenMetaCircuit, redactMetaError } from "./meta-error-policy.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
@@ -13,6 +14,7 @@ const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const circuitState = JSON.parse(await readFile(new URL("../data/meta-circuit-breaker.json", import.meta.url), "utf8"));
+const prepublishPolicy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
 
 function stop(message) {
   console.log(`SAFE STOP: ${message}`);
@@ -69,6 +71,12 @@ if (pending.length !== 1) {
 
 const campaign = pending[0];
 const product = products.find((p) => p.id === campaign.product_id);
+const contentGate = validatePrepublishCampaign(campaign, campaigns, prepublishPolicy);
+if (!contentGate.ok) {
+  console.error("SAFE STOP: pre-publish evidence gate failed.");
+  for (const item of contentGate.issues) console.error(`[${item.code}] ${item.message}`);
+  process.exit(1);
+}
 const trimmedCaption = campaign.caption.trim();
 const message = trimmedCaption.includes(product.url)
   ? trimmedCaption

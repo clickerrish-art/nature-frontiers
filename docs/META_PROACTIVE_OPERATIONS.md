@@ -63,6 +63,19 @@ Block a post unless every check passes:
 - Check banned keyword rules as a configurable policy list with human review for false positives; do not rely on keyword filtering alone.
 - Duplicate captions, broken links, missing disclosures, rights uncertainty, watermark detections, originality uncertainty or policy warnings are HOLD.
 
+
+### Enforced campaign evidence schema
+
+The publisher now invokes `scripts/prepublish-gate.mjs` before it can enter dry-run or live adapter handling. An approved campaign must include:
+
+- `link_check`: HTTP 200, checked within 24 hours, with a recorded final HTTPS URL on the approved host allowlist.
+- `media_assets[]`: SHA-256, written permission reference, worldwide commercial Facebook rights, editing permission, verified source/provenance reference, clean watermark scan, and explicit audio-present status. If audio is present, a licence reference and licensed status are mandatory.
+- For AI-generated media: `ai_disclosure.required=true` and `ai_disclosure.native_control_verified=true`; this is evidence of the applicable native disclosure step, not an invented Graph API payload field.
+- `human_approval`: reviewer, timestamp, exact caption SHA-256, exact media SHA-256 list, and `facebook:nature-frontiers` destination. Approval expires after 30 days or immediately when caption/media changes.
+- `disclosure.paid_promotion=true` and the exact Nature Frontiers Facebook destination.
+
+The policy file `data/prepublish-policy.json` controls banned phrases and allowed link hosts. Duplicate captions are checked against the campaign set. This deterministic gate does not prove that a permission document is authentic, recognise all copyrighted audio, or independently certify originality; evidence authenticity and ambiguous cases still require human inspection. Missing or uncertain evidence blocks publication.
+
 ## Pacing and organic behaviour
 
 No exact-timestamp repetitive bot cadence. A future scheduler must enforce owner-approved daily caps per Page, per-format caps, quiet hours, minimum intervals, timezone/DST correctness, jitter within approved windows, deduplication and a manual pause. No scheduler may create comments, DMs, views, likes, follows or engagement.
