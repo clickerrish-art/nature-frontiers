@@ -16,6 +16,12 @@ on:
       - "data/products.json"
       - "scripts/validate-campaign.mjs"
       - "package.json"
+      - "scripts/check-meta-api-version.mjs"
+      - "scripts/meta-error-policy.mjs"
+      - "scripts/test-meta-error-policy.mjs"
+      - "data/meta-circuit-breaker.json"
+      - ".github/workflows/meta-api-version-monitor.yml"
+      - "docs/META_PROACTIVE_OPERATIONS.md"
       - ".github/workflows/publishing-readiness.yml"
   schedule:
     - cron: "30 7 * * *"
@@ -37,6 +43,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "24"
+      - name: Check Meta maintenance script syntax
+        run: |
+          node --check scripts/check-meta-api-version.mjs
+          node --check scripts/meta-error-policy.mjs
+          node --check scripts/publish-facebook.mjs
+      - name: Test Meta circuit-breaker policy
+        run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
@@ -64,7 +77,7 @@ jobs:
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook.mjs

@@ -1,0 +1,14 @@
+{
+  "open": false,
+  "opened_at": null,
+  "reason": null,
+  "http_status": null,
+  "meta_error_code": null,
+  "meta_error_subcode": null,
+  "fbtrace_id": null,
+  "api_version": null,
+  "page_id": null,
+  "manual_review_required": false,
+  "closed_at": null,
+  "closed_by": null
+}

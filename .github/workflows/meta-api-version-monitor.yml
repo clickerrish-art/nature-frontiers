@@ -1,0 +1,32 @@
+name: Meta API version maintenance monitor
+
+on:
+  schedule:
+    - cron: "15 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: meta-api-version-maintenance
+  cancel-in-progress: true
+
+jobs:
+  version-monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Compare pinned version with official Meta documentation
+        env:
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/check-meta-api-version.mjs
