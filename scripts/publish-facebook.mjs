@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { shouldOpenMetaCircuit, redactMetaError } from "./meta-error-policy.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
@@ -10,6 +11,7 @@ const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
+const circuitState = JSON.parse(await readFile(new URL("../data/meta-circuit-breaker.json", import.meta.url), "utf8"));
 
 function stop(message) {
   console.log(`SAFE STOP: ${message}`);
@@ -19,6 +21,7 @@ function stop(message) {
 if (!Array.isArray(products) || !Array.isArray(campaigns)) {
   throw new Error("Products and campaigns must be JSON arrays.");
 }
+if (circuitState.open === true) stop(`Meta API circuit breaker is OPEN${circuitState.reason ? `: ${circuitState.reason}` : "."} Human review and explicit reset are required.`);
 if (emergencyStop) stop("PUBLISH_EMERGENCY_STOP is active; publishing is blocked.");
 if (!facebookPublishEnabled) stop("FACEBOOK_PUBLISH_ENABLED is not YES; Facebook publishing is disabled.");
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
@@ -115,6 +118,27 @@ async function saveState(sha, nextCampaigns, messageText) {
   return response.json();
 }
 
+async function persistCircuitState(nextState) {
+  const path = "data/meta-circuit-breaker.json";
+  const url = `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/contents/${path}`;
+  const current = await fetch(`${url}?ref=${encodeURIComponent(process.env.GITHUB_REF_NAME)}`, { headers: ghHeaders });
+  if (!current.ok) throw new Error(`Circuit-breaker state could not be read (HTTP ${current.status}); publication remains halted for manual inspection.`);
+  const currentFile = await current.json();
+  const content = Buffer.from(JSON.stringify(nextState, null, 2) + "\n").toString("base64");
+  const saved = await fetch(url, {
+    method: "PUT",
+    headers: { ...ghHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "Open Meta API circuit breaker after safety signal",
+      content,
+      sha: currentFile.sha,
+      branch: process.env.GITHUB_REF_NAME
+    })
+  });
+  if (!saved.ok) throw new Error(`Circuit-breaker state could not be persisted (HTTP ${saved.status}); do not retry or publish until state is inspected.`);
+  return saved.json();
+}
+
 // Reserve the campaign in durable GitHub state BEFORE calling Meta. If the run
 // fails after reservation, it will not auto-retry this campaign and risk a duplicate.
 const initial = await getState();
@@ -135,9 +159,27 @@ let payload;
 try { payload = JSON.parse(responseText); } catch { payload = {}; }
 
 if (!response.ok || payload.error || !payload.id) {
-  const errorCode = payload?.error?.code ?? "unknown";
-  const errorType = payload?.error?.type ?? "unknown";
-  throw new Error(`Facebook publish failed or returned an ambiguous result (HTTP ${response.status}, code ${errorCode}, type ${errorType}). State remains 'publishing' to prevent accidental duplicate retries; inspect the Page before manual recovery.`);
+  const metaError = payload?.error ?? {};
+  const safeError = redactMetaError(metaError);
+  if (shouldOpenMetaCircuit({ status: response.status, code: safeError.code, message: safeError.message })) {
+    const opened = {
+      open: true,
+      opened_at: new Date().toISOString(),
+      reason: `Meta API safety signal (HTTP ${response.status}, code ${safeError.code ?? "unknown"}).`,
+      http_status: response.status,
+      meta_error_code: safeError.code,
+      meta_error_subcode: safeError.error_subcode,
+      fbtrace_id: safeError.fbtrace_id,
+      api_version: graphVersion,
+      page_id: pageId,
+      manual_review_required: true,
+      closed_at: null,
+      closed_by: null
+    };
+    await persistCircuitState(opened);
+    console.error("META CIRCUIT BREAKER OPENED. All future publishing runs will stop until a human reviews the Page/account and explicitly resets the breaker.");
+  }
+  throw new Error(`Facebook publish failed or returned an ambiguous result (HTTP ${response.status}, code ${safeError.code ?? "unknown"}, type ${safeError.type ?? "unknown"}). State remains 'publishing' to prevent accidental duplicate retries; inspect the Page before manual recovery. No automatic retry was attempted.`);
 }
 
 const after = await getState();
