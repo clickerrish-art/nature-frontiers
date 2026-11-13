@@ -17,6 +17,9 @@ on:
       - "scripts/validate-campaign.mjs"
       - "package.json"
       - "scripts/check-meta-api-version.mjs"
+      - "scripts/meta-error-policy.mjs"
+      - "scripts/test-meta-error-policy.mjs"
+      - "data/meta-circuit-breaker.json"
       - ".github/workflows/meta-api-version-monitor.yml"
       - "docs/META_PROACTIVE_OPERATIONS.md"
       - ".github/workflows/publishing-readiness.yml"
@@ -40,8 +43,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-      - name: Check Meta version monitor syntax
-        run: node --check scripts/check-meta-api-version.mjs
+      - name: Check Meta maintenance script syntax
+        run: |
+          node --check scripts/check-meta-api-version.mjs
+          node --check scripts/meta-error-policy.mjs
+          node --check scripts/publish-facebook.mjs
+      - name: Test Meta circuit-breaker policy
+        run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
