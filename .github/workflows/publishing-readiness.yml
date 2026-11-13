@@ -48,6 +48,8 @@ jobs:
           node --check scripts/check-meta-api-version.mjs
           node --check scripts/meta-error-policy.mjs
           node --check scripts/publish-facebook.mjs
+          node -e "JSON.parse(require('node:fs').readFileSync('data/meta-api-audit.json', 'utf8'))"
+          node -e "JSON.parse(require('node:fs').readFileSync('data/meta-circuit-breaker.json', 'utf8'))"
       - name: Test Meta circuit-breaker policy
         run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
