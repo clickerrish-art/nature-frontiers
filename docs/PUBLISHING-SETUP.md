@@ -8,11 +8,11 @@ Products in `data/products.json` remain `review-required`. Do not change a produ
 
 ## Safe implementation order
 
-1. Verify each Selar checkout page manually against the product title and listed price. The catalogue currently contains a shared checkout URL for YouTube Success Blueprint and Cash Smasher Secrets; do not promote Cash Smasher Secrets until its checkout destination is confirmed.
+1. Verify each Selar checkout page manually against the product title, listed price and deliverables. The current catalogue records separate URLs for YouTube Success Blueprint and Cash Smasher Secrets, but neither destination nor checkout is independently verified by this repository. Do not approve either product until a human checks the live listing and checkout.
 2. Create/verify each platform's developer app and account eligibility.
 3. Grant only the minimum publishing scopes required. Complete any platform review/audit required for public posting.
 4. Add secrets through GitHub repository **Settings → Secrets and variables → Actions**. Never put credentials in JSON, source code, commits, issues, logs, or chat.
-5. Run the **Publishing readiness (diagnostic only)** workflow. It reports whether expected secret names are present; it does not validate whether tokens are genuine, current, or authorized.
+5. Run the **Nature Frontiers publishing (gated)** workflow with the emergency stop active and dry-run enabled. The scheduled path forces publishing off; the manual path still requires explicit per-run authorization and repository opt-in. A successful safety run does not validate whether Meta tokens are genuine, current, or authorized.
 6. Test the platform API using a private/draft or otherwise non-public method where that platform supports it. Confirm account identity, media requirements, response handling, rate limits, and error handling.
 7. The Facebook adapter is already implemented and gated. Additional platform-specific adapters remain unimplemented. Before any one-shot live Facebook run, verify all external prerequisites, keep the emergency stop active by default, and obtain explicit approval for the exact campaign. The publisher must continue to fail closed when any prerequisite is missing.
 
@@ -36,13 +36,10 @@ The correct Meta account/login flow determines the full set of app credentials a
 - `TIKTOK_ACCESS_TOKEN`
 - `TIKTOK_OPEN_ID`
 
-### YouTube
-- `YOUTUBE_CLIENT_ID`
-- `YOUTUBE_CLIENT_SECRET`
-- `YOUTUBE_REFRESH_TOKEN`
-- `YOUTUBE_CHANNEL_ID`
+### Nature Frontiers platform boundary
+Nature Frontiers is the Facebook/Instagram brand. Do not configure YouTube credentials, YouTube publishing adapters, Nature Frontiers YouTube destinations, or YouTube channel CTAs in this repository. SonicVhibez is the separate YouTube brand. A YouTube connection shown under the Nature Frontiers Metricool brand is not an authorised publishing destination and must not be used. Disconnect the incorrect YouTube connection in Metricool's Connections dashboard after confirming the selected brand.
 
-These are proposed names for this repository, not credentials already configured. A name being present does not prove a token is valid or that publishing permission has been granted.
+The Facebook and Instagram integrations still require owner-verified credentials, permissions, and platform-specific tests. No credential name in this document proves that a token is present, valid, current, or authorised.
 
 ## Rules for automated content
 
