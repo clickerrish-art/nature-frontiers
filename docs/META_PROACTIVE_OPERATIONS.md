@@ -34,7 +34,7 @@ Required future secret-store contract: encrypted at rest; access restricted to a
 ## Circuit breaker and error policy
 
 Immediately pause all Meta mutations for the affected app/Page and require human review for:
-- Graph error codes 4 and 17, HTTP 429, usage headers indicating throttling, and relevant Page/Instagram rate-limit codes such as 80001/80002.
+- Graph error codes 4 and 17, HTTP 429, usage headers at or above 90% (`call_count`, `total_cputime`, `total_time`), any positive `Retry-After`, and relevant Page/Instagram rate-limit codes such as 80001/80002/613.
 - Error code 368 (abusive/disallowed action), spam/integrity flags, blocks, checkpoints or account restrictions.
 - Codes 3, 6 and 8 as explicitly configured hard-stop signals; treat unknown permission/authentication errors as hard stops too.
 - OAuth code 190, permission code 200, app access loss, wrong Page/app identity, webhook signature failure, or repeated server errors beyond the bounded retry budget.
