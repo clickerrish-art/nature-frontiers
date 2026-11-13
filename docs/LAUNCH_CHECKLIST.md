@@ -59,7 +59,7 @@ Do not mark a product `approved`, a campaign `approved`, or a link verified unle
 ## 3. Publishing safety
 
 - [x] Add a per-run live-publishing authorization input that defaults to false; scheduled runs cannot enable live publishing, and repository `PUBLISH_ENABLED=true` alone is insufficient.
-- [ ] Confirm GitHub repository variables remain `PUBLISH_ENABLED=false` and `PUBLISH_DRY_RUN=true`.
+- [ ] Confirm GitHub repository variables remain `PUBLISH_ENABLED=false`, `PUBLISH_DRY_RUN=true`, and `PUBLISH_EMERGENCY_STOP=true`.
 - [ ] Confirm the Meta Page ID and access token are valid, least-privilege credentials stored only in GitHub Actions secrets.
 - [ ] Confirm the requested Meta permissions and the current Graph API version are supported for the intended Page; repository code cannot verify live token permissions without a secure authorized API test.
 - [ ] Review the publisher workflow and the one-campaign-per-run restriction.

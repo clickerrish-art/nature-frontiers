@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
+const emergencyStop = process.env.PUBLISH_EMERGENCY_STOP !== "false";
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
@@ -17,6 +18,7 @@ function stop(message) {
 if (!Array.isArray(products) || !Array.isArray(campaigns)) {
   throw new Error("Products and campaigns must be JSON arrays.");
 }
+if (emergencyStop) stop("PUBLISH_EMERGENCY_STOP is active; publishing is blocked.");
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
 
 const pending = campaigns.filter((c) => c?.network === "facebook" && c?.status === "approved");

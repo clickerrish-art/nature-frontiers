@@ -58,6 +58,7 @@ jobs:
       - name: Run gated Facebook Page adapter
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }} # Requires both repository opt-in and explicit per-run authorization; scheduled runs are always disabled
+          PUBLISH_EMERGENCY_STOP: ${{ vars.PUBLISH_EMERGENCY_STOP || 'true' }} # Emergency stop is active by default; only an explicit false releases this independent gate
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }} # Safe default: dry-run unless deliberately configured
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
