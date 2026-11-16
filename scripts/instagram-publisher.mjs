@@ -15,6 +15,7 @@ export async function runInstagramCampaign({
   if (env.PUBLISH_ENABLED !== "true") return fail("GLOBAL_PUBLISH_DISABLED", "Global publishing is not explicitly enabled.");
   if (env.PUBLISH_DRY_RUN !== "false") return fail("DRY_RUN", "Dry-run is active; no platform request will be sent.");
   if (env.INSTAGRAM_PUBLISH_ENABLED !== "YES") return fail("INSTAGRAM_PUBLISH_DISABLED", "Instagram publishing is not explicitly enabled.");
+  if (env.GITHUB_REF_NAME !== "main") return fail("NON_PRODUCTION_BRANCH", "Live Instagram publishing is restricted to the production main branch; feature branches cannot publish.");
   if (!/^[0-9]+$/.test(env.INSTAGRAM_USER_ID ?? "") || !env.INSTAGRAM_ACCESS_TOKEN || !/^v[0-9]+\.[0-9]+$/.test(env.META_GRAPH_API_VERSION ?? "")) {
     return fail("INSTAGRAM_CONFIG_MISSING", "Instagram user ID, SUAT and supported Graph API version are required.");
   }
