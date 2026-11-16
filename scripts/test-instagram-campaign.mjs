@@ -15,7 +15,7 @@ function validCampaign() {
     status: "approved", caption, commercial: false, disclosureRequired: false,
     media_assets: [{
       kind: "image", media_path: "nature-frontiers/ig/post-1.jpg", sha256: sha,
-      rights: { status: "cleared", written_permission_ref: "rights:123", worldwide: true, editing_allowed: true, social_platforms: ["instagram"] },
+      rights: { status: "cleared", written_permission_ref: "rights:123", worldwide: true, commercial_worldwide: true, editing_allowed: true, social_platforms: ["instagram"] },
       originality: { status: "verified", source_ref: "source:123" },
       watermark_scan: { status: "clean" }, audio: { present: false }, ai_generated: false
     }]
