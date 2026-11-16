@@ -21,6 +21,8 @@ on:
       - "scripts/test-instagram-campaign.mjs"
       - "scripts/check-instagram-media.mjs"
       - "scripts/test-check-instagram-media.mjs"
+      - "scripts/check-instagram-live-readiness.mjs"
+      - "scripts/test-check-instagram-live-readiness.mjs"
       - "data/instagram-campaigns.json"
       - "data/instagram-publishing-state.json"
       - "media/instagram/**"
@@ -79,6 +81,8 @@ jobs:
           node --check scripts/instagram-runtime-api.mjs
           node --check scripts/check-instagram-media.mjs
           node --check scripts/test-check-instagram-media.mjs
+          node --check scripts/check-instagram-live-readiness.mjs
+          node --check scripts/test-check-instagram-live-readiness.mjs
           node --check scripts/prepublish-gate.mjs
           node --check scripts/meta-webhook.mjs
           node --check scripts/check-meta-token-health.mjs
@@ -90,6 +94,8 @@ jobs:
         run: node scripts/test-instagram-campaign.mjs
       - name: Test Instagram media technical preflight (mocked ffprobe)
         run: node scripts/test-check-instagram-media.mjs
+      - name: Test Instagram live readiness (mocked Meta GET calls)
+        run: node scripts/test-check-instagram-live-readiness.mjs
       - name: Test Meta circuit-breaker policy
         run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
@@ -130,11 +136,31 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook.mjs
 
+  instagram-preflight:
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+    needs: safety-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Verify Unified Login SUAT using read-only Meta GET requests
+        env:
+          INSTAGRAM_ACCESS_TOKEN: \${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: \${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
+          META_GRAPH_API_VERSION: \${{ vars.META_GRAPH_API_VERSION }}
+        run: node scripts/check-instagram-live-readiness.mjs
+
   instagram-publisher:
     if: github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true
     permissions:
       contents: write
-    needs: safety-tests
+    needs: [safety-tests, instagram-preflight]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
