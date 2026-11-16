@@ -24,7 +24,7 @@ const groups = [
 let missingTotal = 0;
 console.log("Nature Frontiers publishing readiness");
 console.log("This check reads only whether required environment variables are present.");
-console.log("It never prints credential values and never contacts or publishes to social platforms.\\n");
+console.log("It never prints credential values and never contacts or publishes to social platforms.\n");
 
 for (const group of groups) {
   const missing = group.required.filter((name) => !process.env[name]?.trim());
@@ -39,6 +39,6 @@ for (const group of groups) {
   console.log(`  Note: ${group.note}`);
 }
 
-console.log(`\\nSummary: ${missingTotal} required credential field(s) missing across the listed platforms.`);
+console.log(`\nSummary: ${missingTotal} required credential field(s) missing across the listed platforms.`);
 console.log("No content was published, scheduled, or sent.");
 // Missing credentials are an expected setup state, not a script failure.
