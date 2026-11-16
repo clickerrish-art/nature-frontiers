@@ -38,7 +38,7 @@ export async function runInstagramCampaign({
     const recent = await api.listRecentMedia(100);
     const matches = recent.filter((item) => item.caption === campaign.caption.trim() &&
       Date.parse(item.timestamp ?? "") >= Date.parse(reservation.started_at) - 120000 &&
-      (campaign.media_assets[0].kind !== "reel" || item.media_type === "VIDEO"));
+      item.media_type === (campaign.media_assets[0].kind === "reel" ? "VIDEO" : "IMAGE"));
     if (matches.length === 1 && matches[0].permalink) {
       reservation = { ...reservation, status: "published", media_id: matches[0].id, permalink: matches[0].permalink, reconciled_at: now.toISOString() };
       await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
@@ -47,7 +47,7 @@ export async function runInstagramCampaign({
     return fail("AMBIGUOUS_PUBLISH_REQUIRES_REVIEW", matches.length ? "Multiple matching remote posts found; no retry is allowed." : "Prior publish outcome is ambiguous; no retry is allowed. Inspect Instagram manually.");
   }
   if (reservation?.status === "published_unverified") {
-    const verified = await api.verifyMedia(reservation.media_id);
+    const verified = await api.verifyMedia(reservation.media_id, campaign.media_assets[0].kind);
     if (!verified?.permalink) return fail("REMOTE_VERIFICATION_FAILED", "Known media ID is not yet verifiable; no new publish will be attempted.");
     reservation = { ...reservation, status: "published", permalink: verified.permalink, verified_at: now.toISOString() };
     await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
@@ -56,7 +56,7 @@ export async function runInstagramCampaign({
 
   if (!reservation) {
     const quota = await api.getPublishingLimit();
-    if (quota.quotaUsage >= 100) return fail("PUBLISHING_QUOTA_REACHED", "Meta's 100-post rolling 24-hour limit has been reached.");
+    if (quota.quotaUsage >= quota.quotaTotal) return fail("PUBLISHING_QUOTA_REACHED", "Meta reported publishing quota reached.");
     const hosted = await mediaHost.resolveAndVerify(campaign.media_assets[0]);
     reservation = {
       campaign_id: id, fingerprint: fp, status: "reserved", started_at: now.toISOString(),
@@ -109,7 +109,7 @@ export async function runInstagramCampaign({
   }
   reservation = { ...reservation, status: "published_unverified", media_id: published.mediaId };
   await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
-  const verified = await api.verifyMedia(published.mediaId);
+  const verified = await api.verifyMedia(published.mediaId, campaign.media_assets[0].kind);
   if (!verified?.permalink || verified.id !== published.mediaId) {
     return fail("REMOTE_VERIFICATION_FAILED", "Meta returned a media ID but read-back verification did not confirm its permalink.");
   }
