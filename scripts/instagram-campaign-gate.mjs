@@ -87,6 +87,7 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
   }
 
   const links = [...caption.matchAll(/https?:\/\/[^\s)\]}>,]+/gi)].map((m) => m[0].replace(/[.,!?;:]+$/, ""));
+  if (links.some((link) => { try { return new URL(link).hostname.toLowerCase() === "selar.com"; } catch { return false; } }) && !campaign?.product_id) add("PRODUCT_ID_REQUIRED", "Selar product links must be bound to an approved catalogue product.");
   if (links.length) {
     const check = campaign?.link_check;
     if (links.length !== 1) add("LINK_CHECK_COUNT", "This publisher requires exactly one caption URL so the checked destination is unambiguous.");
