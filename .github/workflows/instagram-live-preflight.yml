@@ -6,8 +6,9 @@ on:
       - codex/instagram-unified-login-setup
     paths:
       - "scripts/check-instagram-live-readiness.mjs"
-      - ".github/workflows/instagram-live-preflight.yml"
   workflow_dispatch:
+  schedule:
+    - cron: "15 6 * * *"
 
 permissions:
   contents: read
