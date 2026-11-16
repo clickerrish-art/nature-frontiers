@@ -162,7 +162,7 @@ jobs:
         run: node scripts/check-instagram-live-readiness.mjs
 
   instagram-publisher:
-    if: github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true
+    if: github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && github.ref == 'refs/heads/main'
     permissions:
       contents: write
     needs: [safety-tests, instagram-preflight]
