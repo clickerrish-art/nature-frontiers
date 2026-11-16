@@ -43,6 +43,7 @@ on:
       - ".github/workflows/meta-token-health.yml"
       - "scripts/meta-webhook.mjs"
       - "scripts/test-meta-webhook.mjs"
+      - "workers/nature-frontiers-publisher/**"
       - "data/meta-circuit-breaker.json"
       - ".github/workflows/meta-api-version-monitor.yml"
       - "docs/META_PROACTIVE_OPERATIONS.md"
@@ -85,6 +86,8 @@ jobs:
           node --check scripts/test-check-instagram-live-readiness.mjs
           node --check scripts/prepublish-gate.mjs
           node --check scripts/meta-webhook.mjs
+          node --check workers/nature-frontiers-publisher/worker.js
+          node --check workers/nature-frontiers-publisher/worker.test.mjs
           node --check scripts/check-meta-token-health.mjs
           node -e "JSON.parse(require('node:fs').readFileSync('data/meta-api-audit.json', 'utf8'))"
           node -e "JSON.parse(require('node:fs').readFileSync('data/meta-circuit-breaker.json', 'utf8'))"
@@ -104,6 +107,8 @@ jobs:
         run: node scripts/test-meta-token-health.mjs
       - name: Test Meta webhook verification
         run: node scripts/test-meta-webhook.mjs
+      - name: Test Cloudflare publisher Worker media and Meta webhook routes
+        run: node workers/nature-frontiers-publisher/worker.test.mjs
       - name: Test pre-publish content and rights gate
         run: node scripts/test-prepublish-gate.mjs
       - name: Test fail-closed publishing controls
