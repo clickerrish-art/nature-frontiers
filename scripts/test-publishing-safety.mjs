@@ -47,7 +47,7 @@ for (const test of cases) {
 const workflow = await readFile(".github/workflows/publishing-readiness.yml", "utf8");
 const instagramRunner = await readFile("scripts/publish-instagram.mjs", "utf8");
 if (workflow.includes("github.ref == 'refs/heads/main'") &&
-    workflow.includes("INSTAGRAM_STATE_BRANCH: ${{ vars.INSTAGRAM_STATE_BRANCH || 'instagram-publishing-state' }}") &&
+    workflow.includes('INSTAGRAM_STATE_BRANCH: "instagram-publishing-state"') &&
     instagramRunner.includes('process.env.GITHUB_REF_NAME !== "main"') &&
     instagramRunner.includes('process.env.INSTAGRAM_STATE_BRANCH || "instagram-publishing-state"')) {
   console.log("PASS: Instagram live publisher is main-only and writes durable state to its dedicated non-default branch");
