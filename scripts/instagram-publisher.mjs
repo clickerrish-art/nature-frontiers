@@ -8,7 +8,7 @@ const fingerprint = (campaign, gate) => createHash("sha256")
 function fail(code, message) { return { ok: false, code, message }; }
 
 export async function runInstagramCampaign({
-  campaign, history = [], policy = {}, env = {}, stateStore, mediaHost, api,
+  campaign, history = [], products = [], policy = {}, env = {}, stateStore, mediaHost, api,
   now = new Date(), logger = console
 }) {
   if (env.PUBLISH_EMERGENCY_STOP !== "false") return fail("EMERGENCY_STOP", "Emergency stop is active.");
@@ -19,6 +19,10 @@ export async function runInstagramCampaign({
     return fail("INSTAGRAM_CONFIG_MISSING", "Instagram user ID, SUAT and supported Graph API version are required.");
   }
   if (!stateStore || !mediaHost || !api) return fail("DEPENDENCY_MISSING", "Durable state, public media host and API client are mandatory.");
+  if (campaign.product_id) {
+    const product = products.find((item) => item.id === campaign.product_id);
+    if (!product || product.status !== "approved") return fail("PRODUCT_NOT_APPROVED", "Linked product is missing or not approved.");
+  }
   const gate = validateInstagramCampaign(campaign, history, policy, now);
   if (!gate.ok) return { ...fail("CAMPAIGN_GATE_FAILED", "Campaign approval, rights or content checks failed."), issues: gate.issues };
   if (campaign.media_assets[0].kind !== "image" && campaign.media_assets[0].kind !== "reel") return fail("MEDIA_KIND_INVALID", "Only image and Reel publishing are supported.");
@@ -65,9 +69,16 @@ export async function runInstagramCampaign({
   }
 
   if (!reservation.container_id) {
-    const created = await api.createContainer({
-      kind: campaign.media_assets[0].kind, url: reservation.media_url, caption: campaign.caption.trim()
-    });
+    let created;
+    try {
+      created = await api.createContainer({
+        kind: campaign.media_assets[0].kind, url: reservation.media_url, caption: campaign.caption.trim()
+      });
+    } catch (error) {
+      reservation = { ...reservation, status: "unknown", container_create_failure: error?.name ?? "Error" };
+      await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+      return fail("CONTAINER_CREATE_AMBIGUOUS", "Container creation failed or was ambiguous; inspect before retrying.");
+    }
     if (!created?.containerId) {
       reservation = { ...reservation, status: "unknown" };
       await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
