@@ -12,6 +12,7 @@
     "test:meta-token": "node scripts/test-meta-token-health.mjs",
     "test:instagram-api": "node scripts/test-instagram-api.mjs",
     "test:instagram-campaign": "node scripts/test-instagram-campaign.mjs",
-    "test:instagram-media": "node scripts/test-check-instagram-media.mjs"
+    "test:instagram-media": "node scripts/test-check-instagram-media.mjs",
+    "test:instagram-live-readiness": "node scripts/test-check-instagram-live-readiness.mjs"
   }
 }
