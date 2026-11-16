@@ -42,9 +42,14 @@ export async function runInstagramCampaign({
       Date.parse(item.timestamp ?? "") >= Date.parse(reservation.started_at) - 120000 &&
       item.media_type === (campaign.media_assets[0].kind === "reel" ? "VIDEO" : "IMAGE"));
     if (matches.length === 1 && matches[0].permalink) {
-      reservation = { ...reservation, status: "published", media_id: matches[0].id, permalink: matches[0].permalink, reconciled_at: now.toISOString() };
-      await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
-      return { ok: true, status: "reconciled_published", mediaId: reservation.media_id, permalink: reservation.permalink };
+      const remoteCheck = await api.verifyMedia(matches[0].id, campaign.media_assets[0].kind);
+      if (remoteCheck?.id === matches[0].id && remoteCheck.permalink === matches[0].permalink &&
+          remoteCheck.mediaType === (campaign.media_assets[0].kind === "reel" ? "VIDEO" : "IMAGE")) {
+        reservation = { ...reservation, status: "published", media_id: matches[0].id, permalink: remoteCheck.permalink, reconciled_at: now.toISOString() };
+        await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
+        return { ok: true, status: "reconciled_published", mediaId: reservation.media_id, permalink: reservation.permalink };
+      }
+      return fail("AMBIGUOUS_PUBLISH_REQUIRES_REVIEW", "A possible matching post was found but its media read-back did not confirm it; no retry is allowed.");
     }
     return fail("AMBIGUOUS_PUBLISH_REQUIRES_REVIEW", matches.length ? "Multiple matching remote posts found; no retry is allowed." : "Prior publish outcome is ambiguous; no retry is allowed. Inspect Instagram manually.");
   }
