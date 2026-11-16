@@ -17,6 +17,7 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
   if (campaign?.disclosureRequired !== false && campaign?.disclosureRequired !== true) add("DISCLOSURE_STATUS_UNKNOWN", "Campaign must explicitly declare whether disclosure is required.");
   if (campaign?.commercial === true && campaign?.disclosureRequired !== true) add("COMMERCIAL_DISCLOSURE_POLICY", "Commercial content must explicitly require disclosure.");
   if (campaign?.disclosureRequired === true && campaign?.disclosure?.verified !== true) add("DISCLOSURE_NOT_VERIFIED", "Required disclosure must be verified and present in the caption.");
+  if (campaign?.disclosureRequired === true && (typeof campaign?.disclosure?.text !== "string" || !campaign.disclosure.text.trim())) add("DISCLOSURE_TEXT_MISSING", "Required disclosure must include exact non-empty text.");
   if (campaign?.disclosureRequired === true && typeof campaign?.disclosure?.text === "string" && !caption.includes(campaign.disclosure.text)) {
     add("DISCLOSURE_TEXT_MISSING", "The exact verified disclosure text is missing from the caption.");
   }
@@ -68,6 +69,8 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
   const links = [...caption.matchAll(/https?:\/\/[^\s)\]}>,]+/gi)].map((m) => m[0].replace(/[.,!?;:]+$/, ""));
   if (links.length) {
     const check = campaign?.link_check;
+    if (links.length !== 1) add("LINK_CHECK_COUNT", "This publisher requires exactly one caption URL so the checked destination is unambiguous.");
+    if (check?.url !== links[0]) add("LINK_CHECK_MISMATCH", "The checked source URL must exactly match the caption URL.");
     const checkedAt = Date.parse(check?.checked_at ?? "");
     if (check?.status !== 200 || !Number.isFinite(checkedAt) || checkedAt > now.getTime() ||
         now.getTime() - checkedAt > Number(policy.link_max_age_hours ?? 24) * 3600000) {
