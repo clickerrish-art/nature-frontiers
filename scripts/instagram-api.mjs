@@ -1,8 +1,8 @@
 const GRAPH_HOST = "https://graph.facebook.com";
 
 function requireConfig(config) {
-  if (!config || !/^v\\d+\\.\\d+$/.test(config.apiVersion ?? "")) throw new Error("A valid Instagram Graph API version is required.");
-  if (!/^\\d+$/.test(config.instagramUserId ?? "")) throw new Error("A numeric Instagram professional account ID is required.");
+  if (!config || !/^v\d+\.\d+$/.test(config.apiVersion ?? "")) throw new Error("A valid Instagram Graph API version is required.");
+  if (!/^\d+$/.test(config.instagramUserId ?? "")) throw new Error("A numeric Instagram professional account ID is required.");
   if (typeof config.accessToken !== "string" || !config.accessToken.trim()) throw new Error("Instagram access token is required.");
   if (typeof config.fetchImpl !== "function" && typeof fetch !== "function") throw new Error("Fetch implementation is unavailable.");
 }
