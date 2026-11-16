@@ -19,6 +19,8 @@ on:
       - "scripts/instagram-publisher.mjs"
       - "scripts/publish-instagram.mjs"
       - "scripts/test-instagram-campaign.mjs"
+      - "scripts/check-instagram-media.mjs"
+      - "scripts/test-check-instagram-media.mjs"
       - "data/instagram-campaigns.json"
       - "data/instagram-publishing-state.json"
       - "scripts/test-instagram-api.mjs"
@@ -74,6 +76,8 @@ jobs:
           node --check scripts/instagram-publisher.mjs
           node --check scripts/publish-instagram.mjs
           node --check scripts/instagram-runtime-api.mjs
+          node --check scripts/check-instagram-media.mjs
+          node --check scripts/test-check-instagram-media.mjs
           node --check scripts/prepublish-gate.mjs
           node --check scripts/meta-webhook.mjs
           node --check scripts/check-meta-token-health.mjs
@@ -83,6 +87,8 @@ jobs:
         run: node scripts/test-instagram-api.mjs
       - name: Test Instagram campaign approvals, durable state and recovery (mocked)
         run: node scripts/test-instagram-campaign.mjs
+      - name: Test Instagram media technical preflight (mocked ffprobe)
+        run: node scripts/test-check-instagram-media.mjs
       - name: Test Meta circuit-breaker policy
         run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
