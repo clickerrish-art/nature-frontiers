@@ -28,6 +28,34 @@ async function verifyMetaSignature(rawBody, signature, appSecret) {
   return constantTimeEqual(signature.toLowerCase(), `sha256=${toHex(digest)}`);
 }
 
+async function readBoundedBody(request, limit) {
+  if (!request.body) return new ArrayBuffer(0);
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > limit) {
+        await reader.cancel();
+        throw new Error("Webhook body too large");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body.buffer;
+}
+
 async function handleMetaWebhook(request, env) {
   const url = new URL(request.url);
   if (request.method === "GET") {
@@ -44,8 +72,9 @@ async function handleMetaWebhook(request, env) {
 
   const declaredLength = Number(request.headers.get("content-length") || 0);
   if (declaredLength > MAX_WEBHOOK_BYTES) return new Response("Webhook body too large", { status: 413, headers: { "Cache-Control": "no-store" } });
-  const rawBody = await request.arrayBuffer();
-  if (rawBody.byteLength > MAX_WEBHOOK_BYTES) return new Response("Webhook body too large", { status: 413, headers: { "Cache-Control": "no-store" } });
+  let rawBody;
+  try { rawBody = await readBoundedBody(request, MAX_WEBHOOK_BYTES); }
+  catch { return new Response("Webhook body too large", { status: 413, headers: { "Cache-Control": "no-store" } }); }
   const signature = request.headers.get("x-hub-signature-256");
   if (!(await verifyMetaSignature(rawBody, signature, env.META_APP_SECRET))) {
     return new Response("Webhook signature invalid", { status: 401, headers: { "Cache-Control": "no-store" } });
