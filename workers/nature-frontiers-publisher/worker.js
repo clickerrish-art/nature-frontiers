@@ -1,4 +1,4 @@
-const MEDIA_PATH = /^\\/media\\/instagram\\/media-([a-f0-9]{64})\\.(jpg|jpeg|mp4)$/i;
+const MEDIA_PATH = /^\/media\/instagram\/media-([a-f0-9]{64})\.(jpg|jpeg|mp4)$/i;
 const ALLOWED_TYPES = new Set(["image/jpeg", "video/mp4"]);
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
 
@@ -105,7 +105,7 @@ export default {
       if (!response.ok) return new Response("Media not found", { status: response.status === 404 ? 404 : 502, headers: { "Cache-Control": "no-store" } });
       const contentType = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
       if (!ALLOWED_TYPES.has(contentType)) return new Response("Unsupported media type", { status: 415, headers: { "Cache-Control": "no-store" } });
-      const expectedExtension = contentType === "image/jpeg" ? /\\.(jpg|jpeg)$/i : /\\.mp4$/i;
+      const expectedExtension = contentType === "image/jpeg" ? /\.(jpg|jpeg)$/i : /\.mp4$/i;
       if (!expectedExtension.test(url.pathname)) return new Response("Media extension and content type mismatch", { status: 415, headers: { "Cache-Control": "no-store" } });
       const headers = new Headers(response.headers);
       headers.set("Content-Type", contentType);
