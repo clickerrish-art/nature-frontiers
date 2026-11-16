@@ -95,7 +95,7 @@ The publisher checks Meta's `content_publishing_limit` response and uses the ret
 
 ### Runtime gates and secrets
 
-Required secret: `INSTAGRAM_ACCESS_TOKEN` (SUAT; never print or commit it). Required repository variables: `INSTAGRAM_USER_ID`, `META_GRAPH_API_VERSION`, `INSTAGRAM_MEDIA_BASE_URL`, `INSTAGRAM_PUBLISH_ENABLED`. The workflow also requires `PUBLISH_ENABLED=true`, `PUBLISH_EMERGENCY_STOP=false`, `PUBLISH_DRY_RUN=false`, and the manual `live_publish_authorized=true` input. Defaults remain fail-closed: emergency stop active, dry-run active, global publishing off, and Instagram publishing off. The Instagram job is manual-dispatch only; it is not enabled on the scheduled Facebook job.
+Required secret: `INSTAGRAM_ACCESS_TOKEN` (SUAT; never print or commit it). Required repository variable: `META_GRAPH_API_VERSION`. The confirmed Instagram user ID defaults to `17841413164146618` (override with `INSTAGRAM_USER_ID` only if the account changes). The media base defaults to the immutable raw GitHub origin described above (override with `INSTAGRAM_MEDIA_BASE_URL` only when using another owner-controlled host). `INSTAGRAM_PUBLISH_ENABLED` defaults to `NO` and must remain off until launch authorization. The workflow also requires `PUBLISH_ENABLED=true`, `PUBLISH_EMERGENCY_STOP=false`, `PUBLISH_DRY_RUN=false`, and the manual `live_publish_authorized=true` input. Defaults remain fail-closed: emergency stop active, dry-run active, global publishing off, and Instagram publishing off. The Instagram job is manual-dispatch only; it is not enabled on the scheduled Facebook job.
 
 ### Test and live verification status
 
