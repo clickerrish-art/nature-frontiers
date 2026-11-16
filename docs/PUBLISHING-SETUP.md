@@ -29,7 +29,6 @@ Products in `data/products.json` remain `review-required`. Do not change a produ
 
 The current Meta setup returned `granted` for `instagram_basic` and `instagram_content_publish`. These checks establish the account lookup and permission grants only; they do not prove App Review approval, media-container creation, publishing, or remote post verification. Keep Instagram publishing disabled until the App Review outcome is known and the Instagram adapter has passed its own non-public tests. Do not reuse `META_PAGE_ACCESS_TOKEN`: that credential belongs to the separate Facebook Page integration.
 
-The correct Meta account/login flow determines the full set of app credentials and permissions. Verify the current official Meta documentation before implementation.
 
 ### Pinterest
 - `PINTEREST_ACCESS_TOKEN`
