@@ -15,6 +15,7 @@ function validCampaign() {
     status: "approved", caption, commercial: false, disclosureRequired: false,
     media_assets: [{
       kind: "image", media_path: "nature-frontiers/ig/post-1.jpg", sha256: sha,
+      technical_check: { status: "passed", tool: "ffprobe", kind: "image", sha256: sha, checked_at: "2026-11-16T11:00:00.000Z", file_size: 1000, format: "jpeg_pipe", width: 1080, height: 1350, aspect_ratio: 0.8 },
       rights: { status: "cleared", written_permission_ref: "rights:123", worldwide: true, commercial_worldwide: true, editing_allowed: true, social_platforms: ["instagram"] },
       originality: { status: "verified", source_ref: "source:123" },
       watermark_scan: { status: "clean" }, audio: { present: false }, ai_generated: false
@@ -43,6 +44,7 @@ function makeApi(overrides = {}) {
 }
 const mediaHost = { async resolveAndVerify() { return { url: "https://media.example.test/nature-frontiers/ig/post-1.jpg", contentType: "image/jpeg", contentLength: 100, sha256: sha }; } };
 const tests = [
+  ["missing technical media preflight is blocked", () => { const c=validCampaign(); delete c.media_assets[0].technical_check; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="MEDIA_TECHNICAL_CHECK_MISSING")); }],
   ["complete Instagram approval and rights evidence passes", () => assert.equal(validateInstagramCampaign(validCampaign(), [], policy, now).ok, true)],
   ["draft campaign is blocked", () => { const c=validCampaign(); c.status="draft"; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="CAMPAIGN_NOT_APPROVED")); }],
   ["wrong destination is blocked", () => { const c=validCampaign(); c.destination="facebook:nature-frontiers"; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="DESTINATION_MISMATCH")); }],
