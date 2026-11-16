@@ -1,7 +1,9 @@
 import { createHash } from "node:crypto";
+import { isIP } from "node:net";
 
 function assertPublicHost(url) {
   const host = url.hostname.toLowerCase();
+  if (isIP(host)) throw new Error("Instagram media host must use a public DNS hostname, not an IP literal.");
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
       /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) ||
       /^172\.(1[6-9]|2\d|3[01])\./.test(host) || host === "0.0.0.0" || host === "::1") {
@@ -34,7 +36,7 @@ export function createPublicMediaHost({ baseUrl, fetchImpl = fetch }) {
       const type = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
       if (type !== expectedType) throw new Error(`Media content type must be ${expectedType}; received ${type || "missing"}.`);
       const length = Number(response.headers.get("content-length"));
-      const maxBytes = asset.kind === "image" ? 25 * 1024 * 1024 : 1024 * 1024 * 1024;
+      const maxBytes = asset.kind === "image" ? 8 * 1000 * 1000 : 300 * 1000 * 1000;
       if (!Number.isSafeInteger(length) || length <= 0 || length > maxBytes) throw new Error("Media host must provide a valid Content-Length within the configured safety limit.");
       if (!response.body || typeof response.body[Symbol.asyncIterator] !== "function") throw new Error("Media response streaming is unavailable; content hash cannot be verified.");
       const hash = createHash("sha256");
