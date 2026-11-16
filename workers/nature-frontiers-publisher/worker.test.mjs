@@ -77,6 +77,16 @@ assert.equal(inserted.length, 1);
 assert.match(inserted[0].sql, /INSERT OR IGNORE INTO meta_webhook_events/);
 assert.equal(inserted[0].values[2], "instagram");
 assert.equal(inserted[0].values[3], 1);
+assert.equal(inserted[0].values.length, 4, "raw webhook payload must not be retained");
+assert.match(inserted[0].values[0], /^[a-f0-9]{64}$/);
+
+const duplicateAccepted = await worker.fetch(makeRequest("/webhooks/meta", "POST", {
+  headers: { "content-type": "application/json", "x-hub-signature-256": signature },
+  body: webhookEvent
+}), webhookEnv);
+assert.equal(duplicateAccepted.status, 200);
+assert.equal(inserted.length, 2);
+assert.equal(inserted[0].values[0], inserted[1].values[0], "identical deliveries must share the same idempotency key");
 
 const invalidSignature = await worker.fetch(makeRequest("/webhooks/meta", "POST", {
   headers: { "x-hub-signature-256": "sha256=" + "0".repeat(64) }, body: webhookEvent
