@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
 
 const cases = [
   {
@@ -42,6 +43,17 @@ for (const test of cases) {
   } else {
     console.log(`PASS: ${test.name}`);
   }
+}
+const workflow = await readFile(".github/workflows/publishing-readiness.yml", "utf8");
+const instagramRunner = await readFile("scripts/publish-instagram.mjs", "utf8");
+if (workflow.includes("github.ref == 'refs/heads/main'") &&
+    workflow.includes("INSTAGRAM_STATE_BRANCH: ${{ vars.INSTAGRAM_STATE_BRANCH || 'instagram-publishing-state' }}") &&
+    instagramRunner.includes('process.env.GITHUB_REF_NAME !== "main"') &&
+    instagramRunner.includes('process.env.INSTAGRAM_STATE_BRANCH || "instagram-publishing-state"')) {
+  console.log("PASS: Instagram live publisher is main-only and writes durable state to its dedicated non-default branch");
+} else {
+  failed++;
+  console.error("FAIL: Instagram publisher production-branch or dedicated-state-branch wiring is missing");
 }
 if (failed) process.exit(1);
 console.log("Publishing safety tests passed. No platform API requests were made.");
