@@ -28,7 +28,7 @@ function validCampaign() {
   return campaign;
 }
 const policy = { banned_phrases: ["guaranteed income"], approval_max_age_days: 30, link_max_age_hours: 24, allowed_link_hosts: ["selar.com"] };
-const liveEnv = { PUBLISH_EMERGENCY_STOP: "false", PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", INSTAGRAM_PUBLISH_ENABLED: "YES", INSTAGRAM_USER_ID: "17841413164146618", INSTAGRAM_ACCESS_TOKEN: "test-token", META_GRAPH_API_VERSION: "v27.0" };
+const liveEnv = { PUBLISH_EMERGENCY_STOP: "false", PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", INSTAGRAM_PUBLISH_ENABLED: "YES", INSTAGRAM_USER_ID: "17841413164146618", INSTAGRAM_ACCESS_TOKEN: "test-token", META_GRAPH_API_VERSION: "v27.0", GITHUB_REF_NAME: "main" };
 function makeApi(overrides = {}) {
   const calls = [];
   const api = {
@@ -56,6 +56,7 @@ const tests = [
   ["duplicate caption is blocked", () => { const c=validCampaign(); assert.ok(validateInstagramCampaign(c,[{id:"old",caption}],policy,now).issues.some(x=>x.code==="DUPLICATE_CAPTION")); }],
   ["emergency stop blocks all API calls", async () => { const {api,calls}=makeApi(); const r=await runInstagramCampaign({campaign:validCampaign(),policy,env:{...liveEnv,PUBLISH_EMERGENCY_STOP:"true"},stateStore:createMemoryInstagramStateStore(),mediaHost,api}); assert.equal(r.code,"EMERGENCY_STOP"); assert.deepEqual(calls,[]); }],
   ["dry run blocks all API calls", async () => { const {api,calls}=makeApi(); const r=await runInstagramCampaign({campaign:validCampaign(),policy,env:{...liveEnv,PUBLISH_DRY_RUN:"true"},stateStore:createMemoryInstagramStateStore(),mediaHost,api}); assert.equal(r.code,"DRY_RUN"); assert.deepEqual(calls,[]); }],
+  ["feature branches cannot send Instagram publishing requests", async () => { const {api,calls}=makeApi(); const r=await runInstagramCampaign({campaign:validCampaign(),policy,env:{...liveEnv,GITHUB_REF_NAME:"codex/instagram-unified-login-setup"},stateStore:createMemoryInstagramStateStore(),mediaHost,api}); assert.equal(r.code,"NON_PRODUCTION_BRANCH"); assert.deepEqual(calls,[]); }],
   ["missing campaign approval blocks all API calls", async () => { const {api,calls}=makeApi(); const c=validCampaign(); c.status="draft"; const r=await runInstagramCampaign({campaign:c,policy,env:liveEnv,stateStore:createMemoryInstagramStateStore(),mediaHost,api}); assert.equal(r.code,"CAMPAIGN_GATE_FAILED"); assert.deepEqual(calls,[]); }],
   ["unapproved linked product blocks publishing", async () => { const {api,calls}=makeApi(); const c=validCampaign(); c.product_id="p1"; const r=await runInstagramCampaign({campaign:c,products:[{id:"p1",status:"draft"}],policy,env:liveEnv,stateStore:createMemoryInstagramStateStore(),mediaHost,api}); assert.equal(r.code,"PRODUCT_NOT_APPROVED"); assert.deepEqual(calls,[]); }],
   ["approved campaign reserves, creates, publishes and verifies once", async () => { const {api,calls}=makeApi(); const store=createMemoryInstagramStateStore(); const r=await runInstagramCampaign({campaign:validCampaign(),policy,env:liveEnv,stateStore:store,mediaHost,api,now}); assert.equal(r.status,"published"); assert.deepEqual(calls,["quota","create","status","quota","publish","verify"]); assert.equal((await store.read()).reservations["ig-campaign-1"].status,"published"); }],
@@ -105,6 +106,7 @@ const tests = [
     await assert.rejects(() => store.write({ ...state, reservations: { c1: { status: "reserved" } } }), /changed concurrently/);
     assert.equal(puts, 0);
   }],
+  ["dedicated Instagram state branch is accepted", () => { const store=createGitHubInstagramStateStore({token:"x",repository:"owner/repo",branch:"instagram-publishing-state"}); assert.equal(typeof store.read,"function"); }],
   ["default branch is rejected for Instagram durable publishing state", () => {
     assert.throws(() => createGitHubInstagramStateStore({ token: "x", repository: "owner/repo", branch: "main" }), /non-default feature branch/);
   }],
