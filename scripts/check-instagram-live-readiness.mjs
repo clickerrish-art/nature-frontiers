@@ -10,8 +10,8 @@ function required(value, label) {
 export async function checkInstagramLiveReadiness({ apiVersion, instagramUserId, accessToken, fetchImpl = fetch }) {
   required(accessToken, "INSTAGRAM_ACCESS_TOKEN");
   required(instagramUserId, "INSTAGRAM_USER_ID");
-  if (!/^v\\d+\\.\\d+$/.test(apiVersion ?? "")) throw new Error("META_GRAPH_API_VERSION must be a version such as v27.0.");
-  if (!/^\\d+$/.test(instagramUserId)) throw new Error("INSTAGRAM_USER_ID must be numeric.");
+  if (!/^v\d+\.\d+$/.test(apiVersion ?? "")) throw new Error("META_GRAPH_API_VERSION must be a version such as v27.0.");
+  if (!/^\d+$/.test(instagramUserId)) throw new Error("INSTAGRAM_USER_ID must be numeric.");
 
   async function get(path) {
     let response;
