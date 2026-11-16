@@ -91,7 +91,7 @@ The public GitHub raw origin is now defined, but no approved Instagram media ass
 
 If the publish request or response is ambiguous, state becomes `unknown`; automatic retries are prohibited. Recovery checks recent account media for one exact caption/type match in the reservation time window. Exactly one match is recorded as reconciled; zero or multiple matches remain held for manual inspection. A known media ID in `published_unverified` can be read back without issuing another publish request.
 
-The publisher checks Meta's `content_publishing_limit` response and uses the returned `config.quota_total` rather than assuming a fixed quota. Meta's current endpoint reference reports the configured quota and rolling 24-hour duration.
+The publisher checks Meta's `content_publishing_limit` response both when reserving and immediately before publishing, and uses the returned `config.quota_total` and `config.quota_duration` rather than assuming a fixed quota. Meta's current endpoint reference reports a current quota_total of 50 and a 24-hour duration; the general Content Publishing guide also describes a 100-post cap, so the adapter honors the stricter account endpoint value.
 
 ### Runtime gates and secrets
 
