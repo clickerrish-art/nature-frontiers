@@ -22,12 +22,12 @@ Products in `data/products.json` remain `review-required`. Do not change a produ
 - `META_PAGE_ID`
 - `META_PAGE_ACCESS_TOKEN`
 
-### Instagram (Meta Unified Login)
+### Instagram (Meta API — authentication path pending verification)
 - `INSTAGRAM_ACCESS_TOKEN` — the Instagram-capable System User Access Token generated for the Nature Frontiers business asset. Store only as a GitHub Actions secret; never commit or paste it into source, logs, issues, or chat.
 - `INSTAGRAM_USER_ID` — `17841413164146618` (the professional account ID verified with a successful Graph API object lookup).
 - `INSTAGRAM_GRAPH_API_VERSION` — a currently supported Graph API version, independently configured for the Instagram adapter.
 
-The current Meta setup returned `granted` for `instagram_basic` and `instagram_content_publish`. These checks establish the account lookup and permission grants only; they do not prove App Review approval, media-container creation, publishing, or remote post verification. Keep Instagram publishing disabled until the App Review outcome is known and the Instagram adapter has passed its own non-public tests. Do not reuse `META_PAGE_ACCESS_TOKEN`: that credential belongs to the separate Facebook Page integration.
+The current Meta setup returned `granted` for `instagram_basic` and `instagram_content_publish`. Those permission names match Meta's Facebook Login API path. Meta's Instagram Login path instead uses `instagram_business_basic` and `instagram_business_content_publishing` and calls `graph.instagram.com`; the Facebook Login path uses `instagram_basic` and `instagram_content_publish` and calls `graph.facebook.com`. The user previously selected a System User Access Token and a dashboard tab labelled Unified Login API Setup, so the actual token type and API path are not yet reconciled. Do not assume these are interchangeable. Confirm the token's supported login path and matching API host/scopes before implementing or testing the Instagram adapter. These checks establish the account lookup and permission grants only; they do not prove App Review approval, media-container creation, publishing, or remote post verification. Keep Instagram publishing disabled until the authentication path is confirmed and the adapter has passed its own non-public tests. Do not reuse `META_PAGE_ACCESS_TOKEN`: that credential belongs to the separate Facebook Page integration. Meta's general access-level guidance says Standard Access can be sufficient when only app-role users use the app; its System User documentation separately describes review and business-verification requirements for System User tokens. Therefore Business Verification is unresolved for the currently recorded System User approach and must not be marked unnecessary until the authentication model is settled.
 
 
 ### Pinterest
