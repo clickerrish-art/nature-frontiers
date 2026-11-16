@@ -54,8 +54,7 @@ const tests = [
     const config = { ...configBase, fetchImpl: async () => { calls++; throw new TypeError("network down"); } };
     await assert.rejects(() => getInstagramContainerStatus(config, "container-6"), /ambiguous; do not retry automatically/);
     assert.equal(calls, 1);
-  }]
-
+  }],
   ["publishing quota reads Meta's quota_total and quota_usage", async () => {
     const calls = [];
     const config = { ...configBase, fetchImpl: mockFetch([{ body: { data: [{ quota_usage: 7, config: { quota_total: 50, quota_duration: 86400 } }] } }], calls) };
