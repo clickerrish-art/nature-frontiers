@@ -88,11 +88,12 @@ export async function publishInstagramContainer(config, containerId) {
 }
 
 /** Reads back the published media object for remote verification. */
-export async function verifyInstagramMedia(config, mediaId) {
+export async function verifyInstagramMedia(config, mediaId, expectedKind) {
   if (typeof mediaId !== "string" || !mediaId.trim()) throw new Error("An Instagram media ID is required.");
   const query = new URLSearchParams({ fields: "id,permalink,timestamp,media_type" });
   const result = await request(config, `${encodeURIComponent(mediaId)}?${query}`);
-  if (result.id !== mediaId || typeof result.permalink !== "string" || !result.permalink.startsWith("https://")) {
+  const expectedType = expectedKind === "reel" ? "VIDEO" : expectedKind === "image" ? "IMAGE" : null;
+  if (result.id !== mediaId || typeof result.permalink !== "string" || !result.permalink.startsWith("https://") || (expectedType && result.media_type !== expectedType)) {
     throw new Error("Instagram media read-back did not confirm the expected media ID and permalink.");
   }
   return {
@@ -119,5 +120,8 @@ export async function getInstagramPublishingLimit(config) {
   if (!Array.isArray(result.data) || !result.data.length || !Number.isFinite(Number(result.data[0].quota_usage))) {
     throw new Error("Instagram publishing limit response was missing quota_usage; publication is blocked.");
   }
-  return { quotaUsage: Number(result.data[0].quota_usage), config: result.data[0].config ?? null };
+  const quotaConfig = result.data[0].config ?? null;
+  const quotaTotal = Number(quotaConfig?.quota_total);
+  if (!Number.isFinite(quotaTotal) || quotaTotal < 1) throw new Error("Instagram quota response did not include a valid quota_total; publication is blocked.");
+  return { quotaUsage: Number(result.data[0].quota_usage), quotaTotal, quotaDuration: Number(quotaConfig?.quota_duration) || null };
 }
