@@ -1,15 +1,19 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import worker from "./worker.js";
 
-const hash = "a".repeat(64);
+const assetBytes = Buffer.from("jpeg-bytes");
+const hash = createHash("sha256").update(assetBytes).digest("hex");
 const makeRequest = (path, method = "GET", init = {}) => new Request(`https://publisher.example${path}`, { method, ...init });
 const env = {
   DB: { prepare: () => ({ first: async () => ({ table_count: 6 }) }) },
-  ASSETS: { fetch: async (request) => new Response(request.method === "HEAD" ? null : "jpeg-bytes", {
-    status: 200,
-    headers: { "content-type": "image/jpeg", "content-length": "10", etag: '"asset-etag"' }
-  }) }
+  ASSETS: { fetch: async (request) => {
+    assert.equal(request.method, "GET", "the Worker must fetch complete bytes to verify the hash, including for HEAD requests");
+    return new Response(assetBytes, {
+      status: 200,
+      headers: { "content-type": "image/jpeg", "content-length": String(assetBytes.length), etag: '"asset-etag"' }
+    });
+  } }
 };
 
 const health = await worker.fetch(makeRequest("/health"), env);
@@ -25,10 +29,20 @@ assert.equal(media.status, 200);
 assert.equal(media.headers.get("content-type"), "image/jpeg");
 assert.equal(media.headers.get("cache-control"), "public, max-age=31536000, immutable");
 assert.equal(media.headers.get("x-content-type-options"), "nosniff");
+assert.equal(media.headers.get("x-content-sha256"), hash);
 assert.equal(await media.text(), "jpeg-bytes");
 const head = await worker.fetch(makeRequest(mediaPath, "HEAD"), env);
 assert.equal(head.status, 200);
 assert.equal(await head.text(), "");
+
+const wrongHash = hash === "0".repeat(64) ? "1".repeat(64) : "0".repeat(64);
+const hashMismatch = await worker.fetch(makeRequest(`/media/instagram/media-${wrongHash}.jpg`), env);
+assert.equal(hashMismatch.status, 502);
+const oversizedAsset = await worker.fetch(makeRequest(`/media/instagram/media-${hash}.jpg`), {
+  ...env,
+  ASSETS: { fetch: async () => new Response("x", { headers: { "content-type": "image/jpeg", "content-length": String(25 * 1024 * 1024 + 1) } }) }
+});
+assert.equal(oversizedAsset.status, 413);
 
 const missingBinding = await worker.fetch(makeRequest(mediaPath), { ...env, ASSETS: undefined });
 assert.equal(missingBinding.status, 503);
