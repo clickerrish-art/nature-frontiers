@@ -31,11 +31,11 @@ const liveEnv = { PUBLISH_EMERGENCY_STOP: "false", PUBLISH_ENABLED: "true", PUBL
 function makeApi(overrides = {}) {
   const calls = [];
   const api = {
-    async getPublishingLimit() { calls.push("quota"); return { quotaUsage: 2 }; },
+    async getPublishingLimit() { calls.push("quota"); return { quotaUsage: 2, quotaTotal: 50 }; },
     async createContainer() { calls.push("create"); return { containerId: "container-1" }; },
     async getContainerStatus() { calls.push("status"); return { statusCode: "FINISHED" }; },
     async publishContainer() { calls.push("publish"); return { mediaId: "media-1" }; },
-    async verifyMedia(id) { calls.push("verify"); return { id, permalink: "https://www.instagram.com/p/test/" }; },
+    async verifyMedia(id, kind) { calls.push("verify"); return { id, permalink: "https://www.instagram.com/p/test/", mediaType: kind === "reel" ? "VIDEO" : "IMAGE" }; },
     async listRecentMedia() { calls.push("reconcile"); return []; },
     ...overrides
   };
@@ -64,6 +64,12 @@ const tests = [
   ["media host rejects non-HTTPS base", () => assert.throws(()=>createPublicMediaHost({baseUrl:"http://cdn.example.test"}),/HTTPS/)],
   ["media host rejects traversal path", async () => { const host=createPublicMediaHost({baseUrl:"https://cdn.example.test/assets/",fetchImpl:async()=>{throw new Error("should not run");}}); await assert.rejects(()=>host.resolveAndVerify({kind:"image",media_path:"../escape.jpg",sha256:sha}),/safe relative path/); }],
   ["media host rejects hash mismatch", async () => { const bytes=Buffer.from("wrong media"); const body=(async function*(){yield bytes;})(); const host=createPublicMediaHost({baseUrl:"https://cdn.example.test/assets/",fetchImpl:async()=>({ok:true,status:200,headers:new Headers({"content-type":"image/jpeg","content-length":String(bytes.length)}),body})}); await assert.rejects(()=>host.resolveAndVerify({kind:"image",media_path:"x.jpg",sha256:sha}),/SHA-256/); }]
+
+  ["Meta-reported quota blocks at its actual quota_total", async () => { const {api,calls}=makeApi({async getPublishingLimit(){calls.push("quota");return {quotaUsage:50,quotaTotal:50};}}); const r=await runInstagramCampaign({campaign:validCampaign(),policy,env:liveEnv,stateStore:createMemoryInstagramStateStore(),mediaHost,api,now}); assert.equal(r.code,"PUBLISHING_QUOTA_REACHED"); assert.deepEqual(calls,["quota"]); }],
+  ["non-FINISHED container cannot reach publish", async () => { const {api,calls}=makeApi({async getContainerStatus(){calls.push("status");return {statusCode:"IN_PROGRESS"};}}); const store=createMemoryInstagramStateStore(); const r=await runInstagramCampaign({campaign:validCampaign(),policy,env:liveEnv,stateStore:store,mediaHost,api,now}); assert.equal(r.code,"CONTAINER_NOT_READY"); assert.ok(!calls.includes("publish")); assert.equal((await store.read()).reservations["ig-campaign-1"].status,"container_created"); }],
+  ["failed read-back preserves published_unverified state without reposting", async () => { const {api,calls}=makeApi({async verifyMedia(){calls.push("verify");throw new Error("read unavailable");}}); const store=createMemoryInstagramStateStore(); await assert.rejects(()=>runInstagramCampaign({campaign:validCampaign(),policy,env:liveEnv,stateStore:store,mediaHost,api,now})); assert.equal((await store.read()).reservations["ig-campaign-1"].status,"published_unverified"); }],
+  ["paid campaign requires verified disclosure text and exact approval", () => { const c=validCampaign(); c.commercial=true; c.disclosureRequired=true; c.disclosure={verified:true,text:"Paid partnership"}; c.caption += " Paid partnership"; c.human_approval.caption_sha256=hash(c.caption); assert.equal(validateInstagramCampaign(c,[],policy,now).ok,true); }],
+  ["stale approval is blocked", () => { const c=validCampaign(); c.human_approval.approved_at="2026-01-01T00:00:00.000Z"; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="HUMAN_APPROVAL_NOT_BOUND")); }]
 ];
 let failed=0;
 for (const [name,fn] of tests) { try { await fn(); console.log("PASS:",name); } catch(e) { failed++; console.error("FAIL:",name,e); } }
