@@ -12,6 +12,15 @@ on:
     paths:
       - "scripts/publish-facebook.mjs"
       - "scripts/instagram-api.mjs"
+      - "scripts/instagram-runtime-api.mjs"
+      - "scripts/instagram-campaign-gate.mjs"
+      - "scripts/instagram-media-host.mjs"
+      - "scripts/instagram-state-store.mjs"
+      - "scripts/instagram-publisher.mjs"
+      - "scripts/publish-instagram.mjs"
+      - "scripts/test-instagram-campaign.mjs"
+      - "data/instagram-campaigns.json"
+      - "data/instagram-publishing-state.json"
       - "scripts/test-instagram-api.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "data/campaigns.json"
@@ -59,6 +68,12 @@ jobs:
           node --check scripts/meta-error-policy.mjs
           node --check scripts/publish-facebook.mjs
           node --check scripts/instagram-api.mjs
+          node --check scripts/instagram-campaign-gate.mjs
+          node --check scripts/instagram-media-host.mjs
+          node --check scripts/instagram-state-store.mjs
+          node --check scripts/instagram-publisher.mjs
+          node --check scripts/publish-instagram.mjs
+          node --check scripts/instagram-runtime-api.mjs
           node --check scripts/prepublish-gate.mjs
           node --check scripts/meta-webhook.mjs
           node --check scripts/check-meta-token-health.mjs
@@ -66,6 +81,8 @@ jobs:
           node -e "JSON.parse(require('node:fs').readFileSync('data/meta-circuit-breaker.json', 'utf8'))"
       - name: Test Instagram API client (mocked; no platform calls)
         run: node scripts/test-instagram-api.mjs
+      - name: Test Instagram campaign approvals, durable state and recovery (mocked)
+        run: node scripts/test-instagram-campaign.mjs
       - name: Test Meta circuit-breaker policy
         run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
@@ -105,3 +122,31 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook.mjs
+
+  instagram-publisher:
+    if: github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true
+    permissions:
+      contents: write
+    needs: safety-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Run fail-closed Instagram campaign publisher
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_EMERGENCY_STOP: ${{ vars.PUBLISH_EMERGENCY_STOP || 'true' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          INSTAGRAM_PUBLISH_ENABLED: ${{ vars.INSTAGRAM_PUBLISH_ENABLED || 'NO' }}
+          INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID }}
+          INSTAGRAM_MEDIA_BASE_URL: ${{ vars.INSTAGRAM_MEDIA_BASE_URL }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-instagram.mjs
