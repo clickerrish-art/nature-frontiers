@@ -143,7 +143,7 @@ jobs:
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           INSTAGRAM_PUBLISH_ENABLED: ${{ vars.INSTAGRAM_PUBLISH_ENABLED || 'NO' }}
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID }}
-          INSTAGRAM_MEDIA_BASE_URL: ${{ vars.INSTAGRAM_MEDIA_BASE_URL }}
+          INSTAGRAM_MEDIA_BASE_URL: ${{ vars.INSTAGRAM_MEDIA_BASE_URL || format('https://raw.githubusercontent.com/{0}/{1}/media/instagram/', github.repository, github.sha) }}
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           GITHUB_TOKEN: ${{ github.token }}
