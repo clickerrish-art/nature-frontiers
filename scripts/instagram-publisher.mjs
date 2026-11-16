@@ -22,6 +22,8 @@ export async function runInstagramCampaign({
   if (campaign.product_id) {
     const product = products.find((item) => item.id === campaign.product_id);
     if (!product || product.status !== "approved") return fail("PRODUCT_NOT_APPROVED", "Linked product is missing or not approved.");
+    if (campaign.commercial !== true || campaign.disclosureRequired !== true) return fail("PRODUCT_DISCLOSURE_REQUIRED", "Product promotion must be explicitly marked commercial and require verified disclosure.");
+    if (typeof product.url !== "string" || !campaign.caption.includes(product.url) || campaign.link_check?.url !== product.url || campaign.link_check?.final_url !== product.url) return fail("PRODUCT_LINK_NOT_BOUND", "Approved caption and recent link check must bind to the exact catalogue product URL.");
   }
   const gate = validateInstagramCampaign(campaign, history, policy, now);
   if (!gate.ok) return { ...fail("CAMPAIGN_GATE_FAILED", "Campaign approval, rights or content checks failed."), issues: gate.issues };
