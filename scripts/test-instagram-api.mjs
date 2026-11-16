@@ -42,7 +42,7 @@ const tests = [
     const config = { ...configBase, fetchImpl: mockFetch([{ body: { id: "container-4", status_code: "FINISHED" } }, { body: { id: "media-4" } }], calls) };
     assert.deepEqual(await publishInstagramContainer(config, "container-4"), { mediaId: "media-4" });
     assert.equal(calls.length, 2);
-    assert.match(calls[1].url, /17841413164146618\\/media_publish$/);
+    assert.match(calls[1].url, /17841413164146618\/media_publish$/);
     assert.deepEqual(JSON.parse(calls[1].options.body), { creation_id: "container-4" });
   }],
   ["published media must read back with expected ID and permalink", async () => {
