@@ -100,3 +100,10 @@ Required secret: `INSTAGRAM_ACCESS_TOKEN` (SUAT; never print or commit it). Requ
 ### Test and live verification status
 
 `npm run test:instagram-api` and `npm run test:instagram-campaign` use mocked network calls and must never create a public post. They cover the API request sequence, campaign approvals, rights and disclosure, media technical specifications and hash verification, quota handling, durable reservations, duplicate prevention, ambiguous outcomes and reconciliation. Passing these tests does not prove the Meta token works or that an Instagram post has been published. Remote verification requires a separately authorized real publish after a fully approved campaign and public media asset exist; no such post has been made or claimed.
+
+
+### Read-only live SUAT verification
+
+The workflow now has an `instagram-preflight` job that runs on every manual workflow dispatch, even when `live_publish_authorized` is left false. It uses the repository secret `INSTAGRAM_ACCESS_TOKEN` and the configured Graph API version to make GET-only requests for `/me/permissions`, the configured Instagram account object, `/content_publishing_limit`, and the account's recent-media edge. It verifies that `instagram_basic` and `instagram_content_publish` are granted and that the account and quota responses are valid. It never creates a media container or calls `media_publish`.
+
+The live preflight job is a required dependency of the Instagram publisher. If the secret is missing, scopes are missing, the account ID differs, or a read-only endpoint fails, the publisher job is skipped. To run this remote check without publishing, use GitHub Actions → **Nature Frontiers publishing (gated)** → **Run workflow**, select `codex/instagram-unified-login-setup`, and leave `live_publish_authorized` **false**. The preflight will only run if the repository secret `INSTAGRAM_ACCESS_TOKEN` and variable `META_GRAPH_API_VERSION` are already configured. Do not paste the token into chat.
