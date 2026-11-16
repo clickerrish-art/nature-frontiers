@@ -47,6 +47,7 @@ on:
       - "data/meta-circuit-breaker.json"
       - ".github/workflows/meta-api-version-monitor.yml"
       - "docs/META_PROACTIVE_OPERATIONS.md"
+      - "docs/PUBLISHING-SETUP.md"
       - ".github/workflows/publishing-readiness.yml"
   schedule:
     - cron: "30 7 * * *"
