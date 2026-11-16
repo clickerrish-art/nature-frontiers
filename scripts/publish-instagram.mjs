@@ -21,7 +21,7 @@ if (approved.length !== 1) {
   console.log(`SAFE STOP: expected exactly one approved Instagram campaign; found ${approved.length}. No Instagram API request was sent.`);
   process.exit(0);
 }
-const stateBranch = process.env.INSTAGRAM_STATE_BRANCH || "instagram-publishing-state";
+const stateBranch = "instagram-publishing-state";
 const stateStore = createGitHubInstagramStateStore({
   token: process.env.GITHUB_TOKEN,
   repository: process.env.GITHUB_REPOSITORY,
