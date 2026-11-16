@@ -39,7 +39,7 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
     }
     const rights = asset?.rights;
     if (rights?.status !== "cleared" || !rights?.written_permission_ref ||
-        rights?.worldwide !== true || rights?.editing_allowed !== true ||
+        rights?.worldwide !== true || (campaign?.commercial === true && rights?.commercial_worldwide !== true) || rights?.editing_allowed !== true ||
         rights?.social_platforms?.includes("instagram") !== true) {
       add("RIGHTS_NOT_CLEARED", "Asset lacks documented worldwide Instagram usage rights and editing permission.");
     }
@@ -77,6 +77,7 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
         const finalUrl = new URL(check.final_url);
         const allowed = (policy.allowed_link_hosts ?? []).includes(finalUrl.hostname.toLowerCase());
         if (finalUrl.protocol !== "https:" || !allowed) add("LINK_REDIRECT_NOT_ALLOWED", "Verified link destination is not an approved HTTPS host.");
+      if (check.url && !links.includes(check.url)) add("LINK_CHECK_MISMATCH", "Link verification does not match a URL in the approved caption.");
       } catch { add("LINK_FINAL_URL_MISSING", "Link check must include a valid final URL."); }
     }
   }
