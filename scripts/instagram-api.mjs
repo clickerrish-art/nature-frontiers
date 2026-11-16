@@ -65,10 +65,10 @@ export async function createInstagramMediaContainer(config, media) {
 /** Reads Meta's asynchronous container state. */
 export async function getInstagramContainerStatus(config, containerId) {
   if (typeof containerId !== "string" || !containerId.trim()) throw new Error("A media container ID is required.");
-  const query = new URLSearchParams({ fields: "status_code,status" });
+  const query = new URLSearchParams({ fields: "status_code" });
   const result = await request(config, `${encodeURIComponent(containerId)}?${query}`);
   if (typeof result.status_code !== "string") throw new Error("Meta did not return a container status.");
-  return { id: result.id ?? containerId, statusCode: result.status_code, status: result.status ?? null };
+  return { id: result.id ?? containerId, statusCode: result.status_code };
 }
 
 /** Publishes only a container Meta reports as FINISHED. Never retries publication. */
@@ -90,7 +90,7 @@ export async function publishInstagramContainer(config, containerId) {
 /** Reads back the published media object for remote verification. */
 export async function verifyInstagramMedia(config, mediaId) {
   if (typeof mediaId !== "string" || !mediaId.trim()) throw new Error("An Instagram media ID is required.");
-  const query = new URLSearchParams({ fields: "id,permalink,timestamp,media_product_type" });
+  const query = new URLSearchParams({ fields: "id,permalink,timestamp,media_type" });
   const result = await request(config, `${encodeURIComponent(mediaId)}?${query}`);
   if (result.id !== mediaId || typeof result.permalink !== "string" || !result.permalink.startsWith("https://")) {
     throw new Error("Instagram media read-back did not confirm the expected media ID and permalink.");
@@ -99,6 +99,25 @@ export async function verifyInstagramMedia(config, mediaId) {
     id: result.id,
     permalink: result.permalink,
     timestamp: typeof result.timestamp === "string" ? result.timestamp : null,
-    mediaProductType: typeof result.media_product_type === "string" ? result.media_product_type : null
+    mediaType: typeof result.media_type === "string" ? result.media_type : null
   };
+}
+
+/** Lists recent account media for conservative reconciliation after an ambiguous publish. */
+export async function listRecentInstagramMedia(config, limit = 100) {
+  const safeLimit = Math.min(100, Math.max(1, Number(limit) || 100));
+  const query = new URLSearchParams({ fields: "id,caption,timestamp,media_type,permalink", limit: String(safeLimit) });
+  const result = await request(config, `${encodeURIComponent(config.instagramUserId)}/media?${query}`);
+  if (!Array.isArray(result.data)) throw new Error("Instagram media listing did not return a data array.");
+  return result.data;
+}
+
+/** Reads the account's rolling publishing quota before reserving a live publish. */
+export async function getInstagramPublishingLimit(config) {
+  const query = new URLSearchParams({ fields: "quota_usage,config" });
+  const result = await request(config, `${encodeURIComponent(config.instagramUserId)}/content_publishing_limit?${query}`);
+  if (!Array.isArray(result.data) || !result.data.length || !Number.isFinite(Number(result.data[0].quota_usage))) {
+    throw new Error("Instagram publishing limit response was missing quota_usage; publication is blocked.");
+  }
+  return { quotaUsage: Number(result.data[0].quota_usage), config: result.data[0].config ?? null };
 }
