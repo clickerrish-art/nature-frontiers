@@ -99,6 +99,8 @@ export async function runInstagramCampaign({
 
   const container = await api.getContainerStatus(reservation.container_id);
   if (container.statusCode !== "FINISHED") return fail("CONTAINER_NOT_READY", `Meta container status is ${container.statusCode}; publication is blocked.`);
+  const finalQuota = await api.getPublishingLimit();
+  if (finalQuota.quotaUsage >= finalQuota.quotaTotal) return fail("PUBLISHING_QUOTA_REACHED", "Meta reported publishing quota reached immediately before publication.");
   reservation = { ...reservation, status: "publishing", publish_attempted_at: now.toISOString() };
   await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
   state = await stateStore.read();
