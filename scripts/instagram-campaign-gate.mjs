@@ -44,12 +44,14 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
         technicalAge > Number(policy.media_check_max_age_days ?? 30) * 86400000) {
       add("MEDIA_TECHNICAL_CHECK_MISSING", "A recent ffprobe technical preflight bound to the exact media SHA-256 is required.");
     } else if (asset.kind === "image" &&
-        (technical.width < 320 || technical.width > 1440 || technical.aspect_ratio < 0.8 || technical.aspect_ratio > 1.91 || !String(technical.format).toLowerCase().includes("jpeg"))) {
+        (!Number.isFinite(Number(technical.width)) || !Number.isFinite(Number(technical.height)) || !Number.isFinite(Number(technical.aspect_ratio)) || technical.width < 320 || technical.width > 1440 || technical.aspect_ratio < 0.8 || technical.aspect_ratio > 1.91 || technical.file_size > 8_000_000 || !String(technical.format).toLowerCase().includes("jpeg"))) {
       add("IMAGE_SPEC_INVALID", "Image does not meet the supported JPEG dimensions or aspect-ratio specification.");
     } else if (asset.kind === "reel" &&
-        (!["h264", "hevc"].includes(technical.video?.codec) || technical.video?.fps < 23 || technical.video?.fps > 60 ||
-         technical.video?.duration_seconds < 3 || technical.video?.duration_seconds > 900 ||
-         technical.width > 1920 || technical.aspect_ratio < 0.01 || technical.aspect_ratio > 10)) {
+        (!String(technical.format).toLowerCase().includes("mp4") || !["h264", "hevc"].includes(technical.video?.codec) || !Number.isFinite(Number(technical.video?.fps)) || technical.video.fps < 23 || technical.video.fps > 60 ||
+         !Number.isFinite(Number(technical.video?.duration_seconds)) || technical.video.duration_seconds < 3 || technical.video.duration_seconds > 900 ||
+         !Number.isFinite(Number(technical.width)) || !Number.isFinite(Number(technical.height)) || !Number.isFinite(Number(technical.aspect_ratio)) || technical.file_size > 100_000_000 || technical.width > 1920 || technical.aspect_ratio < 0.01 || technical.aspect_ratio > 10 ||
+         (Number.isFinite(Number(technical.video?.bitrate_bps)) && technical.video.bitrate_bps > 25_000_000) ||
+         (asset.audio?.present === true && (technical.audio?.codec !== "aac" || technical.audio?.sample_rate > 48000 || ![1, 2].includes(technical.audio?.channels))))) {
       add("REEL_SPEC_INVALID", "Reel does not meet the supported container, codec, frame-rate, duration or dimension specification.");
     }
     if (typeof asset?.media_path !== "string" || !asset.media_path.trim() || asset.media_path.startsWith("/") || asset.media_path.includes("..") || /[?#\\]/.test(asset.media_path)) {
