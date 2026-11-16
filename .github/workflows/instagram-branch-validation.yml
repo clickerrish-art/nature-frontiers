@@ -12,6 +12,7 @@ on:
       - "data/instagram-*.json"
       - "package.json"
       - ".github/workflows/instagram-branch-validation.yml"
+      - ".github/workflows/instagram-live-preflight.yml"
   workflow_dispatch:
 
 permissions:
