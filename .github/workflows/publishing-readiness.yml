@@ -128,7 +128,7 @@ jobs:
           PUBLISH_EMERGENCY_STOP: ${{ vars.PUBLISH_EMERGENCY_STOP || 'true' }} # Emergency stop is active by default; only an explicit false releases this independent gate
           FACEBOOK_PUBLISH_ENABLED: ${{ vars.FACEBOOK_PUBLISH_ENABLED || 'NO' }} # Facebook publishing is off unless explicitly set to YES
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }} # Safe default: dry-run unless deliberately configured
-          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION || 'v27.0' }}
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -153,7 +153,7 @@ jobs:
         env:
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
-          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION || 'v27.0' }}
         run: node scripts/check-instagram-live-readiness.mjs
 
   instagram-publisher:
@@ -178,7 +178,7 @@ jobs:
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
           INSTAGRAM_MEDIA_BASE_URL: ${{ vars.INSTAGRAM_MEDIA_BASE_URL || format('https://raw.githubusercontent.com/{0}/{1}/media/instagram/', github.repository, github.sha) }}
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
-          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION || 'v27.0' }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
