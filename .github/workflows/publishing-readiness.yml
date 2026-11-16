@@ -23,6 +23,7 @@ on:
       - "scripts/test-check-instagram-media.mjs"
       - "data/instagram-campaigns.json"
       - "data/instagram-publishing-state.json"
+      - "media/instagram/**"
       - "scripts/test-instagram-api.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "data/campaigns.json"
