@@ -6,7 +6,7 @@ const assetBytes = Buffer.from("jpeg-bytes");
 const hash = createHash("sha256").update(assetBytes).digest("hex");
 const makeRequest = (path, method = "GET", init = {}) => new Request(`https://publisher.example${path}`, { method, ...init });
 const env = {
-  DB: { prepare: () => ({ first: async () => ({ table_count: 6 }) }) },
+  DB: { prepare: (sql) => ({ first: async () => { assert.match(sql, /meta_webhook_events/); return { name: "meta_webhook_events" }; } }) },
   ASSETS: { fetch: async (request) => {
     assert.equal(request.method, "GET", "the Worker must fetch complete bytes to verify the hash, including for HEAD requests");
     return new Response(assetBytes, {
@@ -22,6 +22,14 @@ const healthBody = await health.json();
 assert.equal(healthBody.publishingEnabled, false);
 assert.equal(healthBody.dryRun, true);
 assert.equal(healthBody.emergencyStop, true);
+const incompleteHealth = await worker.fetch(makeRequest("/health"), { ...env, DB: { prepare: () => ({ first: async () => null }) } });
+assert.equal(incompleteHealth.status, 503);
+const incompleteHealthBody = await incompleteHealth.json();
+assert.equal(incompleteHealthBody.status, "degraded");
+assert.equal(incompleteHealthBody.database, "schema_incomplete");
+assert.equal(incompleteHealthBody.publishingEnabled, false);
+assert.equal(incompleteHealthBody.dryRun, true);
+assert.equal(incompleteHealthBody.emergencyStop, true);
 
 const mediaPath = `/media/instagram/media-${hash}.jpg`;
 const media = await worker.fetch(makeRequest(mediaPath), env);
