@@ -67,3 +67,36 @@ The Facebook and Instagram integrations still require owner-verified credentials
 - Pinterest API: https://developer.pinterest.com/docs/getting-started/set-up-authentication-and-authorization/
 - TikTok Content Posting API: https://developers.tiktok.com/doc/content-posting-api-get-started/
 - YouTube video uploads: https://developers.google.com/youtube/v3/docs/videos/insert
+
+
+## Instagram campaign publishing (Unified Login)
+
+The Instagram publishing implementation is isolated from the Facebook Page publisher and uses the confirmed Nature Frontiers Instagram account ID `17841413164146618`, Unified Login, Business Integration System User access token (SUAT), `graph.facebook.com`, and the `instagram_basic` + `instagram_content_publish` permission pair. It does not use the separate Instagram Login `instagram_business_*` permissions or `graph.instagram.com`.
+
+### Fail-closed campaign requirements
+
+Instagram campaigns live in `data/instagram-campaigns.json`; this is intentionally separate from the Facebook queue. It currently contains no campaigns. A live campaign must be explicitly `approved`, target `instagram:nature-frontiers`, declare `commercial` and `disclosureRequired`, and carry a recent human approval bound to the exact caption SHA-256, exact media SHA-256 list, and Instagram destination. Product-linked campaigns additionally require an approved catalogue product, the exact catalogue URL in the caption, a current successful link check whose requested and final URLs match that product URL, and verified disclosure. Commercial media requires documented worldwide commercial rights as well as Instagram usage rights.
+
+Every media asset must include a relative `media_path`, SHA-256, cleared worldwide Instagram rights, editing permission, verified source/provenance, clean watermark scan, explicit audio status and audio licence where relevant. AI-generated media requires verified destination-native disclosure. Only one image or one Reel is supported per campaign by this first implementation.
+
+### Controlled public media origin
+
+Set repository variable `INSTAGRAM_MEDIA_BASE_URL` to an HTTPS directory on a public static host controlled by Nature Frontiers. Each campaign's `media_assets[0].media_path` is resolved beneath that base path; arbitrary URLs are not accepted. Before creating a Meta container, the publisher downloads the asset from that exact origin with redirects disabled and verifies the MIME type, byte count, size ceiling, and SHA-256 against the human-approved manifest. Images must be JPEG (maximum 25 MiB); Reels must be MP4 (maximum 1 GiB). The media origin must serve public unauthenticated GET responses with a correct Content-Length. Meta must be able to fetch the same URL publicly.
+
+No media origin or approved Instagram media asset has been configured in this repository yet. Do not add private media URLs, expiring signed URLs, tokens in URLs, or rights-unverified files. Hosting itself must be arranged on an owner-controlled free/static service before a campaign can pass the media gate; this code does not silently upload to a paid CDN.
+
+### Durable reservation and recovery
+
+`data/instagram-publishing-state.json` stores one reservation per campaign ID, with a fingerprint of destination, caption hash and media hash. GitHub Contents API writes are guarded by a SHA compare-and-swap check and are refused on `main`/`master`. The workflow serializes publishing runs. A reservation is persisted before container creation, the container ID before publication, and `publishing` before the publish request. A successful response is persisted as `published_unverified` before remote read-back; only matching media ID, permalink and media type moves it to `published`.
+
+If the publish request or response is ambiguous, state becomes `unknown`; automatic retries are prohibited. Recovery checks recent account media for one exact caption/type match in the reservation time window. Exactly one match is recorded as reconciled; zero or multiple matches remain held for manual inspection. A known media ID in `published_unverified` can be read back without issuing another publish request.
+
+The publisher checks Meta's `content_publishing_limit` response and uses the returned `config.quota_total` rather than assuming a fixed quota. Meta's current endpoint reference reports the configured quota and rolling 24-hour duration.
+
+### Runtime gates and secrets
+
+Required secret: `INSTAGRAM_ACCESS_TOKEN` (SUAT; never print or commit it). Required repository variables: `INSTAGRAM_USER_ID`, `META_GRAPH_API_VERSION`, `INSTAGRAM_MEDIA_BASE_URL`, `INSTAGRAM_PUBLISH_ENABLED`. The workflow also requires `PUBLISH_ENABLED=true`, `PUBLISH_EMERGENCY_STOP=false`, `PUBLISH_DRY_RUN=false`, and the manual `live_publish_authorized=true` input. Defaults remain fail-closed: emergency stop active, dry-run active, global publishing off, and Instagram publishing off. The Instagram job is manual-dispatch only; it is not enabled on the scheduled Facebook job.
+
+### Test and live verification status
+
+`npm run test:instagram-api` and `npm run test:instagram-campaign` use mocked network calls and must never create a public post. They cover the API request sequence, campaign approvals, rights and disclosure, media hash verification, quota handling, durable reservations, duplicate prevention, ambiguous outcomes and reconciliation. Passing these tests does not prove the Meta token works or that an Instagram post has been published. Remote verification requires a separately authorized real publish after a fully approved campaign and public media asset exist; no such post has been made or claimed.
