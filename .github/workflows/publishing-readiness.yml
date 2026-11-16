@@ -151,9 +151,9 @@ jobs:
           node-version: "24"
       - name: Verify Unified Login SUAT using read-only Meta GET requests
         env:
-          INSTAGRAM_ACCESS_TOKEN: \${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
-          INSTAGRAM_USER_ID: \${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
-          META_GRAPH_API_VERSION: \${{ vars.META_GRAPH_API_VERSION }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
         run: node scripts/check-instagram-live-readiness.mjs
 
   instagram-publisher:
