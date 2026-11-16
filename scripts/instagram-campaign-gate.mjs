@@ -35,6 +35,23 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
     if (!/^[a-f0-9]{64}$/i.test(asset?.sha256 ?? "")) add("MEDIA_HASH_INVALID", `Media asset ${i + 1} needs a SHA-256 hash.`);
     else mediaHashes.push(asset.sha256.toLowerCase());
     if (!["image", "reel"].includes(asset?.kind)) add("MEDIA_KIND_INVALID", "Media kind must be image or reel.");
+    const technical = asset?.technical_check;
+    const technicalAt = Date.parse(technical?.checked_at ?? "");
+    const technicalAge = now.getTime() - technicalAt;
+    if (technical?.status !== "passed" || technical?.tool !== "ffprobe" || technical?.kind !== asset?.kind ||
+        technical?.sha256 !== String(asset?.sha256 ?? "").toLowerCase() ||
+        !Number.isFinite(technicalAge) || technicalAge < 0 ||
+        technicalAge > Number(policy.media_check_max_age_days ?? 30) * 86400000) {
+      add("MEDIA_TECHNICAL_CHECK_MISSING", "A recent ffprobe technical preflight bound to the exact media SHA-256 is required.");
+    } else if (asset.kind === "image" &&
+        (technical.width < 320 || technical.width > 1440 || technical.aspect_ratio < 0.8 || technical.aspect_ratio > 1.91 || !String(technical.format).toLowerCase().includes("jpeg"))) {
+      add("IMAGE_SPEC_INVALID", "Image does not meet the supported JPEG dimensions or aspect-ratio specification.");
+    } else if (asset.kind === "reel" &&
+        (!["h264", "hevc"].includes(technical.video?.codec) || technical.video?.fps < 23 || technical.video?.fps > 60 ||
+         technical.video?.duration_seconds < 3 || technical.video?.duration_seconds > 900 ||
+         technical.width > 1920 || technical.aspect_ratio < 0.01 || technical.aspect_ratio > 10)) {
+      add("REEL_SPEC_INVALID", "Reel does not meet the supported container, codec, frame-rate, duration or dimension specification.");
+    }
     if (typeof asset?.media_path !== "string" || !asset.media_path.trim() || asset.media_path.startsWith("/") || asset.media_path.includes("..") || /[?#\\]/.test(asset.media_path)) {
       add("MEDIA_PATH_INVALID", "Media must use a safe relative path on the configured public media host.");
     }
