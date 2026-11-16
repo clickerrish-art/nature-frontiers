@@ -48,7 +48,8 @@ export async function runInstagramCampaign({
   }
   if (reservation?.status === "published_unverified") {
     const verified = await api.verifyMedia(reservation.media_id, campaign.media_assets[0].kind);
-    if (!verified?.permalink) return fail("REMOTE_VERIFICATION_FAILED", "Known media ID is not yet verifiable; no new publish will be attempted.");
+    const expectedMediaType = campaign.media_assets[0].kind === "reel" ? "VIDEO" : "IMAGE";
+    if (!verified?.permalink || verified.id !== reservation.media_id || verified.mediaType !== expectedMediaType) return fail("REMOTE_VERIFICATION_FAILED", "Known media ID and expected media type are not yet verifiable; no new publish will be attempted.");
     reservation = { ...reservation, status: "published", permalink: verified.permalink, verified_at: now.toISOString() };
     await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
     return { ok: true, status: "verified_published", mediaId: reservation.media_id, permalink: verified.permalink };
@@ -110,7 +111,8 @@ export async function runInstagramCampaign({
   reservation = { ...reservation, status: "published_unverified", media_id: published.mediaId };
   await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
   const verified = await api.verifyMedia(published.mediaId, campaign.media_assets[0].kind);
-  if (!verified?.permalink || verified.id !== published.mediaId) {
+  const expectedMediaType = campaign.media_assets[0].kind === "reel" ? "VIDEO" : "IMAGE";
+  if (!verified?.permalink || verified.id !== published.mediaId || verified.mediaType !== expectedMediaType) {
     return fail("REMOTE_VERIFICATION_FAILED", "Meta returned a media ID but read-back verification did not confirm its permalink.");
   }
   reservation = { ...reservation, status: "published", permalink: verified.permalink, verified_at: now.toISOString() };
