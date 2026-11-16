@@ -48,6 +48,7 @@ async function request(config, path, { method = "GET", body } = {}) {
 export async function createInstagramMediaContainer(config, media) {
   if (!media || typeof media !== "object") throw new Error("Media details are required.");
   const body = { caption: String(media.caption ?? "") };
+  if (media.aiGenerated === true) body.is_ai_generated = true;
   if (media.kind === "image") {
     body.image_url = publicHttpsUrl(media.url, "image URL");
   } else if (media.kind === "reel") {
