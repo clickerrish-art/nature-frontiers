@@ -109,6 +109,7 @@ const tests = [
     assert.throws(() => createGitHubInstagramStateStore({ token: "x", repository: "owner/repo", branch: "main" }), /non-default feature branch/);
   }],
   ["required disclosure without exact text is blocked", () => { const campaign=validCampaign(); campaign.commercial=true; campaign.disclosureRequired=true; campaign.disclosure={verified:true}; assert.ok(validateInstagramCampaign(campaign,[],policy,now).issues.some(x=>x.code==="DISCLOSURE_TEXT_MISSING")); }],
+  ["Selar URL without catalogue product ID is blocked", () => { const campaign=validCampaign(); campaign.caption += " https://selar.com/0u19v8u99l"; campaign.link_check={url:"https://selar.com/0u19v8u99l",status:200,checked_at:"2026-11-16T11:00:00.000Z",final_url:"https://selar.com/0u19v8u99l"}; campaign.human_approval.caption_sha256=hash(campaign.caption); assert.ok(validateInstagramCampaign(campaign,[],policy,now).issues.some(x=>x.code==="PRODUCT_ID_REQUIRED")); }],
   ["link check must match the caption URL", () => { const campaign=validCampaign(); campaign.caption += " https://selar.com/offer"; campaign.link_check={url:"https://selar.com/other",status:200,checked_at:"2026-11-16T11:00:00.000Z",final_url:"https://selar.com/offer"}; campaign.human_approval.caption_sha256=hash(campaign.caption); assert.ok(validateInstagramCampaign(campaign,[],policy,now).issues.some(x=>x.code==="LINK_CHECK_MISMATCH")); }]
 ];
 let failed=0;
