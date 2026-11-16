@@ -12,16 +12,20 @@ const circuit = await readJson("../data/meta-circuit-breaker.json");
 
 if (!Array.isArray(campaigns) || !Array.isArray(products)) throw new Error("Instagram campaigns and product catalogue must be JSON arrays.");
 if (circuit.open === true) throw new Error("Meta circuit breaker is OPEN; human review and explicit reset are required.");
+if (process.env.GITHUB_REF_NAME !== "main") {
+  console.log("SAFE STOP: live Instagram publishing is permitted only from production main. No platform API request was sent.");
+  process.exit(0);
+}
 const approved = campaigns.filter((campaign) => campaign?.network === "instagram" && campaign?.status === "approved");
 if (approved.length !== 1) {
   console.log(`SAFE STOP: expected exactly one approved Instagram campaign; found ${approved.length}. No Instagram API request was sent.`);
   process.exit(0);
 }
-const branch = process.env.GITHUB_REF_NAME;
+const stateBranch = process.env.INSTAGRAM_STATE_BRANCH || "instagram-publishing-state";
 const stateStore = createGitHubInstagramStateStore({
   token: process.env.GITHUB_TOKEN,
   repository: process.env.GITHUB_REPOSITORY,
-  branch
+  branch: stateBranch
 });
 const mediaHost = createPublicMediaHost({ baseUrl: process.env.INSTAGRAM_MEDIA_BASE_URL });
 const api = createInstagramApiClient({
