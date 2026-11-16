@@ -39,7 +39,7 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
     const technicalAt = Date.parse(technical?.checked_at ?? "");
     const technicalAge = now.getTime() - technicalAt;
     if (technical?.status !== "passed" || technical?.tool !== "ffprobe" || technical?.kind !== asset?.kind ||
-        technical?.sha256 !== String(asset?.sha256 ?? "").toLowerCase() ||
+        technical?.sha256 !== String(asset?.sha256 ?? "").toLowerCase() || !Number.isFinite(Number(technical?.file_size)) || technical.file_size <= 0 ||
         !Number.isFinite(technicalAge) || technicalAge < 0 ||
         technicalAge > Number(policy.media_check_max_age_days ?? 30) * 86400000) {
       add("MEDIA_TECHNICAL_CHECK_MISSING", "A recent ffprobe technical preflight bound to the exact media SHA-256 is required.");
