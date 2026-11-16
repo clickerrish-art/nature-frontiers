@@ -1,6 +1,6 @@
 # Nature Frontiers Instagram media origin
 
-This directory is the zero-cost, public static media origin used by the Instagram publisher when `INSTAGRAM_MEDIA_BASE_URL` is not overridden.
+This directory is the zero-cost public static media origin used by the Instagram publisher. The workflow always pins it to the exact checked-out commit on `raw.githubusercontent.com`; custom media-host overrides are disabled.
 
 The workflow resolves files from the exact checked-out commit at:
 
