@@ -22,14 +22,21 @@ Products in `data/products.json` remain `review-required`. Do not change a produ
 - `META_PAGE_ID`
 - `META_PAGE_ACCESS_TOKEN`
 
-### Instagram (Meta API — authentication path pending verification)
-- `INSTAGRAM_ACCESS_TOKEN` — the Instagram-capable System User Access Token generated for the Nature Frontiers business asset. Store only as a GitHub Actions secret; never commit or paste it into source, logs, issues, or chat.
+### Instagram (Meta Unified Login — Instagram Login Compatible)
+- Configuration ID: `1133415852647659`.
+- Login variation: `General`.
+- Selected token type: System-user access token (SUAT), non-expiring.
+- Selected asset: Instagram professional account required; ad account optional.
+- Selected permissions shown in Meta configuration: `instagram_basic`, `instagram_content_publish`, `instagram_manage_messages`.
+- The owner previously removed `instagram_manage_messages` from the App Review request because messaging is not part of the required publishing workflow. Keep messaging out of the requested scope unless the product actually implements Instagram messaging.
+- `INSTAGRAM_ACCESS_TOKEN` — the SUAT generated for the Nature Frontiers Instagram asset. Store only as a GitHub Actions secret; never commit or paste it into source, logs, issues, or chat.
 - `INSTAGRAM_USER_ID` — `17841413164146618` (the professional account ID verified with a successful Graph API object lookup).
 - `INSTAGRAM_GRAPH_API_VERSION` — a currently supported Graph API version, independently configured for the Instagram adapter.
 
-The current Meta setup returned `granted` for `instagram_basic` and `instagram_content_publish`. Those permission names match Meta's Facebook Login API path. Meta's Instagram Login path instead uses `instagram_business_basic` and `instagram_business_content_publishing` and calls `graph.instagram.com`; the Facebook Login path uses `instagram_basic` and `instagram_content_publish` and calls `graph.facebook.com`. The user previously selected a System User Access Token and a dashboard tab labelled Unified Login API Setup, so the actual token type and API path are not yet reconciled. Do not assume these are interchangeable. Confirm the token's supported login path and matching API host/scopes before implementing or testing the Instagram adapter. These checks establish the account lookup and permission grants only; they do not prove App Review approval, media-container creation, publishing, or remote post verification. Keep Instagram publishing disabled until the authentication path is confirmed and the adapter has passed its own non-public tests. Do not reuse `META_PAGE_ACCESS_TOKEN`: that credential belongs to the separate Facebook Page integration. Meta's general access-level guidance says Standard Access can be sufficient when only app-role users use the app; its System User documentation separately describes review and business-verification requirements for System User tokens. Therefore Business Verification is unresolved for the currently recorded System User approach and must not be marked unnecessary until the authentication model is settled.
+The selected permission names and SUAT are consistent with Meta's System User token support for Instagram API permissions. Do not substitute the separate Instagram Login OAuth flow's `instagram_business_*` scopes or its token lifecycle. The System User token flow is documented by Meta for calls through the Graph API; the precise endpoint and media-publishing sequence must be implemented against the selected Unified Login configuration and verified with non-public requests before publishing. A token permission grant and successful account-object lookup do not prove media-container creation, publishing, App Review approval, or remote post verification. Keep Instagram publishing disabled until the adapter passes non-public tests and all required access gates are confirmed. Do not reuse `META_PAGE_ACCESS_TOKEN`: that credential belongs to the separate Facebook Page integration.
 
-
+Business Verification is not currently a confirmed requirement for the intended own-account, app-role-only use case. Do not start Tech Provider registration or Business Verification based only on the dashboard card. Reassess only if Meta's actual access-level requirement or reviewer feedback explicitly requires it. The System User token must still be associated with the correct business portfolio and app, with the Instagram asset assigned to that system user.
+ 
 ### Pinterest
 - `PINTEREST_ACCESS_TOKEN`
 - `PINTEREST_BOARD_ID`
