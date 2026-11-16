@@ -9,7 +9,7 @@ export function createInstagramApiClient(config) {
     createContainer: (media) => createInstagramMediaContainer(config, media),
     getContainerStatus: (id) => getInstagramContainerStatus(config, id),
     publishContainer: (id) => publishInstagramContainer(config, id),
-    verifyMedia: (id) => verifyInstagramMedia(config, id),
+    verifyMedia: (id, kind) => verifyInstagramMedia(config, id, kind),
     listRecentMedia: (limit) => listRecentInstagramMedia(config, limit),
     getPublishingLimit: () => getInstagramPublishingLimit(config)
   };
