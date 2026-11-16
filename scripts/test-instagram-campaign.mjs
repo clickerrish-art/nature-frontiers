@@ -105,6 +105,9 @@ const tests = [
   ["default branch is rejected for Instagram durable publishing state", () => {
     assert.throws(() => createGitHubInstagramStateStore({ token: "x", repository: "owner/repo", branch: "main" }), /non-default feature branch/);
   }]
+
+  ["required disclosure without exact text is blocked", () => { const campaign=validCampaign(); campaign.commercial=true; campaign.disclosureRequired=true; campaign.disclosure={verified:true}; assert.ok(validateInstagramCampaign(campaign,[],policy,now).issues.some(x=>x.code==="DISCLOSURE_TEXT_MISSING")); }],
+  ["link check must match the caption URL", () => { const campaign=validCampaign(); campaign.caption += " https://selar.com/offer"; campaign.link_check={url:"https://selar.com/other",status:200,checked_at:"2026-11-16T11:00:00.000Z",final_url:"https://selar.com/offer"}; campaign.human_approval.caption_sha256=hash(campaign.caption); assert.ok(validateInstagramCampaign(campaign,[],policy,now).issues.some(x=>x.code==="LINK_CHECK_MISMATCH")); }]
 ];
 let failed=0;
 for (const [name,fn] of tests) { try { await fn(); console.log("PASS:",name); } catch(e) { failed++; console.error("FAIL:",name,e); } }
