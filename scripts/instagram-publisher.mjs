@@ -61,9 +61,10 @@ export async function runInstagramCampaign({
     const quota = await api.getPublishingLimit();
     if (quota.quotaUsage >= quota.quotaTotal) return fail("PUBLISHING_QUOTA_REACHED", "Meta reported publishing quota reached.");
     const hosted = await mediaHost.resolveAndVerify(campaign.media_assets[0]);
+    if (hosted.contentLength !== campaign.media_assets[0].technical_check.file_size) return fail("MEDIA_SIZE_MISMATCH", "Hosted media byte count differs from the technical preflight manifest.");
     reservation = {
       campaign_id: id, fingerprint: fp, status: "reserved", started_at: now.toISOString(),
-      media_path: campaign.media_assets[0].media_path, media_url: hosted.url,
+      media_path: campaign.media_assets[0].media_path, media_url: hosted.url, media_file_size: hosted.contentLength,
       media_sha256: campaign.media_assets[0].sha256, caption_sha256: gate.caption_sha256,
       destination: campaign.destination, container_id: null, media_id: null, permalink: null
     };
@@ -73,7 +74,7 @@ export async function runInstagramCampaign({
 
   if (!reservation.container_id) {
     const hostedAgain = await mediaHost.resolveAndVerify(campaign.media_assets[0]);
-    if (hostedAgain.url !== reservation.media_url || hostedAgain.sha256 !== campaign.media_assets[0].sha256.toLowerCase()) {
+    if (hostedAgain.url !== reservation.media_url || hostedAgain.sha256 !== campaign.media_assets[0].sha256.toLowerCase() || hostedAgain.contentLength !== reservation.media_file_size) {
       return fail("HOSTED_MEDIA_CHANGED", "Public media bytes or URL changed after reservation; no container or post was created.");
     }
     let created;
