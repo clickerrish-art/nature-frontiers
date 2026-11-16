@@ -34,7 +34,7 @@ export default {
       if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
         return json({ ok: false, error: "media_assets_binding_unavailable" }, 503);
       }
-      const response = await env.ASSETS.fetch(new Request(url, request));
+      const response = await env.ASSETS.fetch(request);
       if (!response.ok) return new Response("Media not found", { status: response.status === 404 ? 404 : 502, headers: { "Cache-Control": "no-store" } });
       const contentType = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
       if (!ALLOWED_TYPES.has(contentType)) return new Response("Unsupported media type", { status: 415, headers: { "Cache-Control": "no-store" } });
