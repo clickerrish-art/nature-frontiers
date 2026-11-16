@@ -22,9 +22,12 @@ Products in `data/products.json` remain `review-required`. Do not change a produ
 - `META_PAGE_ID`
 - `META_PAGE_ACCESS_TOKEN`
 
-### Instagram
-- `META_PAGE_ACCESS_TOKEN`
-- `INSTAGRAM_USER_ID`
+### Instagram (Meta Unified Login)
+- `INSTAGRAM_ACCESS_TOKEN` — the Instagram-capable System User Access Token generated for the Nature Frontiers business asset. Store only as a GitHub Actions secret; never commit or paste it into source, logs, issues, or chat.
+- `INSTAGRAM_USER_ID` — `17841413164146618` (the professional account ID verified with a successful Graph API object lookup).
+- `INSTAGRAM_GRAPH_API_VERSION` — a currently supported Graph API version, independently configured for the Instagram adapter.
+
+The current Meta setup returned `granted` for `instagram_basic` and `instagram_content_publish`. These checks establish the account lookup and permission grants only; they do not prove App Review approval, media-container creation, publishing, or remote post verification. Keep Instagram publishing disabled until the App Review outcome is known and the Instagram adapter has passed its own non-public tests. Do not reuse `META_PAGE_ACCESS_TOKEN`: that credential belongs to the separate Facebook Page integration.
 
 The correct Meta account/login flow determines the full set of app credentials and permissions. Verify the current official Meta documentation before implementation.
 
