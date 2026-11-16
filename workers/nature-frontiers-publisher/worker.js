@@ -1,6 +1,7 @@
 const MEDIA_PATH = /^\/media\/instagram\/media-([a-f0-9]{64})\.(jpg|jpeg|mp4)$/i;
 const ALLOWED_TYPES = new Set(["image/jpeg", "video/mp4"]);
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
+const MAX_MEDIA_ASSET_BYTES = 25 * 1024 * 1024;
 
 function json(body, status = 200) {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -130,18 +131,35 @@ export default {
       if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
         return json({ ok: false, error: "media_assets_binding_unavailable" }, 503);
       }
-      const response = await env.ASSETS.fetch(request);
+      // Fetch the complete object even for HEAD so the hash in the public URL is verified.
+      const response = await env.ASSETS.fetch(new Request(request.url, { method: "GET" }));
       if (!response.ok) return new Response("Media not found", { status: response.status === 404 ? 404 : 502, headers: { "Cache-Control": "no-store" } });
       const contentType = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
       if (!ALLOWED_TYPES.has(contentType)) return new Response("Unsupported media type", { status: 415, headers: { "Cache-Control": "no-store" } });
       const expectedExtension = contentType === "image/jpeg" ? /\.(jpg|jpeg)$/i : /\.mp4$/i;
       if (!expectedExtension.test(url.pathname)) return new Response("Media extension and content type mismatch", { status: 415, headers: { "Cache-Control": "no-store" } });
+      const declaredLength = Number(response.headers.get("content-length") || 0);
+      if (Number.isFinite(declaredLength) && declaredLength > MAX_MEDIA_ASSET_BYTES) {
+        return new Response("Media asset exceeds the 25 MiB static-asset limit", { status: 413, headers: { "Cache-Control": "no-store" } });
+      }
+      let bytes;
+      try { bytes = await response.arrayBuffer(); }
+      catch { return new Response("Media asset could not be read", { status: 502, headers: { "Cache-Control": "no-store" } }); }
+      if (bytes.byteLength > MAX_MEDIA_ASSET_BYTES) {
+        return new Response("Media asset exceeds the 25 MiB static-asset limit", { status: 413, headers: { "Cache-Control": "no-store" } });
+      }
+      const actualHash = await sha256Hex(bytes);
+      if (actualHash !== mediaMatch[1].toLowerCase()) {
+        return new Response("Media asset SHA-256 does not match its URL", { status: 502, headers: { "Cache-Control": "no-store" } });
+      }
       const headers = new Headers(response.headers);
       headers.set("Content-Type", contentType);
+      headers.set("Content-Length", String(bytes.byteLength));
+      headers.set("X-Content-SHA256", actualHash);
       headers.set("Cache-Control", "public, max-age=31536000, immutable");
       headers.set("X-Content-Type-Options", "nosniff");
       headers.delete("Set-Cookie");
-      return new Response(request.method === "HEAD" ? null : response.body, { status: 200, headers });
+      return new Response(request.method === "HEAD" ? null : bytes, { status: 200, headers });
     }
 
     return json({ ok: false, error: "not_found" }, 404);
