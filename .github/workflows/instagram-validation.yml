@@ -1,0 +1,51 @@
+name: Instagram feature validation
+
+on:
+  push:
+    branches:
+      - codex/instagram-unified-login-setup
+    paths:
+      - "scripts/instagram-*.mjs"
+      - "scripts/check-instagram-*.mjs"
+      - "scripts/test-instagram-*.mjs"
+      - "scripts/test-check-instagram-*.mjs"
+      - "data/instagram-*.json"
+      - "package.json"
+      - ".github/workflows/instagram-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instagram-feature-validation
+  cancel-in-progress: false
+
+jobs:
+  instagram-safety-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Check Instagram module syntax
+        run: |
+          node --check scripts/instagram-api.mjs
+          node --check scripts/instagram-runtime-api.mjs
+          node --check scripts/instagram-campaign-gate.mjs
+          node --check scripts/instagram-media-host.mjs
+          node --check scripts/instagram-state-store.mjs
+          node --check scripts/instagram-publisher.mjs
+          node --check scripts/publish-instagram.mjs
+          node --check scripts/check-instagram-media.mjs
+          node --check scripts/check-instagram-live-readiness.mjs
+      - name: Run mocked Instagram API contract tests
+        run: node scripts/test-instagram-api.mjs
+      - name: Run mocked campaign, approval, reservation and recovery tests
+        run: node scripts/test-instagram-campaign.mjs
+      - name: Run mocked media technical preflight tests
+        run: node scripts/test-check-instagram-media.mjs
+      - name: Run mocked read-only SUAT preflight contract tests
+        run: node scripts/test-check-instagram-live-readiness.mjs
