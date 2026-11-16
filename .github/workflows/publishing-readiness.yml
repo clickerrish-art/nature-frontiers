@@ -182,7 +182,7 @@ jobs:
           INSTAGRAM_PUBLISH_ENABLED: ${{ vars.INSTAGRAM_PUBLISH_ENABLED || 'NO' }}
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
           INSTAGRAM_STATE_BRANCH: ${{ vars.INSTAGRAM_STATE_BRANCH || 'instagram-publishing-state' }}
-          INSTAGRAM_MEDIA_BASE_URL: ${{ vars.INSTAGRAM_MEDIA_BASE_URL || format('https://raw.githubusercontent.com/{0}/{1}/media/instagram/', github.repository, github.sha) }}
+          INSTAGRAM_MEDIA_BASE_URL: ${{ format('https://raw.githubusercontent.com/{0}/{1}/media/instagram/', github.repository, github.sha) }}
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION || 'v27.0' }}
           GITHUB_TOKEN: ${{ github.token }}
