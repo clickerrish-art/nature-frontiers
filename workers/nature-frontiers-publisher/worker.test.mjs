@@ -101,6 +101,17 @@ const tooLarge = await worker.fetch(makeRequest("/webhooks/meta", "POST", {
   headers: { "content-length": String(1024 * 1024 + 1), "x-hub-signature-256": signature }, body: webhookEvent
 }), webhookEnv);
 assert.equal(tooLarge.status, 413);
+const streamedOversize = await worker.fetch(new Request("https://publisher.example/webhooks/meta", {
+  method: "POST",
+  body: new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(1024 * 1024 + 1));
+      controller.close();
+    }
+  }),
+  duplex: "half"
+}), webhookEnv);
+assert.equal(streamedOversize.status, 413);
 const webhookMethod = await worker.fetch(makeRequest("/webhooks/meta", "PUT"), webhookEnv);
 assert.equal(webhookMethod.status, 405);
 
