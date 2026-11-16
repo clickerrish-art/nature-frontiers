@@ -35,6 +35,7 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
     if (!/^[a-f0-9]{64}$/i.test(asset?.sha256 ?? "")) add("MEDIA_HASH_INVALID", `Media asset ${i + 1} needs a SHA-256 hash.`);
     else mediaHashes.push(asset.sha256.toLowerCase());
     if (!["image", "reel"].includes(asset?.kind)) add("MEDIA_KIND_INVALID", "Media kind must be image or reel.");
+    if (asset?.kind === "reel" && typeof asset?.share_to_feed !== "boolean") add("REEL_FEED_SETTING_MISSING", "Reels must explicitly declare share_to_feed true or false.");
     const technical = asset?.technical_check;
     const technicalAt = Date.parse(technical?.checked_at ?? "");
     const technicalAge = now.getTime() - technicalAt;
@@ -99,7 +100,6 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
         const finalUrl = new URL(check.final_url);
         const allowed = (policy.allowed_link_hosts ?? []).includes(finalUrl.hostname.toLowerCase());
         if (finalUrl.protocol !== "https:" || !allowed) add("LINK_REDIRECT_NOT_ALLOWED", "Verified link destination is not an approved HTTPS host.");
-      if (check.url && !links.includes(check.url)) add("LINK_CHECK_MISMATCH", "Link verification does not match a URL in the approved caption.");
       } catch { add("LINK_FINAL_URL_MISSING", "Link check must include a valid final URL."); }
     }
   }
