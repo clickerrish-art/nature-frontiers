@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { pathToFileURL } from "node:url";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
@@ -62,7 +63,7 @@ export async function checkInstagramMediaFile(filePath, kind, { probeImpl = (pat
   return result;
 }
 
-if (process.argv[1] && process.argv[1].endsWith("check-instagram-media.mjs")) {
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   const args = process.argv.slice(2);
   const fileIndex = args.indexOf("--file"), kindIndex = args.indexOf("--kind");
   if (fileIndex < 0 || kindIndex < 0 || !args[fileIndex + 1] || !args[kindIndex + 1]) {
