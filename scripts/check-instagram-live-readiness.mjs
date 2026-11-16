@@ -64,7 +64,7 @@ export async function checkInstagramLiveReadiness({ apiVersion, instagramUserId,
   };
 }
 
-if (process.argv[1] && process.argv[1].endsWith("check-instagram-live-readiness.mjs")) {
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   try {
     const result = await checkInstagramLiveReadiness({
       apiVersion: process.env.META_GRAPH_API_VERSION,
