@@ -1,0 +1,109 @@
+import { createHash } from "node:crypto";
+import { validateInstagramCampaign } from "./instagram-campaign-gate.mjs";
+
+const fingerprint = (campaign, gate) => createHash("sha256")
+  .update(JSON.stringify({ destination: campaign.destination, caption_sha256: gate.caption_sha256, media_sha256: gate.media_sha256 }))
+  .digest("hex");
+
+function fail(code, message) { return { ok: false, code, message }; }
+
+export async function runInstagramCampaign({
+  campaign, history = [], policy = {}, env = {}, stateStore, mediaHost, api,
+  now = new Date(), logger = console
+}) {
+  if (env.PUBLISH_EMERGENCY_STOP !== "false") return fail("EMERGENCY_STOP", "Emergency stop is active.");
+  if (env.PUBLISH_ENABLED !== "true") return fail("GLOBAL_PUBLISH_DISABLED", "Global publishing is not explicitly enabled.");
+  if (env.PUBLISH_DRY_RUN !== "false") return fail("DRY_RUN", "Dry-run is active; no platform request will be sent.");
+  if (env.INSTAGRAM_PUBLISH_ENABLED !== "YES") return fail("INSTAGRAM_PUBLISH_DISABLED", "Instagram publishing is not explicitly enabled.");
+  if (!/^d+$/.test(env.INSTAGRAM_USER_ID ?? "") || !env.INSTAGRAM_ACCESS_TOKEN || !/^vd+.d+$/.test(env.META_GRAPH_API_VERSION ?? "")) {
+    return fail("INSTAGRAM_CONFIG_MISSING", "Instagram user ID, SUAT and supported Graph API version are required.");
+  }
+  if (!stateStore || !mediaHost || !api) return fail("DEPENDENCY_MISSING", "Durable state, public media host and API client are mandatory.");
+  const gate = validateInstagramCampaign(campaign, history, policy, now);
+  if (!gate.ok) return { ...fail("CAMPAIGN_GATE_FAILED", "Campaign approval, rights or content checks failed."), issues: gate.issues };
+  if (campaign.media_assets[0].kind !== "image" && campaign.media_assets[0].kind !== "reel") return fail("MEDIA_KIND_INVALID", "Only image and Reel publishing are supported.");
+  const id = campaign.id;
+  if (typeof id !== "string" || !id.trim()) return fail("CAMPAIGN_ID_MISSING", "Stable campaign ID is required.");
+  const fp = fingerprint(campaign, gate);
+  let state = await stateStore.read();
+  const reservations = state.reservations ?? {};
+  let reservation = reservations[id];
+  if (reservation && reservation.fingerprint !== fp) return fail("RESERVATION_FINGERPRINT_MISMATCH", "Campaign content changed after reservation; manual review is required.");
+  if (reservation?.status === "published") return { ok: true, status: "already_published", mediaId: reservation.media_id, permalink: reservation.permalink };
+  if (reservation?.status === "publishing" || reservation?.status === "unknown") {
+    const recent = await api.listRecentMedia(100);
+    const matches = recent.filter((item) => item.caption === campaign.caption.trim() &&
+      Date.parse(item.timestamp ?? "") >= Date.parse(reservation.started_at) - 120000 &&
+      (campaign.media_assets[0].kind !== "reel" || item.media_type === "VIDEO"));
+    if (matches.length === 1 && matches[0].permalink) {
+      reservation = { ...reservation, status: "published", media_id: matches[0].id, permalink: matches[0].permalink, reconciled_at: now.toISOString() };
+      await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
+      return { ok: true, status: "reconciled_published", mediaId: reservation.media_id, permalink: reservation.permalink };
+    }
+    return fail("AMBIGUOUS_PUBLISH_REQUIRES_REVIEW", matches.length ? "Multiple matching remote posts found; no retry is allowed." : "Prior publish outcome is ambiguous; no retry is allowed. Inspect Instagram manually.");
+  }
+  if (reservation?.status === "published_unverified") {
+    const verified = await api.verifyMedia(reservation.media_id);
+    if (!verified?.permalink) return fail("REMOTE_VERIFICATION_FAILED", "Known media ID is not yet verifiable; no new publish will be attempted.");
+    reservation = { ...reservation, status: "published", permalink: verified.permalink, verified_at: now.toISOString() };
+    await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
+    return { ok: true, status: "verified_published", mediaId: reservation.media_id, permalink: verified.permalink };
+  }
+
+  if (!reservation) {
+    const quota = await api.getPublishingLimit();
+    if (quota.quotaUsage >= 100) return fail("PUBLISHING_QUOTA_REACHED", "Meta's 100-post rolling 24-hour limit has been reached.");
+    const hosted = await mediaHost.resolveAndVerify(campaign.media_assets[0]);
+    reservation = {
+      campaign_id: id, fingerprint: fp, status: "reserved", started_at: now.toISOString(),
+      media_path: campaign.media_assets[0].media_path, media_url: hosted.url,
+      media_sha256: campaign.media_assets[0].sha256, caption_sha256: gate.caption_sha256,
+      destination: campaign.destination, container_id: null, media_id: null, permalink: null
+    };
+    await stateStore.write({ ...state, reservations: { ...reservations, [id]: reservation } });
+    state = await stateStore.read();
+  }
+
+  if (!reservation.container_id) {
+    const created = await api.createContainer({
+      kind: campaign.media_assets[0].kind, url: reservation.media_url, caption: campaign.caption.trim()
+    });
+    if (!created?.containerId) {
+      reservation = { ...reservation, status: "unknown" };
+      await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+      return fail("CONTAINER_CREATE_AMBIGUOUS", "Container creation outcome is ambiguous; no automatic retry is allowed.");
+    }
+    reservation = { ...reservation, status: "container_created", container_id: created.containerId };
+    await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+    state = await stateStore.read();
+  }
+
+  const container = await api.getContainerStatus(reservation.container_id);
+  if (container.statusCode !== "FINISHED") return fail("CONTAINER_NOT_READY", `Meta container status is ${container.statusCode}; publication is blocked.`);
+  reservation = { ...reservation, status: "publishing", publish_attempted_at: now.toISOString() };
+  await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+  state = await stateStore.read();
+  let published;
+  try {
+    published = await api.publishContainer(reservation.container_id);
+  } catch (error) {
+    reservation = { ...reservation, status: "unknown", failure_type: error?.name ?? "Error" };
+    await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+    return fail("PUBLISH_OUTCOME_AMBIGUOUS", "Publish request failed or was ambiguous; durable state blocks retries. Inspect the account.");
+  }
+  if (!published?.mediaId) {
+    reservation = { ...reservation, status: "unknown" };
+    await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+    return fail("PUBLISH_OUTCOME_AMBIGUOUS", "Meta returned no media ID; no retry is allowed.");
+  }
+  reservation = { ...reservation, status: "published_unverified", media_id: published.mediaId };
+  await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+  const verified = await api.verifyMedia(published.mediaId);
+  if (!verified?.permalink || verified.id !== published.mediaId) {
+    return fail("REMOTE_VERIFICATION_FAILED", "Meta returned a media ID but read-back verification did not confirm its permalink.");
+  }
+  reservation = { ...reservation, status: "published", permalink: verified.permalink, verified_at: now.toISOString() };
+  await stateStore.write({ ...state, reservations: { ...state.reservations, [id]: reservation } });
+  logger.log?.(`Instagram campaign ${id} verified: ${verified.permalink}`);
+  return { ok: true, status: "published", mediaId: published.mediaId, permalink: verified.permalink };
+}
