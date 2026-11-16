@@ -58,7 +58,7 @@ jobs:
         run: node scripts/test-check-instagram-live-readiness.mjs
       - name: Run local Meta webhook signature, challenge and persistence tests
         run: node scripts/test-meta-webhook.mjs
-      - name: Run Cloudflare publisher Worker static-media route tests
+      - name: Run Cloudflare publisher Worker media and Meta webhook route tests
         run: node workers/nature-frontiers-publisher/worker.test.mjs
       - name: Confirm this workflow did not receive publishing credentials
         run: |
