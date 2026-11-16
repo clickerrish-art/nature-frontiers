@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 
 function assertPublicHost(url) {
-  const host = url.hostname.toLowerCase();
+  const host = url.hostname.toLowerCase().replace(/^\\[|\\]$/g, "");
   if (isIP(host)) throw new Error("Instagram media host must use a public DNS hostname, not an IP literal.");
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
       /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) ||
