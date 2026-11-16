@@ -72,6 +72,10 @@ export async function runInstagramCampaign({
   }
 
   if (!reservation.container_id) {
+    const hostedAgain = await mediaHost.resolveAndVerify(campaign.media_assets[0]);
+    if (hostedAgain.url !== reservation.media_url || hostedAgain.sha256 !== campaign.media_assets[0].sha256.toLowerCase()) {
+      return fail("HOSTED_MEDIA_CHANGED", "Public media bytes or URL changed after reservation; no container or post was created.");
+    }
     let created;
     try {
       created = await api.createContainer({
