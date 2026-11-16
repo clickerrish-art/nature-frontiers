@@ -55,5 +55,13 @@ if (workflow.includes("github.ref == 'refs/heads/main'") &&
   failed++;
   console.error("FAIL: Instagram publisher production-branch or dedicated-state-branch wiring is missing");
 }
+const mediaHostWorkflow = await readFile(".github/workflows/publishing-readiness.yml", "utf8");
+if (mediaHostWorkflow.includes("format('https://raw.githubusercontent.com/{0}/{1}/media/instagram/', github.repository, github.sha)") &&
+    !mediaHostWorkflow.includes("vars.INSTAGRAM_MEDIA_BASE_URL")) {
+  console.log("PASS: Instagram media origin is pinned to immutable zero-cost GitHub raw hosting");
+} else {
+  failed++;
+  console.error("FAIL: Instagram media origin is not pinned to the zero-cost immutable GitHub raw host");
+}
 if (failed) process.exit(1);
 console.log("Publishing safety tests passed. No platform API requests were made.");
