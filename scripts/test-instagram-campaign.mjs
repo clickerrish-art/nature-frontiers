@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { validateInstagramCampaign } from "./instagram-campaign-gate.mjs";
 import { createPublicMediaHost } from "./instagram-media-host.mjs";
-import { createMemoryInstagramStateStore } from "./instagram-state-store.mjs";
+import { createMemoryInstagramStateStore, createGitHubInstagramStateStore } from "./instagram-state-store.mjs";
 import { runInstagramCampaign } from "./instagram-publisher.mjs";
 
 const now = new Date("2026-11-16T12:00:00.000Z");
@@ -70,6 +70,42 @@ const tests = [
   ["failed read-back preserves published_unverified state without reposting", async () => { const {api,calls}=makeApi({async verifyMedia(){calls.push("verify");throw new Error("read unavailable");}}); const store=createMemoryInstagramStateStore(); await assert.rejects(()=>runInstagramCampaign({campaign:validCampaign(),policy,env:liveEnv,stateStore:store,mediaHost,api,now})); assert.equal((await store.read()).reservations["ig-campaign-1"].status,"published_unverified"); }],
   ["paid campaign requires verified disclosure text and exact approval", () => { const c=validCampaign(); c.commercial=true; c.disclosureRequired=true; c.disclosure={verified:true,text:"Paid partnership"}; c.caption += " Paid partnership"; c.human_approval.caption_sha256=hash(c.caption); assert.equal(validateInstagramCampaign(c,[],policy,now).ok,true); }],
   ["stale approval is blocked", () => { const c=validCampaign(); c.human_approval.approved_at="2026-01-01T00:00:00.000Z"; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="HUMAN_APPROVAL_NOT_BOUND")); }]
+
+  ["GitHub durable state store persists state with compare-and-swap", async () => {
+    let shaValue = "sha-1";
+    let persisted = { version: 1, reservations: {} };
+    const fetchImpl = async (url, options = {}) => {
+      if (options.method === "PUT") {
+        const body = JSON.parse(options.body);
+        assert.equal(body.sha, shaValue);
+        persisted = JSON.parse(Buffer.from(body.content, "base64").toString("utf8"));
+        shaValue = "sha-2";
+        return { ok: true, json: async () => ({ content: { sha: shaValue } }) };
+      }
+      return { ok: true, json: async () => ({ sha: shaValue, content: Buffer.from(JSON.stringify(persisted)).toString("base64") }) };
+    };
+    const store = createGitHubInstagramStateStore({ token: "test", repository: "owner/repo", branch: "codex/test", fetchImpl });
+    const state = await store.read();
+    await store.write({ ...state, reservations: { c1: { status: "reserved" } } });
+    assert.equal((await store.read()).reservations.c1.status, "reserved");
+  }],
+  ["GitHub durable state refuses a stale concurrent writer", async () => {
+    let shaValue = "sha-1";
+    let persisted = { version: 1, reservations: {} };
+    let puts = 0;
+    const fetchImpl = async (url, options = {}) => {
+      if (options.method === "PUT") { puts++; return { ok: true, json: async () => ({ content: { sha: "sha-3" } }) }; }
+      return { ok: true, json: async () => ({ sha: shaValue, content: Buffer.from(JSON.stringify(persisted)).toString("base64") }) };
+    };
+    const store = createGitHubInstagramStateStore({ token: "test", repository: "owner/repo", branch: "codex/test", fetchImpl });
+    const state = await store.read();
+    shaValue = "sha-2";
+    await assert.rejects(() => store.write({ ...state, reservations: { c1: { status: "reserved" } } }), /changed concurrently/);
+    assert.equal(puts, 0);
+  }],
+  ["default branch is rejected for Instagram durable publishing state", () => {
+    assert.throws(() => createGitHubInstagramStateStore({ token: "x", repository: "owner/repo", branch: "main" }), /non-default feature branch/);
+  }]
 ];
 let failed=0;
 for (const [name,fn] of tests) { try { await fn(); console.log("PASS:",name); } catch(e) { failed++; console.error("FAIL:",name,e); } }
