@@ -106,16 +106,17 @@ export default {
     if (url.pathname === "/health") {
       if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
       try {
-        const row = await env.DB.prepare("SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").first();
+        const row = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='meta_webhook_events'").first();
+        const schemaReady = row?.name === "meta_webhook_events";
         return Response.json({
           service: "nature-frontiers-publisher",
-          status: "online",
-          database: row?.table_count >= 6 ? "connected" : "schema_incomplete",
+          status: schemaReady ? "online" : "degraded",
+          database: schemaReady ? "connected" : "schema_incomplete",
           publishingEnabled: false,
           dryRun: true,
           emergencyStop: true,
           timestamp: new Date().toISOString()
-        }, { headers: { "Cache-Control": "no-store" } });
+        }, { status: schemaReady ? 200 : 503, headers: { "Cache-Control": "no-store" } });
       } catch {
         return json({ service: "nature-frontiers-publisher", status: "degraded", database: "unavailable", publishingEnabled: false, dryRun: true, emergencyStop: true }, 503);
       }
