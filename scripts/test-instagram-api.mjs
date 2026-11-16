@@ -19,6 +19,7 @@ const tests = [
     assert.equal(calls[0].options.headers.Authorization, "Bearer test-secret");
     assert.deepEqual(JSON.parse(calls[0].options.body), { caption: "Wildlife", image_url: "https://cdn.example.test/image.jpg" });
   }],
+  ["AI-generated media request sets Meta native disclosure flag", async () => { const calls=[]; const config={...configBase,fetchImpl:mockFetch([{body:{id:"container-ai"}}],calls)}; await createInstagramMediaContainer(config,{kind:"image",url:"https://cdn.example.test/ai.jpg",caption:"AI wildlife",aiGenerated:true}); assert.equal(JSON.parse(calls[0].options.body).is_ai_generated,true); }],
   ["Reel container uses media_type REELS", async () => {
     const calls = [];
     const config = { ...configBase, fetchImpl: mockFetch([{ body: { id: "container-2" } }], calls) };
