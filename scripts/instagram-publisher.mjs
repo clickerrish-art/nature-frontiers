@@ -85,7 +85,7 @@ export async function runInstagramCampaign({
     let created;
     try {
       created = await api.createContainer({
-        kind: campaign.media_assets[0].kind, url: reservation.media_url, caption: campaign.caption.trim(), shareToFeed: campaign.media_assets[0].share_to_feed
+        kind: campaign.media_assets[0].kind, url: reservation.media_url, caption: campaign.caption.trim(), shareToFeed: campaign.media_assets[0].share_to_feed, aiGenerated: campaign.media_assets[0].ai_generated === true
       });
     } catch (error) {
       reservation = { ...reservation, status: "unknown", container_create_failure: error?.name ?? "Error" };
