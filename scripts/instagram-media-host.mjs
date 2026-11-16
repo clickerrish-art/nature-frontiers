@@ -36,7 +36,7 @@ export function createPublicMediaHost({ baseUrl, fetchImpl = fetch }) {
       const type = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
       if (type !== expectedType) throw new Error(`Media content type must be ${expectedType}; received ${type || "missing"}.`);
       const length = Number(response.headers.get("content-length"));
-      const maxBytes = asset.kind === "image" ? 8 * 1000 * 1000 : 300 * 1000 * 1000;
+      const maxBytes = asset.kind === "image" ? 8 * 1000 * 1000 : 100 * 1000 * 1000;
       if (!Number.isSafeInteger(length) || length <= 0 || length > maxBytes) throw new Error("Media host must provide a valid Content-Length within the configured safety limit.");
       if (!response.body || typeof response.body[Symbol.asyncIterator] !== "function") throw new Error("Media response streaming is unavailable; content hash cannot be verified.");
       const hash = createHash("sha256");
