@@ -68,8 +68,8 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
     if (asset?.watermark_scan?.status !== "clean") add("WATERMARK_NOT_CLEARED", "Asset has no clean watermark scan.");
     if (asset?.audio?.present === true && (asset.audio.license_status !== "licensed" || !asset.audio.license_ref)) add("AUDIO_NOT_CLEARED", "Reel audio lacks documented licensing.");
     if (asset?.audio?.present !== true && asset?.audio?.present !== false) add("AUDIO_STATUS_UNKNOWN", "Asset must explicitly declare whether audio is present.");
-    if (asset?.ai_generated === true && (asset?.ai_disclosure?.required !== true || asset?.ai_disclosure?.native_control_verified !== true)) {
-      add("AI_DISCLOSURE_MISSING", "AI-generated media requires verified destination-native disclosure.");
+    if (asset?.ai_generated === true) {
+      add("AI_GENERATED_MEDIA_PROHIBITED", "Nature Frontiers requires genuine original wildlife media; AI-generated assets are not eligible for publication, even when disclosed.");
     }
   }
 
