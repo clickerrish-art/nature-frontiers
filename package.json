@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "validate": "node scripts/validate-campaign.mjs",
-    "test:publishing": "node scripts/test-publishing-safety.mjs",\n    "test:readiness": "node scripts/test-check-publishing-readiness.mjs",
+    "test:publishing": "node scripts/test-publishing-safety.mjs",
+    "test:readiness": "node scripts/test-check-publishing-readiness.mjs",
     "publish:facebook": "node scripts/publish-facebook.mjs",
     "test:meta-policy": "node scripts/test-meta-error-policy.mjs",
     "test:prepublish": "node scripts/test-prepublish-gate.mjs",
