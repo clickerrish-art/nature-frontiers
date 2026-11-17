@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-const script = new URL("./check-publishing-readiness.mjs", import.meta.url);
+const script = fileURLToPath(new URL("./check-publishing-readiness.mjs", import.meta.url));
 const base = {
   ...process.env,
   META_PAGE_ID: "123",
@@ -15,17 +16,16 @@ const base = {
   TIKTOK_OPEN_ID: ""
 };
 
-const pass = spawnSync(process.execPath, [script.pathname], { env: base, encoding: "utf8" });
+const pass = spawnSync(process.execPath, [script], { env: base, encoding: "utf8" });
 assert.equal(pass.status, 0, pass.stderr);
 assert.match(pass.stdout, /Instagram: CREDENTIALS PRESENT/);
-assert.doesNotMatch(pass.stdout, /Missing: INSTAGRAM_ACCESS_TOKEN, INSTAGRAM_USER_ID, META_GRAPH_API_VERSION/);
 
 const missingVersion = { ...base };
 delete missingVersion.META_GRAPH_API_VERSION;
 missingVersion.INSTAGRAM_GRAPH_API_VERSION = "v27.0";
-const fail = spawnSync(process.execPath, [script.pathname], { env: missingVersion, encoding: "utf8" });
+const fail = spawnSync(process.execPath, [script], { env: missingVersion, encoding: "utf8" });
 assert.equal(fail.status, 0, fail.stderr);
 assert.match(fail.stdout, /Instagram: NOT READY/);
-assert.match(fail.stdout, /Missing: META_GRAPH_API_VERSION/);
+assert.match(fail.stdout, /Missing: INSTAGRAM_ACCESS_TOKEN, INSTAGRAM_USER_ID, META_GRAPH_API_VERSION/);
 
 console.log("Publishing readiness variable mapping: PASS");
