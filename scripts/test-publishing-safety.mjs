@@ -8,6 +8,11 @@ const cases = [
     expected: "PUBLISH_EMERGENCY_STOP is active; publishing is blocked."
   },
   {
+    name: "feature branches cannot run the live Facebook publisher",
+    env: { GITHUB_REF_NAME: "codex/instagram-unified-login-setup", PUBLISH_EMERGENCY_STOP: "false", FACEBOOK_PUBLISH_ENABLED: "YES", PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    expected: "Live Facebook publishing is restricted to the production main branch; feature branches cannot publish."
+  },
+  {
     name: "Facebook publishing is disabled by default even when the generic publish gate is enabled",
     env: { PUBLISH_EMERGENCY_STOP: "false", FACEBOOK_PUBLISH_ENABLED: "NO", PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
     expected: "FACEBOOK_PUBLISH_ENABLED is not YES; Facebook publishing is disabled."
@@ -47,6 +52,7 @@ for (const test of cases) {
 const workflow = await readFile(".github/workflows/publishing-readiness.yml", "utf8");
 const instagramRunner = await readFile("scripts/publish-instagram.mjs", "utf8");
 if (workflow.includes("github.ref == 'refs/heads/main'") &&
+    workflow.includes("facebook-publisher:\n    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'") &&
     !workflow.includes("INSTAGRAM_STATE_BRANCH") &&
     instagramRunner.includes('process.env.GITHUB_REF_NAME !== "main"') &&
     instagramRunner.includes('const stateBranch = "instagram-publishing-state";')) {
