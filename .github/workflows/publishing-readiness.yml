@@ -23,6 +23,8 @@ on:
       - "scripts/test-check-instagram-media.mjs"
       - "scripts/check-instagram-live-readiness.mjs"
       - "scripts/test-check-instagram-live-readiness.mjs"
+      - "scripts/check-publishing-readiness.mjs"
+      - "scripts/test-check-publishing-readiness.mjs"
       - "data/instagram-campaigns.json"
       - "data/instagram-publishing-state.json"
       - "media/instagram/**"
@@ -85,6 +87,8 @@ jobs:
           node --check scripts/test-check-instagram-media.mjs
           node --check scripts/check-instagram-live-readiness.mjs
           node --check scripts/test-check-instagram-live-readiness.mjs
+          node --check scripts/check-publishing-readiness.mjs
+          node --check scripts/test-check-publishing-readiness.mjs
           node --check scripts/prepublish-gate.mjs
           node --check scripts/meta-webhook.mjs
           node --check workers/nature-frontiers-publisher/worker.js
@@ -100,6 +104,8 @@ jobs:
         run: node scripts/test-check-instagram-media.mjs
       - name: Test Instagram live readiness (mocked Meta GET calls)
         run: node scripts/test-check-instagram-live-readiness.mjs
+      - name: Test publishing readiness variable mapping
+        run: npm run test:readiness
       - name: Test Meta circuit-breaker policy
         run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
