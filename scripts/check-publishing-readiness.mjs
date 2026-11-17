@@ -6,7 +6,7 @@ const groups = [
   },
   {
     platform: "Instagram",
-    required: ["INSTAGRAM_ACCESS_TOKEN", "INSTAGRAM_USER_ID", "INSTAGRAM_GRAPH_API_VERSION"],
+    required: ["INSTAGRAM_ACCESS_TOKEN", "INSTAGRAM_USER_ID", "META_GRAPH_API_VERSION"],
     note: "Presence only; the token must match the selected Instagram API login path. Token validity, scopes, account ownership, App Review status, and publishing eligibility are not verified. Do not substitute the Facebook Page token."
   },
   {
