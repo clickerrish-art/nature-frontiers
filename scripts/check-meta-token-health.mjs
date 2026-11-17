@@ -13,7 +13,15 @@ export function assessTokenDebugInfo(debug, expectedAppId, nowSeconds = Math.flo
   for (const scope of requiredScopes) if (!scopes.has(scope)) issues.push(label + " is missing required permission: " + scope);
   for (const [field, label] of [["expires_at", "token"], ["data_access_expires_at", "data access"]]) {
     if (!debug || !Object.hasOwn(debug, field)) { issues.push("The " + label + " expiry field is missing."); continue; }
-    const expiry = Number(debug[field]);
+    const rawExpiry = debug[field];
+    // Meta uses numeric 0 for a non-expiring token. Do not coerce null or
+    // an empty string to 0: Number(null) and Number("") would falsely pass
+    // these as permanent credentials.
+    if (rawExpiry === null || rawExpiry === "") {
+      issues.push("The " + label + " expiry value is invalid.");
+      continue;
+    }
+    const expiry = Number(rawExpiry);
     if (!Number.isFinite(expiry) || expiry < 0) issues.push("The " + label + " expiry value is invalid.");
     else if (expiry > 0 && expiry - nowSeconds < 14 * 86400) issues.push("The " + label + " expires in fewer than 14 days.");
   }
