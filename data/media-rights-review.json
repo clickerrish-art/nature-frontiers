@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "brand": "Nature Frontiers",
+  "reviewed_at": "2026-11-17",
+  "review_scope": "Pexels source-page and platform-license review only; this is not approval of an edited export or a campaign.",
+  "license_source": "https://www.pexels.com/license/",
+  "license_findings": {
+    "source_pages_listed_free": true,
+    "free_to_use": true,
+    "editing_permitted": true,
+    "social_media_use_explicitly_includes_facebook_and_instagram": true,
+    "product_promotion_explicitly_listed": true,
+    "attribution_required": false,
+    "credit_appreciated": true,
+    "restrictions": [
+      "Do not sell unaltered copies.",
+      "Do not redistribute the files on stock-photo or wallpaper platforms.",
+      "Do not imply endorsement by people or brands shown.",
+      "Do not use the content as a trademark, design mark, trade name, business name or service mark."
+    ],
+    "territorial_scope": "Not independently established from the license summary; do not assert worldwide rights without legal/owner confirmation."
+  },
+  "assets": [
+    {
+      "pexels_id": "20600433",
+      "title": "Circling around a saltwater crocodile",
+      "creator": "Eclipse Chasers",
+      "source_page": "https://www.pexels.com/video/circling-around-a-saltwater-crocodile-20600433/",
+      "source_file_url": "https://videos.pexels.com/video-files/20600433/20600433-uhd_3840_2160_60fps.mp4",
+      "canva_asset_id": "VAHbLGP7GXo",
+      "source_license_label": "Free",
+      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 27, "fps": 59.94 },
+      "source_review": "passed",
+      "final_export_sha256": null,
+      "final_audio_review": "pending",
+      "final_visual_review": "pending",
+      "owner_approval": "pending",
+      "publication_status": "held"
+    },
+    {
+      "pexels_id": "6423036",
+      "title": "Close-up Video of a Crocodile",
+      "creator": "Mohan Mx",
+      "source_page": "https://www.pexels.com/video/close-up-video-of-a-crocodile-6423036/",
+      "source_file_url": "https://videos.pexels.com/video-files/6423036/6423036-hd_1920_1080_25fps.mp4",
+      "canva_asset_id": "VAHbLMTO_Ro",
+      "source_license_label": "Free",
+      "metadata": { "width": 1920, "height": 1080, "duration_seconds": 8, "fps": 25 },
+      "source_review": "passed",
+      "final_export_sha256": null,
+      "final_audio_review": "pending",
+      "final_visual_review": "pending",
+      "owner_approval": "pending",
+      "publication_status": "held"
+    },
+    {
+      "pexels_id": "4996609",
+      "title": "Close-up Footage of a Crocodile",
+      "creator": "Catherine Franken",
+      "source_page": "https://www.pexels.com/video/close-up-footage-of-a-crocodile-4996609/",
+      "source_file_url": "https://videos.pexels.com/video-files/4996609/4996609-uhd_3840_2160_30fps.mp4",
+      "canva_asset_id": "VAHbLBKiuLo",
+      "source_license_label": "Free",
+      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 16, "fps": 29.97 },
+      "source_review": "passed",
+      "final_export_sha256": null,
+      "final_audio_review": "pending",
+      "final_visual_review": "pending",
+      "owner_approval": "pending",
+      "publication_status": "held"
+    },
+    {
+      "pexels_id": "20443910",
+      "title": "Basking Crocodile",
+      "creator": "Floating Rabbit",
+      "source_page": "https://www.pexels.com/video/basking-crocodile-20443910/",
+      "source_file_url": "https://videos.pexels.com/video-files/20443910/20443910-uhd_3840_2160_25fps.mp4",
+      "canva_asset_id": "VAHbLMrBN-0",
+      "source_license_label": "Free",
+      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 13, "fps": 25 },
+      "source_review": "passed",
+      "final_export_sha256": null,
+      "final_audio_review": "pending",
+      "final_visual_review": "pending",
+      "owner_approval": "pending",
+      "publication_status": "held"
+    },
+    {
+      "pexels_id": "40627960",
+      "title": "Serene River Scene with Crocodile Swim",
+      "creator": "Mariia Stepanova",
+      "source_page": "https://www.pexels.com/video/serene-river-scene-with-crocodile-swim-40627960/",
+      "source_file_url": "https://videos.pexels.com/video-files/40627960/17356756_3840_2160_60fps.mp4",
+      "canva_asset_id": "VAHbLEOt6cA",
+      "source_license_label": "Free",
+      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 15, "fps": 60 },
+      "source_review": "passed",
+      "final_export_sha256": null,
+      "final_audio_review": "pending",
+      "final_visual_review": "pending",
+      "owner_approval": "pending",
+      "publication_status": "held"
+    }
+  ],
+  "excluded_assets": [
+    {
+      "pexels_id": "35076399",
+      "source_page": "https://www.pexels.com/video/crocodiles-feeding-frenzy-in-wild-habitat-35076399/",
+      "reason": "Excluded from this edit until full visual review confirms it contains no graphic feeding, injury or distress."
+    }
+  ],
+  "release_gate": {
+    "requires_final_export_sha256": true,
+    "requires_exact_export_audio_and_visual_review": true,
+    "requires_rights_scope_confirmation_for_final_edit": true,
+    "requires_owner_approval_bound_to_final_caption_and_export_hash": true,
+    "requires_owner_provisioned_meta_credentials": true,
+    "requires_production_configuration_and_readback": true,
+    "publishing_enabled": false,
+    "dry_run": true,
+    "emergency_stop": true
+  }
+}
