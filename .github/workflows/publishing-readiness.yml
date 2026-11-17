@@ -122,7 +122,7 @@ jobs:
         run: node scripts/test-publishing-safety.mjs
 
   facebook-publisher:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
     needs: safety-tests
