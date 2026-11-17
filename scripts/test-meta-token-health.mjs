@@ -10,10 +10,14 @@ assert.equal(assessTokenDebugInfo({...good,expires_at:now+5*86400},"123",now).ok
 assert.equal(assessTokenDebugInfo({...good,expires_at:0},"123",now).ok,true);
 const missingExpiry = {...good}; delete missingExpiry.data_access_expires_at;
 assert.equal(assessTokenDebugInfo(missingExpiry,"123",now).ok,false);
+assert.equal(assessTokenDebugInfo({...good,expires_at:null},"123",now).ok,false);
+assert.equal(assessTokenDebugInfo({...good,data_access_expires_at:null},"123",now).ok,false);
+assert.equal(assessTokenDebugInfo({...good,expires_at:""},"123",now).ok,false);
+assert.equal(assessTokenDebugInfo({...good,data_access_expires_at:""},"123",now).ok,false);
 const instagramGood = { ...good, scopes: ["instagram_basic", "instagram_content_publish"] };
 assert.equal(assessTokenDebugInfo(instagramGood,"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,true);
 assert.equal(assessTokenDebugInfo({...instagramGood,is_valid:false},"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,false);
 assert.equal(assessTokenDebugInfo({...instagramGood,scopes:["instagram_basic"]},"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,false);
 assert.equal(assessTokenDebugInfo({...instagramGood,expires_at:now+3*86400},"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,false);
 assert.equal(assessTokenDebugInfo({...instagramGood,app_id:"999"},"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,false);
-console.log("Meta token health assessment tests: 12/12 passed.");
+console.log("Meta token health assessment tests: 16/16 passed.");
