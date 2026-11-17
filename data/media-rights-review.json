@@ -2,7 +2,7 @@
   "schema_version": 1,
   "brand": "Nature Frontiers",
   "reviewed_at": "2026-11-17",
-  "review_scope": "Pexels source-page and platform-license review only; this is not approval of an edited export or a campaign.",
+  "review_scope": "Pexels source-page, license-summary and Terms of Service review only; this is not clearance of third-party rights visible in footage, the exact edited export, its audio, or a campaign.",
   "license_source": "https://www.pexels.com/license/",
   "license_findings": {
     "source_pages_listed_free": true,
@@ -13,12 +13,14 @@
     "attribution_required": false,
     "credit_appreciated": true,
     "restrictions": [
-      "Do not sell unaltered copies.",
+      "Do not sell or distribute the footage on a standalone basis; the Terms define standalone use as substantially unchanged, including use with only a filter, resize or crop.",
       "Do not redistribute the files on stock-photo or wallpaper platforms.",
-      "Do not imply endorsement by people or brands shown.",
-      "Do not use the content as a trademark, design mark, trade name, business name or service mark."
+      "Do not imply endorsement or affiliation by people, brands, organisations or other third parties shown.",
+      "Do not use the content as a trademark, design mark, trade name, business name or service mark.",
+      "Do not give a misleading impression that Nature Frontiers created the footage or owns it, or holds exclusive rights.",
+      "Additional intellectual-property, privacy, publicity, property and similar rights may apply to depicted people, logos, brands, buildings, organisations or other content; obtain permissions where required."
     ],
-    "territorial_scope": "Not independently established from the license summary; do not assert worldwide rights without legal/owner confirmation."
+    "territorial_scope": "The Pexels License grant described in the Terms of Service is worldwide, non-exclusive and royalty-free, perpetual (or as long as allowed by law), subject to prohibited uses, other terms and any additional third-party intellectual-property, privacy, publicity, property or similar rights. This does not establish exclusivity, endorsement, or clearance of every right in the depicted material."
   },
   "assets": [
     {
@@ -29,7 +31,12 @@
       "source_file_url": "https://videos.pexels.com/video-files/20600433/20600433-uhd_3840_2160_60fps.mp4",
       "canva_asset_id": "VAHbLGP7GXo",
       "source_license_label": "Free",
-      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 27, "fps": 59.94 },
+      "metadata": {
+        "width": 3840,
+        "height": 2160,
+        "duration_seconds": 27,
+        "fps": 59.94
+      },
       "source_review": "passed",
       "final_export_sha256": null,
       "final_audio_review": "pending",
@@ -45,7 +52,12 @@
       "source_file_url": "https://videos.pexels.com/video-files/6423036/6423036-hd_1920_1080_25fps.mp4",
       "canva_asset_id": "VAHbLMTO_Ro",
       "source_license_label": "Free",
-      "metadata": { "width": 1920, "height": 1080, "duration_seconds": 8, "fps": 25 },
+      "metadata": {
+        "width": 1920,
+        "height": 1080,
+        "duration_seconds": 8,
+        "fps": 25
+      },
       "source_review": "passed",
       "final_export_sha256": null,
       "final_audio_review": "pending",
@@ -61,7 +73,12 @@
       "source_file_url": "https://videos.pexels.com/video-files/4996609/4996609-uhd_3840_2160_30fps.mp4",
       "canva_asset_id": "VAHbLBKiuLo",
       "source_license_label": "Free",
-      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 16, "fps": 29.97 },
+      "metadata": {
+        "width": 3840,
+        "height": 2160,
+        "duration_seconds": 16,
+        "fps": 29.97
+      },
       "source_review": "passed",
       "final_export_sha256": null,
       "final_audio_review": "pending",
@@ -77,7 +94,12 @@
       "source_file_url": "https://videos.pexels.com/video-files/20443910/20443910-uhd_3840_2160_25fps.mp4",
       "canva_asset_id": "VAHbLMrBN-0",
       "source_license_label": "Free",
-      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 13, "fps": 25 },
+      "metadata": {
+        "width": 3840,
+        "height": 2160,
+        "duration_seconds": 13,
+        "fps": 25
+      },
       "source_review": "passed",
       "final_export_sha256": null,
       "final_audio_review": "pending",
@@ -93,7 +115,12 @@
       "source_file_url": "https://videos.pexels.com/video-files/40627960/17356756_3840_2160_60fps.mp4",
       "canva_asset_id": "VAHbLEOt6cA",
       "source_license_label": "Free",
-      "metadata": { "width": 3840, "height": 2160, "duration_seconds": 15, "fps": 60 },
+      "metadata": {
+        "width": 3840,
+        "height": 2160,
+        "duration_seconds": 15,
+        "fps": 60
+      },
       "source_review": "passed",
       "final_export_sha256": null,
       "final_audio_review": "pending",
@@ -119,5 +146,7 @@
     "publishing_enabled": false,
     "dry_run": true,
     "emergency_stop": true
-  }
+  },
+  "license_terms_source": "https://www.pexels.com/terms-of-service/",
+  "license_terms_last_updated": "2026-10-20"
 }

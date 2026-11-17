@@ -8,7 +8,10 @@ assert.equal(review.license_findings.editing_permitted, true);
 assert.equal(review.license_findings.social_media_use_explicitly_includes_facebook_and_instagram, true);
 assert.equal(review.license_findings.attribution_required, false);
 assert.ok(review.license_findings.restrictions.length >= 4);
-assert.match(review.license_findings.territorial_scope, /do not assert worldwide/i);
+assert.match(review.license_findings.territorial_scope, /worldwide, non-exclusive and royalty-free/i);
+assert.match(review.license_findings.territorial_scope, /additional third-party/i);
+assert.ok(review.license_terms_source.endsWith("/terms-of-service/"));
+assert.equal(review.license_terms_last_updated, "2026-10-20");
 assert.equal(review.assets.length, 5);
 const ids = new Set();
 for (const asset of review.assets) {
