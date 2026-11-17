@@ -70,6 +70,8 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
     if (asset?.audio?.present !== true && asset?.audio?.present !== false) add("AUDIO_STATUS_UNKNOWN", "Asset must explicitly declare whether audio is present.");
     if (asset?.ai_generated === true) {
       add("AI_GENERATED_MEDIA_PROHIBITED", "Nature Frontiers requires genuine original wildlife media; AI-generated assets are not eligible for publication, even when disclosed.");
+    } else if (asset?.ai_generated !== false) {
+      add("MEDIA_ORIGIN_UNDECLARED", "Media origin must be explicitly confirmed as non-AI before publication.");
     }
   }
 
