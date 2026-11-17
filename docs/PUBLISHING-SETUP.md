@@ -22,13 +22,13 @@ Products in `data/products.json` remain `review-required`. Do not change a produ
 - `META_PAGE_ID`
 - `META_PAGE_ACCESS_TOKEN`
 
-### Instagram (Meta Unified Login — Instagram Login Compatible)
+### Instagram (Meta Unified Login)
 - Configuration ID: `1133415852647659`.
 - Login variation: `General`.
 - Selected token type: System-user access token (SUAT), non-expiring.
 - Selected asset: Instagram professional account required; ad account optional.
-- Selected permissions shown in Meta configuration: `instagram_basic`, `instagram_content_publish`, `instagram_manage_messages`.
-- The owner previously removed `instagram_manage_messages` from the App Review request because messaging is not part of the required publishing workflow. Keep messaging out of the requested scope unless the product actually implements Instagram messaging.
+- Required permissions for this publishing workflow: `instagram_basic` and `instagram_content_publish`.
+- Do not request `instagram_manage_messages`; messaging is outside the product's publishing scope.
 - `INSTAGRAM_ACCESS_TOKEN` — the SUAT generated for the Nature Frontiers Instagram asset. Store only as a GitHub Actions secret; never commit or paste it into source, logs, issues, or chat.
 - `INSTAGRAM_USER_ID` — `17841413164146618` (the professional account ID verified with a successful Graph API object lookup).
 - `META_GRAPH_API_VERSION` — the shared, currently supported Meta Graph API version used by the Facebook and Instagram adapters. Do not set a separate `INSTAGRAM_GRAPH_API_VERSION`; the Instagram workflow reads `META_GRAPH_API_VERSION`.
