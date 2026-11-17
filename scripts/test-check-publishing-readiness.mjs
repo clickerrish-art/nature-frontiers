@@ -26,6 +26,6 @@ missingVersion.INSTAGRAM_GRAPH_API_VERSION = "v27.0";
 const fail = spawnSync(process.execPath, [script], { env: missingVersion, encoding: "utf8" });
 assert.equal(fail.status, 0, fail.stderr);
 assert.match(fail.stdout, /Instagram: NOT READY/);
-assert.match(fail.stdout, /Missing: INSTAGRAM_ACCESS_TOKEN, INSTAGRAM_USER_ID, META_GRAPH_API_VERSION/);
+assert.match(fail.stdout, /Missing: META_GRAPH_API_VERSION/);
 
 console.log("Publishing readiness variable mapping: PASS");
