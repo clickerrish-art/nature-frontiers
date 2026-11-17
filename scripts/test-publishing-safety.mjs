@@ -38,7 +38,7 @@ let failed = 0;
 for (const test of cases) {
   const result = spawnSync(process.execPath, ["scripts/publish-facebook.mjs"], {
     encoding: "utf8",
-    env: { ...process.env, ...test.env }
+    env: { ...process.env, GITHUB_REF_NAME: "main", ...test.env }
   });
   const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
   if (result.status !== 0 || !output.includes(test.expected)) {
