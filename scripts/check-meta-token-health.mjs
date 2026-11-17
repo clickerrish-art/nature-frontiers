@@ -49,15 +49,17 @@ async function inspectToken({ token, label, requiredScopes }) {
 }
 
 async function main() {
-  if (missing.length) throw new Error("Missing required secret/configuration names: " + missing.join(", ") + ". No credential values were read or logged.");
-  if (!/^v\\d+\\.\\d+$/.test(version)) throw new Error("META_GRAPH_API_VERSION must be pinned explicitly as vN.N.");
+  if (missing.length) { const message = "Missing required secret/configuration names: " + missing.join(", ") + ". No credential values were read or logged."; await createOrFindAlert(message); throw new Error(message); }
+  if (!/^v\d+\.\d+$/.test(version)) throw new Error("META_GRAPH_API_VERSION must be pinned explicitly as vN.N.");
   const checks = [
     { token: process.env.META_PAGE_ACCESS_TOKEN, label: "Facebook Page access token", requiredScopes: ["pages_manage_posts", "pages_read_engagement"] },
     { token: process.env.INSTAGRAM_ACCESS_TOKEN, label: "Instagram publishing token", requiredScopes: ["instagram_basic", "instagram_content_publish"] }
   ];
   const results = [];
   for (const check of checks) {
-    const assessment = await inspectToken(check);
+    let assessment;
+    try { assessment = await inspectToken(check); }
+    catch (error) { const message = check.label + " health check could not complete: " + error.message; await createOrFindAlert(message); throw new Error("Meta token health failed closed: " + message); }
     results.push({ label: check.label, assessment });
     if (!assessment.ok) {
       const message = check.label + " health failed: " + assessment.issues.join(" ");
