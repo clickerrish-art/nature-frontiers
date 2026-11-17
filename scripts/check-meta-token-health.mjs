@@ -1,16 +1,16 @@
-const requiredEnv = ["META_GRAPH_API_VERSION", "META_APP_ID", "META_APP_SECRET", "META_PAGE_ACCESS_TOKEN"];
+const requiredEnv = ["META_GRAPH_API_VERSION", "META_APP_ID", "META_APP_SECRET", "META_PAGE_ACCESS_TOKEN", "INSTAGRAM_ACCESS_TOKEN"];
 const missing = requiredEnv.filter((key) => !process.env[key]);
 const version = process.env.META_GRAPH_API_VERSION ?? "";
 const repo = process.env.GITHUB_REPOSITORY ?? "";
 const githubToken = process.env.GITHUB_TOKEN ?? "";
 const alertTitle = "Meta token health requires owner action";
 
-export function assessTokenDebugInfo(debug, expectedAppId, nowSeconds = Math.floor(Date.now() / 1000)) {
+export function assessTokenDebugInfo(debug, expectedAppId, nowSeconds = Math.floor(Date.now() / 1000), requiredScopes = ["pages_manage_posts", "pages_read_engagement"], label = "Page access token") {
   const issues = [];
-  if (!debug || debug.is_valid !== true) issues.push("The Page access token is invalid or revoked.");
+  if (!debug || debug.is_valid !== true) issues.push("The " + label + " is invalid or revoked.");
   if (expectedAppId && String(debug?.app_id ?? "") !== String(expectedAppId)) issues.push("The token belongs to an unexpected Meta app.");
   const scopes = new Set(Array.isArray(debug?.scopes) ? debug.scopes : []);
-  for (const scope of ["pages_manage_posts", "pages_read_engagement"]) if (!scopes.has(scope)) issues.push("Required permission is missing: " + scope);
+  for (const scope of requiredScopes) if (!scopes.has(scope)) issues.push(label + " is missing required permission: " + scope);
   for (const [field, label] of [["expires_at", "token"], ["data_access_expires_at", "data access"]]) {
     if (!debug || !Object.hasOwn(debug, field)) { issues.push("The " + label + " expiry field is missing."); continue; }
     const expiry = Number(debug[field]);
@@ -33,28 +33,38 @@ async function createOrFindAlert(message) {
   if (!created.ok) throw new Error("Unable to create the token-health alert (HTTP " + created.status + ").");
 }
 
-async function main() {
-  if (missing.length) throw new Error("Missing required secret/configuration names: " + missing.join(", ") + ". No credential values were read or logged.");
-  if (!/^v\d+\.\d+$/.test(version)) throw new Error("META_GRAPH_API_VERSION must be pinned explicitly as vN.N.");
-  const appToken = process.env.META_APP_ID + "|" + process.env.META_APP_SECRET;
+async function inspectToken({ token, label, requiredScopes }) {
   const endpoint = new URL("https://graph.facebook.com/" + version + "/debug_token");
-  endpoint.searchParams.set("input_token", process.env.META_PAGE_ACCESS_TOKEN);
-  endpoint.searchParams.set("access_token", appToken);
+  endpoint.searchParams.set("input_token", token);
+  endpoint.searchParams.set("access_token", process.env.META_APP_ID + "|" + process.env.META_APP_SECRET);
   let response;
   try { response = await fetch(endpoint, { signal: AbortSignal.timeout(15000) }); }
-  catch { throw new Error("Meta debug_token request failed at the network layer. Credential values were not logged."); }
+  catch { throw new Error(label + " debug_token request failed at the network layer. Credential values were not logged."); }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload.error) {
     const code = payload?.error?.code ?? "unknown", subcode = payload?.error?.error_subcode ?? "unknown";
-    const message = "Meta debug_token returned HTTP " + response.status + ", error code " + code + ", subcode " + subcode + ". Owner re-authorisation or app configuration review may be required.";
-    await createOrFindAlert(message);
-    throw new Error(message);
+    throw new Error(label + " debug_token returned HTTP " + response.status + ", error code " + code + ", subcode " + subcode + ". Owner re-authorisation or app configuration review may be required.");
   }
-  const assessment = assessTokenDebugInfo(payload.data, process.env.META_APP_ID);
-  if (!assessment.ok) {
-    await createOrFindAlert(assessment.issues.map((item) => "- " + item).join("\n"));
-    throw new Error("Meta token health failed closed: " + assessment.issues.join(" "));
+  return assessTokenDebugInfo(payload.data, process.env.META_APP_ID, Math.floor(Date.now() / 1000), requiredScopes, label);
+}
+
+async function main() {
+  if (missing.length) throw new Error("Missing required secret/configuration names: " + missing.join(", ") + ". No credential values were read or logged.");
+  if (!/^v\\d+\\.\\d+$/.test(version)) throw new Error("META_GRAPH_API_VERSION must be pinned explicitly as vN.N.");
+  const checks = [
+    { token: process.env.META_PAGE_ACCESS_TOKEN, label: "Facebook Page access token", requiredScopes: ["pages_manage_posts", "pages_read_engagement"] },
+    { token: process.env.INSTAGRAM_ACCESS_TOKEN, label: "Instagram publishing token", requiredScopes: ["instagram_basic", "instagram_content_publish"] }
+  ];
+  const results = [];
+  for (const check of checks) {
+    const assessment = await inspectToken(check);
+    results.push({ label: check.label, assessment });
+    if (!assessment.ok) {
+      const message = check.label + " health failed: " + assessment.issues.join(" ");
+      await createOrFindAlert(message);
+      throw new Error("Meta token health failed closed: " + message);
+    }
   }
-  console.log(JSON.stringify({ status: "PASS", app_id: assessment.app_id, expires_at: assessment.expires_at, data_access_expires_at: assessment.data_access_expires_at, scopes: assessment.scopes, checked_at: new Date().toISOString() }));
+  console.log(JSON.stringify({ status: "PASS", tokens: results.map(({ label, assessment }) => ({ label, app_id: assessment.app_id, expires_at: assessment.expires_at, data_access_expires_at: assessment.data_access_expires_at, scopes: assessment.scopes })), checked_at: new Date().toISOString() }));
 }
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").href) main().catch((error) => { console.error("META TOKEN HEALTH: HOLD — " + error.message); process.exitCode = 1; });
