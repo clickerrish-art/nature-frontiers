@@ -11,6 +11,7 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
   const caption = typeof campaign?.caption === "string" ? campaign.caption.trim() : "";
   const network = campaign?.network;
   const destination = network === "facebook" || network === "instagram" ? network + ":nature-frontiers" : "";
+  const mediaRequired = campaign?.facebook_type === "REEL" || campaign?.facebook_type === "VIDEO" || campaign?.instagram_type === "REEL" || Boolean(campaign?.media_url);
   if (!caption) add("CAPTION_MISSING", "Caption is missing.");
   if (caption.length > 60000) add("CAPTION_TOO_LONG", "Caption exceeds the configured safety limit.");
   if (!["facebook", "instagram"].includes(network)) add("NETWORK_INVALID", "Network must be Facebook or Instagram.");
@@ -20,8 +21,8 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
   if (campaign?.policy_review_passed !== true) add("POLICY_REVIEW_MISSING", "The exact post must pass human platform-policy review.");
   if (campaign?.content_accuracy_confirmed !== true) add("CONTENT_ACCURACY_MISSING", "Content accuracy must be human-confirmed.");
   if (campaign?.brand_fit_confirmed !== true) add("BRAND_FIT_MISSING", "Nature Frontiers brand fit must be human-confirmed.");
-  if (campaign?.wildlife_welfare_confirmed !== true) add("WILDLIFE_WELFARE_MISSING", "Wildlife welfare and no-disturbance review must pass.");
-  if (campaign?.non_graphic_review_passed !== true) add("NON_GRAPHIC_REVIEW_MISSING", "Wildlife imagery must pass a human non-graphic review.");
+  if ((campaign?.wildlife_content === true || mediaRequired) && campaign?.wildlife_welfare_confirmed !== true) add("WILDLIFE_WELFARE_MISSING", "Wildlife welfare and no-disturbance review must pass.");
+  if ((campaign?.wildlife_content === true || mediaRequired) && campaign?.non_graphic_review_passed !== true) add("NON_GRAPHIC_REVIEW_MISSING", "Wildlife imagery must pass a human non-graphic review.");
 
   const normalized = normalizeCaption(caption);
   if (normalized && (history ?? []).some((item) => item?.id !== campaign?.id && normalizeCaption(item?.caption) === normalized)) {
@@ -65,8 +66,6 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
     }
   }
 
-  const mediaRequired = campaign?.facebook_type === "REEL" || campaign?.facebook_type === "VIDEO" ||
-    campaign?.instagram_type === "REEL" || Boolean(campaign?.media_url);
   const mediaAssets = Array.isArray(campaign?.media_assets) && campaign.media_assets.length
     ? campaign.media_assets
     : campaign?.media_url ? [campaign] : [];
@@ -86,6 +85,7 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
     if (asset?.synthetic_visuals !== false || asset?.ai_generated_video !== false) add("SYNTHETIC_MEDIA_PROHIBITED", "Synthetic or AI-generated wildlife visuals are prohibited.");
     if (asset?.media_technical_review_passed !== true) add("MEDIA_TECHNICAL_REVIEW_MISSING", "Media asset " + (index + 1) + " lacks technical review.");
     if (asset?.media_accessibility_confirmed !== true) add("MEDIA_ACCESSIBILITY_MISSING", "Media asset " + (index + 1) + " lacks public accessibility verification.");
+    if (asset?.media_url_immutable_confirmed !== true) add("MEDIA_URL_NOT_STABLE", "Media asset " + (index + 1) + " lacks human confirmation that its public URL remains available during platform processing.");
     if (asset?.watermark_scan_passed !== true) add("WATERMARK_NOT_CLEARED", "Media asset " + (index + 1) + " lacks a clean watermark review.");
     if (asset?.audio_present !== true && asset?.audio_present !== false) add("AUDIO_STATUS_UNKNOWN", "Media asset " + (index + 1) + " must explicitly declare whether audio is present.");
     if (asset?.audio_present === true && (asset?.audio_license_status !== "licensed" || !asset?.audio_license_ref)) {
