@@ -1,3 +1,4 @@
+import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
 import { readFile } from "node:fs/promises";
 import { validateFeedRelease } from "./facebook-feed-guards.mjs";
 
@@ -5,6 +6,7 @@ const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
+const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
@@ -89,7 +91,8 @@ if (dryRun) {
 if (!graphVersion || !/^v\d+\.\d+$/.test(graphVersion)) {
   throw new Error("META_GRAPH_API_VERSION must be set to a currently supported Meta Graph API version.");
 }
-if (!pageId || !accessToken) stop("Facebook Page ID or Page access token is missing.");
+if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
+if (!accessToken) stop("Facebook Page access token is missing.");
 if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPOSITORY || !process.env.GITHUB_REF_NAME) {
   throw new Error("GitHub state persistence is required to prevent duplicate publication.");
 }
