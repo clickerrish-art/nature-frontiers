@@ -7,6 +7,7 @@ const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
 const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
+const selectedCampaignId = process.env.PUBLISH_CAMPAIGN_ID ?? "";
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
@@ -22,9 +23,10 @@ if (!Array.isArray(products) || !Array.isArray(campaigns)) {
 }
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
 if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
+if (!selectedCampaignId) stop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 
-const pending = campaigns.filter((c) => c?.network === "facebook" && c?.status === "approved" && c?.facebook_type === "POST");
-if (pending.length === 0) stop("No explicitly approved Facebook feed campaigns exist.");
+const pending = campaigns.filter((c) => c?.id === selectedCampaignId && c?.network === "facebook" && c?.status === "approved" && c?.facebook_type === "POST");
+if (pending.length === 0) stop("No explicitly approved Facebook feed campaign matches PUBLISH_CAMPAIGN_ID.");
 
 const seenCampaignIds = new Set();
 for (const campaign of pending) {
