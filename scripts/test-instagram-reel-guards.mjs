@@ -51,7 +51,11 @@ test("rejects duration outside the 50–60 second production target", () => {
   assert.ok(validateInstagramReelCampaign({ ...valid, duration_seconds: 60.1 }).some((e) => e.includes("50–60 seconds")));
 });
 
-test("requires a stable public video URL for Meta to fetch during processing", () => {\n  assert.ok(validateInstagramReelCampaign({ ...valid, media_url_immutable_confirmed: false }).some((e) => e.includes("immutable")));\n});\n\ntest("requires an explicit share_to_feed decision", () => {
+test("requires a stable public video URL for Meta to fetch during processing", () => {
+  assert.ok(validateInstagramReelCampaign({ ...valid, media_url_immutable_confirmed: false }).some((e) => e.includes("immutable")));
+});
+
+test("requires an explicit share_to_feed decision", () => {
   assert.ok(validateInstagramReelCampaign({ ...valid, share_to_feed: undefined }).some((e) => e.includes("share_to_feed")));
 });
 
