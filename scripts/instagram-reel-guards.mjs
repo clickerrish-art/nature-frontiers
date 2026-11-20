@@ -8,6 +8,7 @@ export function validateInstagramReelCampaign(campaign) {
     errors.push("Nature Frontiers Instagram wildlife Reels must target 50–60 seconds.");
   }
   if (typeof campaign?.share_to_feed !== "boolean") errors.push("share_to_feed must be explicitly set to true or false.");
+  if (campaign?.media_url_immutable_confirmed !== true) errors.push("Instagram video URL must be human-confirmed immutable and available to Meta during processing.");
   if (typeof campaign?.caption === "string") {
     if (campaign.caption.length > 2200) errors.push("Instagram caption exceeds the 2,200-character limit.");
     const hashtags = campaign.caption.match(/#[\p{L}\p{N}_]+/gu) ?? [];
