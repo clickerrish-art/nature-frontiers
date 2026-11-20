@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateLongFormVideoCampaign, toMetaAdBreakOffsetsMilliseconds } from "./facebook-video-guards.mjs";
 import { verifyRemoteLongFormVideo } from "./facebook-video-media.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 function safeStop(message) {
   console.log("SAFE STOP: " + message);
@@ -38,6 +39,9 @@ const approved = localCampaigns.filter((item) =>
 if (approved.length === 0) safeStop("No explicitly approved long-form Facebook video campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved long-form video is allowed per manual run.");
 const campaign = approved[0];
+const policy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
+const prepublish = validatePrepublishCampaign(campaign, localCampaigns, policy);
+if (!prepublish.ok) throw new Error("Prepublish gate failed: " + prepublish.issues.map((item) => item.code + ": " + item.message).join(" "));
 const validation = validateLongFormVideoCampaign(campaign);
 if (validation.length) throw new Error("Long-form video failed release checks: " + validation.join(" "));
 assertApprovedPostingWindow();
