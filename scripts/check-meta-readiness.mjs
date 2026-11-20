@@ -1,3 +1,5 @@
+import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
+
 const pageId = process.env.META_PAGE_ID ?? "";
 const expectedPageId = process.env.META_EXPECTED_PAGE_ID ?? "";
 const pageToken = process.env.META_PAGE_ACCESS_TOKEN ?? "";
@@ -5,7 +7,7 @@ const graphVersion = process.env.META_GRAPH_API_VERSION ?? "";
 const publishEnabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
 const validVersion = /^v\\d+\\.\\d+$/.test(graphVersion);
-const identityConfigured = /^\\d+$/.test(pageId) && /^\\d+$/.test(expectedPageId) && pageId === expectedPageId;
+const identityConfigured = isVerifiedMetaPageIdentity(pageId, expectedPageId);
 let tokenPageCheck = "NOT TESTED";
 
 if (identityConfigured && pageToken && validVersion) {
