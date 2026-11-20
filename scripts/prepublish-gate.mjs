@@ -34,7 +34,12 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
   }
 
   const links = [...caption.matchAll(/https?:\/\/[^\s)\]}>,]+/gi)].map((match) => match[0].replace(/[.,!?;:]+$/, ""));
+  const productLinks = Array.isArray(campaign?.product_links) ? campaign.product_links : [];
+  const affiliateLinks = Array.isArray(campaign?.affiliate_links) ? campaign.affiliate_links : [];
   if (campaign?.campaign_type === "promotion" && links.length === 0) add("LINK_MISSING", "Promotional campaigns require a verified product or affiliate link.");
+  for (const link of [...productLinks, ...affiliateLinks]) {
+    if (typeof link !== "string" || !links.includes(link)) add("DECLARED_LINK_MISSING", "Every declared product or affiliate URL must appear verbatim in the caption.");
+  }
   for (const link of links) {
     try {
       const url = new URL(link);
@@ -44,25 +49,39 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
     } catch { add("LINK_INVALID", "Caption contains an invalid URL."); }
   }
   if (links.length > 0 || campaign?.campaign_type === "promotion") {
-    const linkCheck = campaign?.link_check;
-    const checkedAt = Date.parse(linkCheck?.checked_at ?? "");
-    const maxAgeMs = Number(policy?.link_max_age_hours ?? 24) * 3600000;
-    if (linkCheck?.status !== 200 || !Number.isFinite(checkedAt) || checkedAt > now.getTime() || now.getTime() - checkedAt > maxAgeMs) {
-      add("LINK_CHECK_STALE_OR_MISSING", "A successful, recent external-link check is required for every linked campaign.");
-    } else {
-      try {
-        const finalUrl = new URL(linkCheck.final_url);
-        if (finalUrl.protocol !== "https:" || !(policy?.allowed_link_hosts ?? []).includes(finalUrl.hostname.toLowerCase())) {
-          add("LINK_REDIRECT_NOT_ALLOWED", "The verified link destination is not an approved HTTPS host.");
-        }
-      } catch { add("LINK_FINAL_URL_MISSING", "The link check must record a valid final URL."); }
+    const checks = Array.isArray(campaign?.link_checks) ? campaign.link_checks : campaign?.link_check ? [campaign.link_check] : [];
+    for (const link of links) {
+      const check = checks.find((item) => item?.url === link || item?.checked_url === link) ??
+        (links.length === 1 && checks.length === 1 ? checks[0] : null);
+      const checkedAt = Date.parse(check?.checked_at ?? "");
+      const maxAgeMs = Number(policy?.link_max_age_hours ?? 24) * 3600000;
+      if (check?.status !== 200 || !Number.isFinite(checkedAt) || checkedAt > now.getTime() || now.getTime() - checkedAt > maxAgeMs) {
+        add("LINK_CHECK_STALE_OR_MISSING", "A successful, recent external-link check is required for each linked URL.");
+      } else {
+        try {
+          const finalUrl = new URL(check.final_url);
+          if (finalUrl.protocol !== "https:" || !(policy?.allowed_link_hosts ?? []).includes(finalUrl.hostname.toLowerCase())) {
+            add("LINK_REDIRECT_NOT_ALLOWED", "The verified link destination is not an approved HTTPS host.");
+          }
+        } catch { add("LINK_FINAL_URL_MISSING", "The link check must record a valid final URL."); }
+      }
     }
   }
-
-  if (campaign?.campaign_type === "promotion") {
+  if (campaign?.campaign_type === "promotion" || productLinks.length > 0) {
     const disclosure = campaign?.disclosure?.paid_promotion_text ?? "Disclosure: This is a promotional post for a paid digital product.";
     if (campaign?.disclosure?.paid_promotion !== true || !caption.includes(disclosure)) {
-      add("PAID_DISCLOSURE_MISSING", "Promotional campaigns require the matching paid-promotion disclosure in the caption.");
+      add("PAID_DISCLOSURE_MISSING", "Paid product links require the matching paid-promotion disclosure in the caption.");
+    }
+    if (productLinks.length > 0 && (campaign?.product_links_verified !== true || !campaign?.product_verification_note)) {
+      add("PRODUCT_LINKS_NOT_VERIFIED", "Product links require human verification and a verification note.");
+    }
+  }
+  if (affiliateLinks.length > 0) {
+    if (campaign?.affiliate_links_verified !== true || !campaign?.affiliate_verification_note) {
+      add("AFFILIATE_LINKS_NOT_VERIFIED", "Affiliate links require human verification and a verification note.");
+    }
+    if (typeof campaign?.affiliate_disclosure !== "string" || !campaign.affiliate_disclosure.trim() || !caption.includes(campaign.affiliate_disclosure)) {
+      add("AFFILIATE_DISCLOSURE_MISSING", "Affiliate links require their explicit disclosure in the caption.");
     }
   }
 
