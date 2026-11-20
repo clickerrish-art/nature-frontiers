@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 function stop(message) {
   console.log("SAFE STOP: " + message);
@@ -37,6 +38,9 @@ const approved = campaigns.filter((item) => item?.id === selectedCampaignId && i
 if (approved.length === 0) stop("No explicitly approved Facebook Reel campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved Reel is allowed per manual run.");
 const campaign = approved[0];
+const policy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
+const prepublish = validatePrepublishCampaign(campaign, campaigns, policy);
+if (!prepublish.ok) throw new Error("Prepublish gate failed: " + prepublish.issues.map((item) => item.code + ": " + item.message).join(" "));
 const validation = validateReelCampaign(campaign);
 if (validation.length) throw new Error("Reel campaign failed release checks: " + validation.join(" "));
 assertApprovedPostingWindow();
