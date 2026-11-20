@@ -13,6 +13,11 @@ on:
       - "codex/facebook-reels-publisher"
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/instagram-reel-guards.mjs"
+      - "scripts/instagram-reel-api.mjs"
+      - "scripts/publish-instagram-reel.mjs"
+      - "scripts/test-instagram-reel-guards.mjs"
+      - "scripts/test-instagram-reel-api.mjs"
       - "scripts/meta-page-identity.mjs"
       - "scripts/test-meta-page-identity.mjs"
       - "scripts/publish-facebook-reel.mjs"
@@ -41,6 +46,11 @@ on:
   pull_request:
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/instagram-reel-guards.mjs"
+      - "scripts/instagram-reel-api.mjs"
+      - "scripts/publish-instagram-reel.mjs"
+      - "scripts/test-instagram-reel-guards.mjs"
+      - "scripts/test-instagram-reel-api.mjs"
       - "scripts/meta-page-identity.mjs"
       - "scripts/test-meta-page-identity.mjs"
       - "scripts/publish-facebook-reel.mjs"
@@ -93,12 +103,14 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
-      - name: Test configured Meta Page identity matching
+      - name: Test configured Meta Page and Instagram identity matching
         run: npm run test:meta-readiness
+      - name: Test Instagram Reel guards and container API flow
+        run: npm run test:instagram-reels
       - name: Verify MediaInfo is available for video media verification
         run: mediainfo --Version
-      - name: Check Facebook publishing script syntax
-        run: node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs
+      - name: Check Facebook and Instagram publishing script syntax
+        run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs && node --check scripts/publish-instagram-reel.mjs
       - name: Test Facebook Reel release guards and media integrity
         run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
       - name: Test long-form video guards and media integrity
@@ -123,6 +135,8 @@ jobs:
         env:
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
+          META_INSTAGRAM_USER_ID: ${{ vars.META_INSTAGRAM_USER_ID }}
+          META_EXPECTED_INSTAGRAM_USER_ID: ${{ vars.META_EXPECTED_INSTAGRAM_USER_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           META_GRAPH_API_VERSION: "v27.0"
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
@@ -157,6 +171,20 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook-video.mjs
+      - name: Run gated Instagram Reel adapter (requires verified linked Instagram account)
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          META_GRAPH_API_VERSION: "v27.0"
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
+          META_INSTAGRAM_USER_ID: ${{ vars.META_INSTAGRAM_USER_ID }}
+          META_EXPECTED_INSTAGRAM_USER_ID: ${{ vars.META_EXPECTED_INSTAGRAM_USER_ID }}
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-instagram-reel.mjs
       - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
