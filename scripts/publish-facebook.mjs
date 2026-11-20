@@ -2,6 +2,7 @@ import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
 import { readFile } from "node:fs/promises";
 import { validateFeedRelease } from "./facebook-feed-guards.mjs";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
+import { createGitHubMetaStateStore, createMetaAuditedFetch } from "./meta-ops-state.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
@@ -10,6 +11,9 @@ const pageId = process.env.META_PAGE_ID;
 const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
 const selectedCampaignId = process.env.PUBLISH_CAMPAIGN_ID ?? "";
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+const repository = process.env.GITHUB_REPOSITORY;
+const branch = process.env.GITHUB_REF_NAME;
+const githubToken = process.env.GITHUB_TOKEN;
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
@@ -99,19 +103,23 @@ if (!graphVersion || !/^v\d+\.\d+$/.test(graphVersion)) {
   throw new Error("META_GRAPH_API_VERSION must be set to a currently supported Meta Graph API version.");
 }
 if (!accessToken) stop("Facebook Page access token is missing.");
-if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPOSITORY || !process.env.GITHUB_REF_NAME) {
+if (!githubToken || !repository || !branch) {
   throw new Error("GitHub state persistence is required to prevent duplicate publication.");
 }
+const metaStateStore = createGitHubMetaStateStore({ repository, branch, githubToken });
+const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
+const circuitState = await metaStateStore.readCircuitState();
+if (circuitState.state === "open" || circuitState.open === true) stop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
 
-const apiBase = "https://api.github.com/repos/" + process.env.GITHUB_REPOSITORY + "/contents/data/campaigns.json";
+const apiBase = "https://api.github.com/repos/" + repository + "/contents/data/campaigns.json";
 const ghHeaders = {
   Accept: "application/vnd.github+json",
-  Authorization: "Bearer " + process.env.GITHUB_TOKEN,
+  Authorization: "Bearer " + githubToken,
   "X-GitHub-Api-Version": "2022-11-28"
 };
 
 async function getState() {
-  const response = await fetch(apiBase + "?ref=" + encodeURIComponent(process.env.GITHUB_REF_NAME), { headers: ghHeaders });
+  const response = await metaFetch(apiBase + "?ref=" + encodeURIComponent(process.env.GITHUB_REF_NAME), { headers: ghHeaders });
   if (!response.ok) throw new Error("Could not read campaign state from GitHub (HTTP " + response.status + ").");
   const data = await response.json();
   const decoded = Buffer.from(data.content.replace(/\s/g, ""), "base64").toString("utf8");
@@ -120,10 +128,10 @@ async function getState() {
 
 async function saveState(sha, nextCampaigns, messageText) {
   const content = Buffer.from(JSON.stringify(nextCampaigns, null, 2) + "\n").toString("base64");
-  const response = await fetch(apiBase, {
+  const response = await metaFetch(apiBase, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify({ message: messageText, content, sha, branch: process.env.GITHUB_REF_NAME })
+    body: JSON.stringify({ message: messageText, content, sha, branch })
   });
   if (!response.ok) throw new Error("Could not persist campaign state to GitHub (HTTP " + response.status + "). No further post attempt should be made until state is inspected.");
   return response.json();
@@ -143,7 +151,7 @@ await saveState(initial.sha, reservation, "Reserve campaign " + campaign.id + " 
 
 const endpoint = "https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(pageId) + "/feed";
 const body = new URLSearchParams({ message, access_token: accessToken });
-const response = await fetch(endpoint, { method: "POST", body });
+const response = await metaFetch(endpoint, { method: "POST", body });
 const responseText = await response.text();
 let payload;
 try { payload = JSON.parse(responseText); } catch { payload = {}; }
