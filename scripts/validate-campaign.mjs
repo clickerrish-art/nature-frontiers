@@ -1,3 +1,6 @@
+import { validateReelCampaign } from "./facebook-reel-guards.mjs";
+import { validateInstagramReelCampaign } from "./instagram-reel-guards.mjs";
+import { validateLongFormVideoCampaign } from "./facebook-video-guards.mjs";
 import { readFile } from "node:fs/promises";
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
@@ -46,7 +49,7 @@ if (!Array.isArray(campaigns)) {
     if (typeof campaign?.id !== "string" || !campaign.id.trim()) errors.push(label + ": missing stable campaign id.");
     if (campaign?.id && campaignIds.has(campaign.id)) errors.push("Duplicate campaign id: " + campaign.id);
     if (campaign?.id) campaignIds.add(campaign.id);
-    if (campaign?.network !== "facebook") warnings.push(label + ": network is not facebook; this validator only checks Facebook campaigns.");
+    if (!["facebook", "instagram"].includes(campaign?.network)) errors.push(label + ": network must be facebook or instagram.");
     if (!["draft", "approved", "publishing", "published"].includes(campaign?.status)) errors.push(label + ": unsupported campaign status " + campaign?.status + ".");
     if (!["organic", "promotion"].includes(campaign?.campaign_type)) errors.push(label + ": campaign_type must be explicitly organic or promotion.");
     if (typeof campaign?.caption !== "string" || !campaign.caption.trim()) errors.push(label + ": caption is missing.");
@@ -68,12 +71,21 @@ if (!Array.isArray(campaigns)) {
     }
 
     if (campaign?.status === "approved") {
-      if (!["POST", "REEL"].includes(campaign.facebook_type)) errors.push(label + ": approved Facebook campaign must explicitly declare facebook_type=POST or REEL.");
+      if (campaign.network === "facebook" && !["POST", "REEL", "VIDEO"].includes(campaign.facebook_type)) errors.push(label + ": approved Facebook campaign must explicitly declare facebook_type=POST, REEL or VIDEO.");
+      if (campaign.network === "instagram" && campaign.instagram_type !== "REEL") errors.push(label + ": approved Instagram campaign must explicitly declare instagram_type=REEL.");
       if (campaign.policy_review_passed !== true) errors.push(label + ": exact post must pass human Meta policy review before approval.");
       if (campaign.content_accuracy_confirmed !== true) errors.push(label + ": content accuracy must be human-confirmed before approval.");
       if (campaign.campaign_type === "organic" && campaign.wildlife_welfare_confirmed !== true) errors.push(label + ": wildlife welfare and no-disturbance review must pass before approval.");
       if (campaign.campaign_type === "organic" && campaign.non_graphic_review_passed !== true) errors.push(label + ": wildlife imagery must pass a human non-graphic review before approval.");
-      if (campaign.facebook_type === "REEL" && (campaign.wildlife_welfare_confirmed !== true || campaign.non_graphic_review_passed !== true)) errors.push(label + ": Reel requires wildlife-welfare and non-graphic review before approval.");
+      if (campaign.network === "facebook" && campaign.facebook_type === "REEL") {
+        for (const error of validateReelCampaign(campaign)) errors.push(label + ": " + error);
+      }
+      if (campaign.network === "instagram" && campaign.instagram_type === "REEL") {
+        for (const error of validateInstagramReelCampaign(campaign)) errors.push(label + ": " + error);
+      }
+      if (campaign.network === "facebook" && campaign.facebook_type === "VIDEO") {
+        for (const error of validateLongFormVideoCampaign(campaign)) errors.push(label + ": " + error);
+      }
       if (campaign.brand_fit_confirmed !== true) errors.push(label + ": Nature Frontiers brand fit must be human-confirmed before approval.");
       if (campaign?.campaign_type === "promotion") {
         if (campaign.link_verified !== true) errors.push(label + ": promotional campaign cannot be approved without human-confirmed link_verified=true.");
@@ -83,10 +95,13 @@ if (!Array.isArray(campaigns)) {
     } else if (campaign?.status === "draft") {
       warnings.push(label + ": remains a draft and will not be published.");
     }
-    if (campaign?.media?.length || campaign?.media_url) {
-      if (campaign.media_rights_confirmed !== true) errors.push(label + ": attached media needs human-confirmed rights clearance.");
-      if (campaign.media_originality_confirmed !== true) errors.push(label + ": attached media needs human-confirmed originality review.");
-      errors.push(label + ": feed media upload is not implemented; do not approve an attachment until the photo adapter is available.");
+    if (campaign?.media?.length) {
+      errors.push(label + ": photo/feed media upload is not implemented; do not approve attached photo media until the photo adapter is available.");
+    }
+    if (campaign?.media_url && campaign?.status === "approved" &&
+        !(campaign.network === "facebook" && ["REEL", "VIDEO"].includes(campaign.facebook_type)) &&
+        !(campaign.network === "instagram" && campaign.instagram_type === "REEL")) {
+      errors.push(label + ": this media attachment has no implemented publisher for its selected network and format.");
     }
   }
 }
