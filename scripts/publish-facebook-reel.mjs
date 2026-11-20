@@ -33,7 +33,7 @@ if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact a
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
 
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
-const approved = campaigns.filter((item) => item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
+const approved = campaigns.filter((item) => item?.id === selectedCampaignId && item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
 if (approved.length === 0) stop("No explicitly approved Facebook Reel campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved Reel is allowed per manual run.");
 const campaign = approved[0];
