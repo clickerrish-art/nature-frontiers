@@ -49,6 +49,8 @@ const valid = {
   non_graphic_review_passed: true,
   thumbnail_accuracy_confirmed: true,
   media_technical_review_passed: true,
+  watermark_scan_passed: true,
+  audio_present: false,
   human_review_confirmed: true,
   synthetic_visuals: false,
   ai_generated_video: false,
