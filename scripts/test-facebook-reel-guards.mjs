@@ -22,6 +22,11 @@ const base = {
   caption_attribution: "Footage: Creator via Pexels."
 };
 
+test("requires stable media URL and the campaign's declared duration profile", () => {
+  assert.ok(validateReelCampaign({ ...base, media_url_immutable_confirmed: false }).some((e) => e.includes("stable")));
+  assert.ok(validateReelCampaign({ ...base, duration_seconds: 36 }).some((e) => e.includes("duration_seconds")));
+});
+
 test("accepts an editorial-only standalone Reel using properly documented licensed stock", () => {
   assert.deepEqual(validateReelCampaign(base), []);
 });
