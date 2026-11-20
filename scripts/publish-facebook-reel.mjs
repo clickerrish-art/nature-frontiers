@@ -1,3 +1,4 @@
+import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
 import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
@@ -16,6 +17,7 @@ if (dryRun) stop("PUBLISH_DRY_RUN is not false; no public publishing is permitte
 
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
+const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 const repo = process.env.GITHUB_REPOSITORY;
 const ref = process.env.GITHUB_REF_NAME;
@@ -24,7 +26,8 @@ const versionParts = typeof graphVersion === "string" ? graphVersion.replace("v"
 if (typeof graphVersion !== "string" || !graphVersion.startsWith("v") || versionParts.length !== 2 || versionParts.some((part) => part.length === 0 || [...part].some((ch) => ch < "0" || ch > "9"))) {
   throw new Error("META_GRAPH_API_VERSION must be a supported version.");
 }
-if (!pageId || !accessToken) throw new Error("Meta Page ID and Page access token are required.");
+if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
+if (!accessToken) throw new Error("Meta Page access token is required.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
 
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
