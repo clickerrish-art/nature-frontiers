@@ -6,7 +6,7 @@ const pageToken = process.env.META_PAGE_ACCESS_TOKEN ?? "";
 const graphVersion = process.env.META_GRAPH_API_VERSION ?? "";
 const publishEnabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
-const validVersion = /^v\\d+\\.\\d+$/.test(graphVersion);
+const validVersion = /^v\d+\.\d+$/.test(graphVersion);
 const identityConfigured = isVerifiedMetaPageIdentity(pageId, expectedPageId);
 let tokenPageCheck = "NOT TESTED";
 
@@ -31,8 +31,8 @@ if (identityConfigured && pageToken && validVersion) {
 }
 
 const checks = [
-  ["Configured Meta Page ID", /^\\d+$/.test(pageId) ? "CONFIGURED: value withheld" : "BLOCKED: META_PAGE_ID must be configured as a numeric repository variable."],
-  ["Expected Nature Frontiers Page ID", /^\\d+$/.test(expectedPageId) ? "CONFIGURED: value withheld" : "BLOCKED: META_EXPECTED_PAGE_ID must be independently configured."],
+  ["Configured Meta Page ID", /^\d+$/.test(pageId) ? "CONFIGURED: value withheld" : "BLOCKED: META_PAGE_ID must be configured as a numeric repository variable."],
+  ["Expected Nature Frontiers Page ID", /^\d+$/.test(expectedPageId) ? "CONFIGURED: value withheld" : "BLOCKED: META_EXPECTED_PAGE_ID must be independently configured."],
   ["Page identity match", identityConfigured ? "PASS: configured and expected IDs match" : "BLOCKED: configured and expected Page IDs are missing or differ."],
   ["Meta Page access token", pageToken.length > 0 ? "PRESENT: value withheld" : "BLOCKED: secret is not configured."],
   ["Meta Page token read access", tokenPageCheck],
