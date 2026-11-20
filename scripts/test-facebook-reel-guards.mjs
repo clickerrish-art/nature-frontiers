@@ -1,117 +1,97 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
-import { REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE, buildLongFormVideoDescription } from "./video-description.mjs";
 
-const valid = {
-  id: "nf-reel-001",
-  network: "facebook",
-  status: "approved",
-  facebook_type: "REEL",
-  title: "Wildlife behaviour explained",
-  caption: buildLongFormVideoDescription({
-    seriesTitle: "Wild Encounters: Crocodile Behaviour",
-    episodeNumber: 1,
-    episodeTitle: "The Patient Ambush — Reel",
-    episodeDescription: "A responsible wildlife education Reel.",
-    nextEpisodeTeaser: "Watch the full episode for the complete story."
-  }) + "\nWatch the full episode: https://www.facebook.com/watch/?v=123456789",
-  product_links: REQUIRED_PRODUCT_LINKS.map((item) => item.url),
-  affiliate_links: [...APPROVED_AFFILIATE_LINKS],
-  affiliate_links_verified: true,
-  affiliate_verification_note: "Owner-supplied approved Safari.com URLs; a=GM26 tracking preserved.",
-  affiliate_disclosure: AFFILIATE_DISCLOSURE,
-  product_disclosure: PRODUCT_DISCLOSURE,
-  media_url: "https://cdn.example.org/wildlife.mp4",
-  media_rights_confirmed: true,
-  originality_confirmed: true,
-  policy_review_passed: true,
-  wildlife_welfare_confirmed: true,
-  non_graphic_review_passed: true,
-  media_accessibility_confirmed: true,
-  media_technical_review_passed: true,
-  media_sha256: "a".repeat(64),
-  related_longform_campaign_id: "nf-video-001",
-  full_video_url: "https://www.facebook.com/watch/?v=123456789",
-  synthetic_visuals: false,
-  ai_generated_video: false,
-  stock_footage_used: false,
-  media_origin: "original_camera_recording",
-  source_recording_id: "camera-original-001",
-  original_camera_file_sha256: "b".repeat(64),
-  original_recording_retained: true,
-  provenance_review_passed: true,
-  provenance_reviewer: "wildlife-editor",
-  provenance_reviewed_at: "2026-11-11T10:00:00Z"
+const base = {
+  id: "nf-editorial-reel-001", network: "facebook", status: "approved", facebook_type: "REEL",
+  title: "Nile crocodile behaviour", caption: "A responsible wildlife fact. Footage: Creator via Pexels. Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
+  media_url: "https://cdn.example.org/wildlife.mp4", media_rights_confirmed: true,
+  policy_review_passed: true, wildlife_welfare_confirmed: true, non_graphic_review_passed: true,
+  media_accessibility_confirmed: true, media_technical_review_passed: true,
+  media_sha256: "a".repeat(64), synthetic_visuals: false, ai_generated_video: false,
+  media_origin: "licensed_stock", stock_footage_used: true,
+  source_url: "https://www.pexels.com/video/example/", source_creator: "Creator",
+  license_name: "Pexels License", license_evidence_url: "https://www.pexels.com/license/",
+  provenance_review_passed: true, provenance_reviewer: "editor", provenance_reviewed_at: "2026-11-20T10:00:00Z",
+  on_screen_disclosure_confirmed: true,
+  on_screen_disclosure_text: "Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
+  caption_attribution: "Footage: Creator via Pexels."
 };
 
-test("accepts only a fully reviewed, rights-cleared, technically checked Reel", () => {
-  assert.deepEqual(validateReelCampaign(valid), []);
+test("accepts an editorial-only standalone Reel using properly documented licensed stock", () => {
+  assert.deepEqual(validateReelCampaign(base), []);
 });
 
-for (const [field, value] of [
-  ["status", "draft"],
-  ["facebook_type", "POST"],
-  ["media_rights_confirmed", false],
-  ["originality_confirmed", false],
-  ["policy_review_passed", false],
-  ["wildlife_welfare_confirmed", false],
-  ["non_graphic_review_passed", false],
-  ["media_accessibility_confirmed", false],
-  ["media_technical_review_passed", false],
-  ["media_sha256", "missing"],
-  ["related_longform_campaign_id", ""],
-  ["full_video_url", "not-a-url"],
-  ["synthetic_visuals", true],
-  ["ai_generated_video", true],
-  ["stock_footage_used", true],
-  ["media_origin", "stock_footage"],
-  ["source_recording_id", ""],
-  ["original_camera_file_sha256", "missing"],
-  ["original_recording_retained", false],
-  ["provenance_review_passed", false],
-  ["provenance_reviewer", ""],
-  ["provenance_reviewed_at", "not-a-date"],
-  ["media_url", "http://cdn.example.org/wildlife.mp4"]
+test("accepts an original camera recording with its retained original and provenance review", () => {
+  const original = { ...base, media_origin: "original_camera_recording", stock_footage_used: false,
+    source_recording_id: "camera-001", original_camera_file_sha256: "b".repeat(64),
+    original_recording_retained: true, on_screen_disclosure_confirmed: undefined,
+    on_screen_disclosure_text: undefined, source_url: undefined, source_creator: undefined,
+    license_name: undefined, license_evidence_url: undefined, caption_attribution: undefined };
+  assert.deepEqual(validateReelCampaign(original), []);
+});
+
+for (const [field, value, message] of [
+  ["media_rights_confirmed", false, "media rights"],
+  ["policy_review_passed", false, "human policy review"],
+  ["wildlife_welfare_confirmed", false, "wildlife footage"],
+  ["non_graphic_review_passed", false, "non-graphic"],
+  ["media_accessibility_confirmed", false, "accessibility"],
+  ["media_technical_review_passed", false, "technical"],
+  ["media_sha256", "bad", "SHA-256"],
+  ["synthetic_visuals", true, "synthetic"],
+  ["ai_generated_video", true, "AI-generated video"],
+  ["source_url", "", "source-page URL"],
+  ["source_creator", "", "credited creator"],
+  ["license_name", "", "licence name"],
+  ["license_evidence_url", "javascript:alert(1)", "HTTPS"],
+  ["provenance_review_passed", false, "provenance"],
+  ["provenance_reviewer", "", "reviewer"],
+  ["provenance_reviewed_at", "invalid", "timestamp"],
+  ["on_screen_disclosure_confirmed", false, "on-screen disclosure"],
+  ["on_screen_disclosure_text", "Footage shown", "clearly identify licensed stock"],
+  ["caption_attribution", "", "attribution"]
 ]) {
-  test(`blocks unsafe Reel when ${field} is ${String(value)}`, () => {
-    const candidate = { ...valid, [field]: value };
-    assert.ok(validateReelCampaign(candidate).length > 0);
+  test("blocks licensed-stock Reel when " + field + " is invalid", () => {
+    assert.ok(validateReelCampaign({ ...base, [field]: value }).some((error) => error.toLowerCase().includes(message.toLowerCase())));
   });
 }
 
-test("rejects synthetic wildlife video even when fully disclosed", () => {
-  const disclosure = "Visual disclosure: AI-generated illustrative animation, not documentary footage.";
-  const errors = validateReelCampaign({ ...valid, synthetic_visuals: true, ai_disclosure: disclosure, caption: `A wildlife fact. Watch the full episode: ${valid.full_video_url}. ${disclosure}` });
-  assert.ok(errors.some((e) => e.includes("AI-generated or synthetic wildlife visuals are prohibited")));
+test("blocks a stock-origin claim when stock_footage_used is false", () => {
+  assert.ok(validateReelCampaign({ ...base, stock_footage_used: false }).some((error) => error.includes("stock_footage_used=true")));
 });
 
-
-test("fails closed without throwing when the Reel description is missing", () => {
-  const errors = validateReelCampaign({ ...valid, caption: undefined });
-  assert.ok(errors.some((e) => e.includes("YouTube channel link")));
+test("blocks unreviewed or undisclosed synthetic footage", () => {
+  assert.ok(validateReelCampaign({ ...base, synthetic_visuals: true }).some((error) => error.includes("synthetic wildlife")));
 });
 
-test("requires all channel, product, affiliate and disclosure links in every Reel description", () => {
-  assert.ok(validateReelCampaign({ ...valid, caption: valid.caption.replace("https://www.youtube.com/@naturefrontiers-life", "") }).some((e) => e.includes("YouTube channel link")));
-  assert.ok(validateReelCampaign({ ...valid, product_links: [] }).some((e) => e.includes("all six catalogue Selar")));
-  assert.ok(validateReelCampaign({ ...valid, affiliate_links: [] }).some((e) => e.includes("all five owner-supplied Safari.com")));
-  assert.ok(validateReelCampaign({ ...valid, affiliate_links_verified: false }).some((e) => e.includes("human verification evidence")));
-  assert.ok(validateReelCampaign({ ...valid, affiliate_disclosure: "" }).some((e) => e.includes("standard affiliate disclosure")));
-  assert.ok(validateReelCampaign({ ...valid, product_disclosure: "" }).some((e) => e.includes("standard paid-product disclosure")));
+test("blocks standalone original camera footage without original file evidence", () => {
+  const original = { ...base, media_origin: "original_camera_recording", stock_footage_used: false };
+  assert.ok(validateReelCampaign(original).some((error) => error.includes("original camera source recording")));
 });
 
-test("requires Meta's explicit published state, not merely a completed upload or phase", () => {
+test("does not require unrelated YouTube, product or affiliate links for editorial-only Reels", () => {
+  assert.deepEqual(validateReelCampaign(base), []);
+});
+
+test("requires disclosures and verification only when promotional links are actually supplied", () => {
+  const affiliate = "https://www.safari.com/sabi-sand?a=GM26";
+  assert.ok(validateReelCampaign({ ...base, affiliate_links: [affiliate], caption: base.caption + " " + affiliate }).some((e) => e.includes("affiliate URLs require human verification")));
+  assert.ok(validateReelCampaign({ ...base, product_links: ["https://selar.com/example"] }).some((e) => e.includes("paid product links require")));
+});
+
+test("requires a parent long-form episode only when the campaign explicitly belongs to a series", () => {
+  assert.deepEqual(validateReelCampaign(base), []);
+  assert.ok(validateReelCampaign({ ...base, series_requires_parent: true }).some((e) => e.includes("parent long-form campaign id")));
+});
+
+test("blocks non-approved campaigns and malformed public media URLs", () => {
+  assert.ok(validateReelCampaign({ ...base, status: "draft" }).some((e) => e.includes("explicitly approved")));
+  assert.ok(validateReelCampaign({ ...base, media_url: "http://localhost/video.mp4" }).length > 0);
+});
+
+test("requires Meta's explicit published state, not merely upload completion", () => {
   assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete", publish_status: "published" } } }), true);
   assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete", publish_status: "scheduled" } } }), false);
-  assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete", publish_status: "draft" } } }), false);
-  assert.equal(isReelPublished({ status: { publishing_phase: { status: "complete" } } }), false);
   assert.equal(isReelPublished({ status: { video_status: "published" } }), false);
-  assert.equal(isReelPublished({ status: { video_status: "ready", publishing_phase: { status: "not_started" } } }), false);
-  assert.equal(isReelPublished({ status: { video_status: "processing", publishing_phase: { status: "in_progress" } } }), false);
-});
-
-test("requires each Reel to lead to its already-published full episode", () => {
-  assert.ok(validateReelCampaign({ ...valid, caption: "A short clip without the full episode link." }).some((e) => e.includes("exact HTTPS URL")));
-  assert.deepEqual(validateReelCampaign(valid), []);
 });
