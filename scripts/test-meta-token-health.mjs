@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { assessTokenDebugInfo } from "./check-meta-token-health.mjs";
+const now = 1794556800;
+const good = { is_valid: true, app_id: "123", expires_at: now + 60*86400, data_access_expires_at: now + 60*86400, scopes: ["pages_manage_posts", "pages_read_engagement"] };
+assert.equal(assessTokenDebugInfo(good,"123",now).ok,true);
+assert.equal(assessTokenDebugInfo({...good,is_valid:false},"123",now).ok,false);
+assert.equal(assessTokenDebugInfo(good,"999",now).ok,false);
+assert.equal(assessTokenDebugInfo({...good,scopes:["pages_read_engagement"]},"123",now).ok,false);
+assert.equal(assessTokenDebugInfo({...good,expires_at:now+5*86400},"123",now).ok,false);
+assert.equal(assessTokenDebugInfo({...good,expires_at:0},"123",now).ok,true);
+const missingExpiry = {...good}; delete missingExpiry.data_access_expires_at;
+assert.equal(assessTokenDebugInfo(missingExpiry,"123",now).ok,false);
+console.log("Meta token health assessment tests: 7/7 passed.");
