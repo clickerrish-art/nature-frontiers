@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createMetaAuditedFetch } from "./meta-ops-state.mjs";
+import { createMetaAuditedFetch, createGitHubMetaStateStore } from "./meta-ops-state.mjs";
 
 function response(payload = {}, status = 200, headers = {}) {
   return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json", ...headers } });
@@ -82,6 +82,39 @@ test("fails closed when audit persistence fails after a Meta response", async ()
     recordEvent: async () => { throw new Error("GitHub state unavailable"); }
   });
   await assert.rejects(audited("https://graph.facebook.com/v27.0/page/media", { method: "POST" }), /durable audit\/circuit state could not be saved/);
+});
+
+test("GitHub state adapter durably opens the circuit before appending its audit event", async () => {
+  const files = {
+    "data/meta-circuit-breaker.json": { sha: "circuit-sha-1", value: { state: "closed", open: false, opened_at: null } },
+    "data/meta-api-audit.json": { sha: "audit-sha-1", value: [] }
+  };
+  let sequence = 1;
+  const fetchImpl = async (url, init = {}) => {
+    const parsed = new URL(String(url));
+    const path = parsed.pathname.split("/contents/")[1];
+    if (!files[path]) return new Response("missing", { status: 404 });
+    if (!init.method || init.method === "GET") {
+      const file = files[path];
+      return response({ sha: file.sha, content: Buffer.from(JSON.stringify(file.value)).toString("base64") });
+    }
+    if (init.method === "PUT") {
+      const body = JSON.parse(init.body);
+      files[path] = { sha: "sha-" + (++sequence), value: JSON.parse(Buffer.from(body.content, "base64").toString("utf8")) };
+      return response({ content: { sha: files[path].sha } });
+    }
+    return new Response("method not allowed", { status: 405 });
+  };
+  const store = createGitHubMetaStateStore({
+    repository: "owner/repository",
+    branch: "feature-branch",
+    githubToken: "test-token",
+    fetchImpl
+  });
+  await store.recordEvent({ event_id: "event-1", timestamp: "2026-11-20T12:00:00.000Z", circuit_reason: "HTTP 429" }, true);
+  assert.equal((await store.readCircuitState()).state, "open");
+  assert.equal(files["data/meta-api-audit.json"].value.length, 1);
+  assert.equal(files["data/meta-api-audit.json"].value[0].circuit_opened, true);
 });
 
 test("records network errors without retrying the Meta request", async () => {
