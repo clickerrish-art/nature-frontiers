@@ -98,6 +98,7 @@ test("builds a series description containing the channel, all catalogue products
 test("accepts licensed stock in long-form wildlife videos only with source, licence, provenance and on-screen disclosure evidence", () => {
   const stock = {
     ...valid,
+    caption: valid.caption + "\n\nFootage: Creator via Pexels.",
     media_origin: "licensed_stock",
     wildlife_media_policy: "licensed_stock_allowed",
     stock_footage_used: true,
@@ -115,6 +116,7 @@ test("accepts licensed stock in long-form wildlife videos only with source, lice
   };
   assert.deepEqual(validateLongFormVideoCampaign(stock), []);
   assert.ok(validateLongFormVideoCampaign({ ...stock, on_screen_disclosure_confirmed: false }).some((e) => e.includes("on-screen disclosure")));
+  assert.ok(validateLongFormVideoCampaign({ ...stock, caption: valid.caption }).some((e) => e.includes("exact creator/source attribution")));
   assert.ok(validateLongFormVideoCampaign({ ...stock, wildlife_media_policy: "original_camera_only" }).some((e) => e.includes("owner-approved licensed_stock_allowed")));
   assert.ok(validateLongFormVideoCampaign({ ...stock, license_evidence_url: "javascript:alert(1)" }).some((e) => e.includes("licence evidence URL")));
 });
