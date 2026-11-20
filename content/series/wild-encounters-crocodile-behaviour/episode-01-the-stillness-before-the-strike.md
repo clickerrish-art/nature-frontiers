@@ -28,7 +28,6 @@ The stillness is part of the story. A crocodile may remain in one position for a
 
 The research is especially interesting because crocodilians combine tough, protective skin with remarkable mechanical sensitivity. The small sensory organs are one reason their armoured appearance can be misleading. The surface is protected, but it is not simply insensitive.
 
-**[META AD BREAK — 02:00 — place only at a genuine scene transition after the sensory explanation. Never interrupt an animal action, a sentence, or a key observation.]**
 
 And this is where the opening image becomes more interesting. The river may look empty to us, but the crocodile is not waiting in a world without information. It is responding to a living environment.
 
@@ -38,11 +37,11 @@ The first lesson of this series is simple: the crocodile's stillness is not the 
 
 In the next episode, we will look more closely at the sensory system itself — the tiny structures that help a crocodile read movement through water and contact.
 
-For more original wildlife stories, follow Nature Frontiers on YouTube and continue with the next episode of Wild Encounters.
+For more original wildlife stories, Follow Nature Frontiers on Facebook and Instagram for the next episode of Wild Encounters.
 
 ## Footage and editorial requirements
 
-- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+- Use original camera recordings or properly licensed stock footage. Retain the exact source file and SHA-256; for stock, record the source URL, creator, licence, provenance review and visible on-screen disclosure.
 
 - Original camera footage only; retain the unedited source file and SHA-256 hash.
 - Species and location must be identified only where the evidence supports them.
