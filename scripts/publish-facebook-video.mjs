@@ -33,11 +33,6 @@ if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Config
 if (!accessToken) throw new Error("Meta Page access token is required.");
 if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
-const metaStateStore = createGitHubMetaStateStore({ repository: repo, branch: ref, githubToken });
-const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
-const circuitState = await metaStateStore.readCircuitState();
-if (circuitState.state === "open" || circuitState.open === true) safeStop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
-
 const localCampaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = localCampaigns.filter((item) =>
   item?.id === selectedCampaignId && item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "VIDEO");
@@ -49,6 +44,11 @@ const prepublish = validatePrepublishCampaign(campaign, localCampaigns, policy);
 if (!prepublish.ok) throw new Error("Prepublish gate failed: " + prepublish.issues.map((item) => item.code + ": " + item.message).join(" "));
 const validation = validateLongFormVideoCampaign(campaign);
 if (validation.length) throw new Error("Long-form video failed release checks: " + validation.join(" "));
+const metaStateStore = createGitHubMetaStateStore({ repository: repo, branch: ref, githubToken });
+const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
+const circuitState = await metaStateStore.readCircuitState();
+if (circuitState.state === "open" || circuitState.open === true) safeStop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
+
 assertApprovedPostingWindow();
 
 const stateUrl = "https://api.github.com/repos/" + repo + "/contents/data/campaigns.json";
