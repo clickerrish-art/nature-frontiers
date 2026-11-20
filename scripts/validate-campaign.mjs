@@ -1,10 +1,12 @@
 import { validateReelCampaign } from "./facebook-reel-guards.mjs";
 import { validateInstagramReelCampaign } from "./instagram-reel-guards.mjs";
 import { validateLongFormVideoCampaign } from "./facebook-video-guards.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 import { readFile } from "node:fs/promises";
 
 const products = JSON.parse(await readFile(new URL("../data/products.json", import.meta.url), "utf8"));
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
+const prepublishPolicy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
 const errors = [];
 const warnings = [];
 
@@ -71,6 +73,8 @@ if (!Array.isArray(campaigns)) {
     }
 
     if (campaign?.status === "approved") {
+      const prepublish = validatePrepublishCampaign(campaign, campaigns, prepublishPolicy);
+      for (const item of prepublish.issues) errors.push(label + ": " + item.code + ": " + item.message);
       if (campaign.network === "facebook" && !["POST", "REEL", "VIDEO"].includes(campaign.facebook_type)) errors.push(label + ": approved Facebook campaign must explicitly declare facebook_type=POST, REEL or VIDEO.");
       if (campaign.network === "instagram" && campaign.instagram_type !== "REEL") errors.push(label + ": approved Instagram campaign must explicitly declare instagram_type=REEL.");
       if (campaign.policy_review_passed !== true) errors.push(label + ": exact post must pass human Meta policy review before approval.");
