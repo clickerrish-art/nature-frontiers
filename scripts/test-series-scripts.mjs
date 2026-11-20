@@ -1,10 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE } from "./video-description.mjs";
 
-const root = new URL("../", import.meta.url);
 const plan = JSON.parse(await readFile(new URL("../data/video-series.json", import.meta.url), "utf8"));
+const descriptions = JSON.parse(await readFile(new URL("../content/series/wild-encounters-crocodile-behaviour/episode-descriptions.json", import.meta.url), "utf8"));
 const scriptFiles = [
   "episode-01-the-stillness-before-the-strike.md",
   "episode-02-a-world-beneath-the-water.md",
@@ -14,59 +13,54 @@ const scriptFiles = [
   "episode-06-the-rivers-hidden-balance.md"
 ];
 
+test("series media policy permits licensed stock with disclosure and prohibits synthetic wildlife media", () => {
+  assert.equal(plan.wildlife_media_policy.licensed_stock_allowed, true);
+  assert.equal(plan.wildlife_media_policy.original_camera_recording_allowed, true);
+  assert.equal(plan.wildlife_media_policy.synthetic_wildlife_media_allowed, false);
+  assert.match(plan.wildlife_media_policy.stock_disclosure, /Licensed stock footage/i);
+  assert.equal(plan.wildlife_media_policy.monetization_enabled, false);
+});
 
-test("every episode description embeds the channel, all products, all affiliates and both disclosures", async () => {
-  const manifest = JSON.parse(await readFile(new URL("../content/series/wild-encounters-crocodile-behaviour/episode-descriptions.json", import.meta.url), "utf8"));
-  assert.equal(manifest.episodes.length, 6);
-  for (const [index, episode] of manifest.episodes.entries()) {
+test("every episode description is editorial-first with no forced YouTube, product or affiliate links", () => {
+  assert.equal(descriptions.episodes.length, 6);
+  assert.match(descriptions.description_policy, /Do not append YouTube links/i);
+  for (const [index, episode] of descriptions.episodes.entries()) {
     assert.equal(episode.episode_number, index + 1);
-    assert.ok(episode.description.includes(NATURE_FRONTIERS_YOUTUBE_URL));
-    for (const item of REQUIRED_PRODUCT_LINKS) {
-      assert.ok(episode.product_links.includes(item.url));
-      assert.ok(episode.description.includes(item.url));
-    }
-    for (const link of APPROVED_AFFILIATE_LINKS) {
-      assert.ok(episode.affiliate_links.includes(link));
-      assert.ok(episode.description.includes(link));
-    }
-    assert.equal(episode.affiliate_disclosure, AFFILIATE_DISCLOSURE);
-    assert.equal(episode.product_disclosure, PRODUCT_DISCLOSURE);
-    assert.ok(episode.description.includes(AFFILIATE_DISCLOSURE));
-    assert.ok(episode.description.includes(PRODUCT_DISCLOSURE));
-    assert.equal(episode.affiliate_links_verified, true);
+    assert.ok(episode.description.includes(episode.episode_title));
+    assert.deepEqual(episode.product_links, []);
+    assert.deepEqual(episode.affiliate_links, []);
+    assert.ok(!episode.description.includes("youtube.com"));
+    assert.ok(!episode.description.includes("selar.com"));
+    assert.ok(!episode.description.includes("safari.com"));
   }
 });
 
-test("the series has six numbered episodes in the requested 3–8 minute range", () => {
+test("the series has six numbered episodes in the requested 3–8 minute range without default ad breaks", () => {
   assert.equal(plan.episodes.length, 6);
   for (const [index, episode] of plan.episodes.entries()) {
     assert.equal(episode.episode_number, index + 1);
     assert.ok(episode.target_duration_seconds >= 180 && episode.target_duration_seconds <= 480);
-    assert.equal(episode.editorial_ad_breaks_seconds.length, 1);
-    assert.ok(episode.editorial_ad_breaks_seconds[0] >= episode.hook_duration_seconds + 60);
+    assert.equal(episode.editorial_ad_breaks_seconds, undefined);
+    assert.equal(episode.editorial_ad_break_notes, undefined);
   }
 });
 
 for (const [index, filename] of scriptFiles.entries()) {
-  test(`episode ${index + 1} is a sourced draft with a hook before its ad break`, async () => {
+  test(`episode ${index + 1} is a sourced draft with a hook-first narration and stock disclosure policy`, async () => {
     const episode = plan.episodes[index];
     const path = new URL("../content/series/wild-encounters-crocodile-behaviour/" + filename, import.meta.url);
     const markdown = await readFile(path, "utf8");
     const narration = markdown.split("## Narration draft")[1]?.split("## Footage and editorial requirements")[0] ?? "";
-    const beforeBreak = narration.split("[META AD BREAK")[0];
     const words = narration.replace(/\*\*[^*]+\*\*/g, " ").replace(/\[[^\]]+\]/g, " ").match(/\b[\p{L}\p{N}’'-]+\b/gu) ?? [];
-    const beforeWords = beforeBreak.replace(/\*\*[^*]+\*\*/g, " ").replace(/\[[^\]]+\]/g, " ").match(/\b[\p{L}\p{N}’'-]+\b/gu) ?? [];
-    const marker = markdown.match(/\[META AD BREAK — (\d{2}):(\d{2})/);
     assert.match(markdown, /SCRIPT DRAFT — not approved for recording or publication/);
     assert.match(markdown, /Target length:\*\* 3–8 minutes/);
-    assert.ok(narration.trim().startsWith(episode.hook), "the spoken narration must open with the approved hook");
-    assert.ok(words.length >= 300 && words.length <= 1500, "narration draft must fit the validator's 300–1,500 word bounds");
-    assert.ok(marker, "a clearly marked Meta ad-break position is required");
-    assert.equal(Number(marker[1]) * 60 + Number(marker[2]), episode.editorial_ad_breaks_seconds[0]);
-    assert.ok(beforeWords.length >= 240, "the hook and opening story must be established before the first ad marker");
-    assert.ok(markdown.includes("## Fact-check sources"));
+    assert.ok(narration.trim().startsWith(episode.hook), "spoken narration must open with the approved hook");
+    assert.ok(words.length >= 300 && words.length <= 1500, "narration draft must fit the 300–1,500 word bounds");
+    assert.ok(!markdown.includes("[META AD BREAK"), "no ad break is inserted unless separately approved");
+    assert.ok(!markdown.includes("youtube.com"), "Nature Frontiers scripts must not direct viewers to YouTube");
+    assert.match(markdown, /properly licensed stock/i, "scripts must allow properly licensed stock under the owner-approved policy");
+    assert.match(markdown, /on-screen disclosure/i, "scripts must require visible stock disclosure");
+    assert.match(markdown, /## Fact-check sources/);
     assert.ok(/https:\/\//.test(markdown), "each episode must cite research sources");
-    assert.ok(/original camera/i.test(markdown), "every episode must require original camera recordings");
-    assert.ok(markdown.includes("Nature Frontiers on YouTube"), "each script must direct viewers to the YouTube series");
   });
 }
