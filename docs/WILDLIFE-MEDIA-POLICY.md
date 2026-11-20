@@ -23,7 +23,7 @@ AI-generated or synthetic wildlife footage and visuals remain prohibited for doc
 6. Technical review and accessibility verification.
 7. Human review for animal welfare: no baiting, harassment, handling, staging or disturbance.
 8. Human review that the footage is non-graphic and appropriate.
-9. On-screen disclosure burned into or otherwise visibly present in the final rendered video. The campaign must record the exact disclosure text and a human confirmation against the final media hash.
+9. On-screen disclosure burned into or otherwise visibly present in the final rendered video. The campaign must record the exact disclosure text and a human confirmation bound to the same final media SHA-256 (on_screen_disclosure_media_sha256 must equal media_sha256). Any edit or re-export changes the hash and requires a fresh disclosure review.
 10. Creator/source attribution in the caption or credits.
 
 Suggested disclosure:
