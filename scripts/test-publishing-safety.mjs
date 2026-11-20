@@ -21,7 +21,8 @@ const cases = [
     name: "legacy feed publisher rejects a mismatched Meta Page identity before any API request",
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
-    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID."
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.",
+    expectedStatus: 1
   },
   {
     name: "legacy feed publisher has no approved campaigns",
@@ -45,7 +46,8 @@ const cases = [
     name: "long-form publisher rejects a mismatched Meta Page identity before any API request",
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
-    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID."
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.",
+    expectedStatus: 1
   },
   {
     name: "long-form publisher finds no approved video campaigns and makes no Meta request",
@@ -69,7 +71,8 @@ const cases = [
     name: "discovery Reel publisher rejects a mismatched Meta Page identity before any API request",
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
-    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID."
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.",
+    expectedStatus: 1
   },
   {
     name: "discovery Reel publisher finds no approved funnel clips and makes no Meta request",
@@ -86,7 +89,8 @@ for (const scenario of cases) {
     env: { ...process.env, ...sharedEnv, ...scenario.env }
   });
   const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
-  if (result.status !== 0 || !output.includes(scenario.expected)) {
+  const expectedStatus = scenario.expectedStatus ?? 0;
+  if (result.status !== expectedStatus || !output.includes(scenario.expected)) {
     failed++;
     console.error(`FAIL: ${scenario.name}`);
     console.error(output);
