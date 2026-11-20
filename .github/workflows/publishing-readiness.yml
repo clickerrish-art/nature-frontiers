@@ -27,6 +27,9 @@ on:
       - "codex/facebook-reels-publisher"
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/prepublish-gate.mjs"
+      - "scripts/test-prepublish-gate.mjs"
+      - "data/prepublish-policy.json"
       - "scripts/instagram-reel-guards.mjs"
       - "scripts/instagram-reel-api.mjs"
       - "scripts/publish-instagram-reel.mjs"
@@ -60,6 +63,9 @@ on:
   pull_request:
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/prepublish-gate.mjs"
+      - "scripts/test-prepublish-gate.mjs"
+      - "data/prepublish-policy.json"
       - "scripts/instagram-reel-guards.mjs"
       - "scripts/instagram-reel-api.mjs"
       - "scripts/publish-instagram-reel.mjs"
@@ -121,6 +127,8 @@ jobs:
         run: npm run test:meta-readiness
       - name: Test Instagram Reel guards and container API flow
         run: npm run test:instagram-reels
+      - name: Test cross-platform prepublish evidence gate
+        run: npm run test:prepublish
       - name: Verify MediaInfo is available for video media verification
         run: mediainfo --Version
       - name: Check Facebook and Instagram publishing script syntax
