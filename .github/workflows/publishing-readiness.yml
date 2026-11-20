@@ -107,6 +107,9 @@ jobs:
         run: node --test scripts/test-publishing-cadence.mjs
 
   meta-readiness:
+    # PRs run deterministic safety tests without requiring live Meta credentials or account variables.
+    # Read-only account readiness remains a gate for non-PR dispatches and scheduled checks.
+    if: github.event_name != 'pull_request'
     timeout-minutes: 5
     runs-on: ubuntu-24.04
     steps:
