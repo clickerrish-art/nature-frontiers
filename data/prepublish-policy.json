@@ -9,7 +9,8 @@
     "get rich quick"
   ],
   "allowed_link_hosts": [
-    "selar.com"
+    "selar.com",
+    "safari.com"
   ],
   "link_max_age_hours": 24,
   "approval_max_age_days": 30
