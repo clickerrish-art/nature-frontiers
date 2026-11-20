@@ -10,7 +10,7 @@ export function validateInstagramReelCampaign(campaign) {
   if (typeof campaign?.share_to_feed !== "boolean") errors.push("share_to_feed must be explicitly set to true or false.");
   if (typeof campaign?.caption === "string") {
     if (campaign.caption.length > 2200) errors.push("Instagram caption exceeds the 2,200-character limit.");
-    const hashtags = campaign.caption.match(/#[\\p{L}\\p{N}_]+/gu) ?? [];
+    const hashtags = campaign.caption.match(/#[\p{L}\p{N}_]+/gu) ?? [];
     const mentions = campaign.caption.match(/@[A-Za-z0-9._]+/g) ?? [];
     if (hashtags.length > 30) errors.push("Instagram caption exceeds the 30-hashtag limit.");
     if (mentions.length > 20) errors.push("Instagram caption exceeds the 20-mention limit.");
