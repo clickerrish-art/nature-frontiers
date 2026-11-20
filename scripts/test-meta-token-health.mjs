@@ -11,4 +11,4 @@ assert.equal(assessTokenDebugInfo({...good,expires_at:now+5*86400},"123",now).ok
 assert.equal(assessTokenDebugInfo({...good,expires_at:0},"123",now).ok,true);
 const missingExpiry = {...good}; delete missingExpiry.data_access_expires_at;
 assert.equal(assessTokenDebugInfo(missingExpiry,"123",now).ok,false);
-console.log("Meta token health assessment tests: 7/7 passed.");
+console.log("Meta token health assessment tests: 8/8 passed.");
