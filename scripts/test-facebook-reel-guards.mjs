@@ -19,7 +19,7 @@ const base = {
   source_url: "https://www.pexels.com/video/example/", source_creator: "Creator",
   license_name: "Pexels License", license_evidence_url: "https://www.pexels.com/license/",
   provenance_review_passed: true, provenance_reviewer: "editor", provenance_reviewed_at: "2026-11-20T10:00:00Z",
-  on_screen_disclosure_confirmed: true,
+  on_screen_disclosure_confirmed: true, on_screen_disclosure_media_sha256: "a".repeat(64),
   on_screen_disclosure_text: "Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
   caption_attribution: "Footage: Creator via Pexels."
 };
@@ -61,6 +61,7 @@ for (const [field, value, message] of [
   ["provenance_reviewer", "", "reviewer"],
   ["provenance_reviewed_at", "invalid", "timestamp"],
   ["on_screen_disclosure_confirmed", false, "on-screen disclosure"],
+  ["on_screen_disclosure_media_sha256", "b".repeat(64), "exact final media SHA-256"],
   ["on_screen_disclosure_text", "Footage shown", "clearly identify licensed stock"],
   ["caption_attribution", "", "attribution"]
 ]) {
