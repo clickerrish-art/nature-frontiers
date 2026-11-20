@@ -41,6 +41,7 @@ const valid = {
   voiceover_originality_confirmed: true,
   media_rights_confirmed: true,
   media_originality_confirmed: true,
+  media_integrity_review_passed: true,
   audio_rights_confirmed: true,
   policy_review_passed: true,
   content_accuracy_confirmed: true,
@@ -92,6 +93,30 @@ test("builds a series description containing the channel, all catalogue products
   assert.ok(description.includes(PRODUCT_DISCLOSURE));
   assert.match(description, /Episode 1: The Patient Ambush/);
   assert.throws(() => buildLongFormVideoDescription({ seriesTitle: "Series", episodeNumber: 0, episodeTitle: "Title", episodeDescription: "Body", nextEpisodeTeaser: "Next" }), /positive integer/);
+});
+
+test("accepts licensed stock in long-form wildlife videos only with source, licence, provenance and on-screen disclosure evidence", () => {
+  const stock = {
+    ...valid,
+    media_origin: "licensed_stock",
+    wildlife_media_policy: "licensed_stock_allowed",
+    stock_footage_used: true,
+    source_url: "https://www.pexels.com/video/example/",
+    source_creator: "Creator",
+    license_name: "Pexels License",
+    license_evidence_url: "https://www.pexels.com/license/",
+    on_screen_disclosure_confirmed: true,
+    on_screen_disclosure_text: "Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
+    caption_attribution: "Footage: Creator via Pexels.",
+    media_originality_confirmed: undefined,
+    source_recording_id: undefined,
+    original_camera_file_sha256: undefined,
+    original_recording_retained: undefined
+  };
+  assert.deepEqual(validateLongFormVideoCampaign(stock), []);
+  assert.ok(validateLongFormVideoCampaign({ ...stock, on_screen_disclosure_confirmed: false }).some((e) => e.includes("on-screen disclosure")));
+  assert.ok(validateLongFormVideoCampaign({ ...stock, wildlife_media_policy: "original_camera_only" }).some((e) => e.includes("owner-approved licensed_stock_allowed")));
+  assert.ok(validateLongFormVideoCampaign({ ...stock, license_evidence_url: "javascript:alert(1)" }).some((e) => e.includes("licence evidence URL")));
 });
 
 test("accepts an approved, reviewed 3–8 minute original landscape-video series episode manifest", () => {
