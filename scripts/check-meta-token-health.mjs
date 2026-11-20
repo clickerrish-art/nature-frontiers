@@ -34,7 +34,11 @@ async function createOrFindAlert(message) {
 }
 
 async function main() {
-  if (missing.length) throw new Error("Missing required secret/configuration names: " + missing.join(", ") + ". No credential values were read or logged.");
+  if (missing.length) {
+    const message = "Missing required Meta token-health configuration names: " + missing.join(", ") + ". No credential values were read or logged.";
+    await createOrFindAlert(message);
+    throw new Error(message);
+  }
   if (!/^v\d+\.\d+$/.test(version)) throw new Error("META_GRAPH_API_VERSION must be pinned explicitly as vN.N.");
   const appToken = process.env.META_APP_ID + "|" + process.env.META_APP_SECRET;
   const endpoint = new URL("https://graph.facebook.com/" + version + "/debug_token");
