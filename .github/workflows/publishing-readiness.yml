@@ -3,8 +3,22 @@ name: Nature Frontiers publishing (gated)
 on:
   workflow_dispatch:
     inputs:
+      target_operation:
+        description: "Select exactly one platform operation; checks_only never publishes."
+        required: true
+        type: choice
+        options:
+          - checks_only
+          - facebook_video
+          - facebook_reel
+          - instagram_reel
+        default: checks_only
+      campaign_id:
+        description: "Exact approved campaign ID for the selected one-shot operation."
+        required: false
+        type: string
       live_publish_authorized:
-        description: "Explicitly authorize one live publishing run after all launch checks (leave false for checks/dry runs)."
+        description: "Explicitly authorize the selected exact campaign operation after all launch checks."
         required: true
         type: boolean
         default: false
@@ -146,7 +160,7 @@ jobs:
   facebook-publisher:
     # Publishing writes durable campaign state to the dispatch ref. Never permit
     # this job to write to main; use a dedicated non-main release branch.
-    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && inputs.target_operation != 'checks_only' && inputs.live_publish_authorized == true
     permissions:
       contents: write
     needs: [safety-tests, meta-readiness]
@@ -160,9 +174,11 @@ jobs:
         with:
           node-version: "24"
       - name: Run gated long-form Facebook Page video adapter
+        if: inputs.target_operation == 'facebook_video'
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
           META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
@@ -172,9 +188,11 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook-video.mjs
       - name: Run gated Instagram Reel adapter (requires verified linked Instagram account)
+        if: inputs.target_operation == 'instagram_reel'
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
           META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
@@ -185,10 +203,12 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-instagram-reel.mjs
-      - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
+      - name: Run gated Facebook Reel adapter
+        if: inputs.target_operation == 'facebook_reel'
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
           META_GRAPH_API_VERSION: "v27.0"
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
