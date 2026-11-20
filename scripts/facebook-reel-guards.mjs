@@ -43,7 +43,7 @@ export function validateReelCampaign(campaign) {
     if (typeof campaign?.provenance_reviewed_at !== "string" || !Number.isFinite(Date.parse(campaign.provenance_reviewed_at))) errors.push("a valid provenance review timestamp is required.");
     if (campaign?.on_screen_disclosure_confirmed !== true) errors.push("licensed stock requires a confirmed on-screen disclosure.");
     if (typeof campaign?.on_screen_disclosure_text !== "string" || !/licensed stock footage/i.test(campaign.on_screen_disclosure_text)) errors.push("on-screen disclosure must clearly identify licensed stock footage.");
-    if (typeof campaign?.caption_attribution !== "string" || !campaign.caption_attribution.trim()) errors.push("licensed stock requires creator/source attribution in the caption or credits.");
+    if (typeof campaign?.caption_attribution !== "string" || !campaign.caption_attribution.trim() || !caption.includes(campaign.caption_attribution)) errors.push("licensed stock requires exact creator/source attribution in the caption or rendered credits.");
   } else if (campaign?.media_origin === "original_camera_recording") {
     if (campaign?.stock_footage_used !== false) errors.push("original camera recordings must explicitly set stock_footage_used=false.");
     if (typeof campaign?.source_recording_id !== "string" || !campaign.source_recording_id.trim()) errors.push("an identifiable original camera source recording is required.");
