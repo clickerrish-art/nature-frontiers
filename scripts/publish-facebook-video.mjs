@@ -102,14 +102,17 @@ try {
     mediaCheck.contentType + "; SHA-256 verified; " + mediaCheck.videoMetadata.width + "x" +
     mediaCheck.videoMetadata.height + "; " + actualDuration + " seconds; " +
     mediaCheck.videoMetadata.frameRate + " fps.");
-  console.log("Requested Meta ad-break offsets in milliseconds (ad serving still depends on eligibility and Meta delivery): " +
-    JSON.stringify(toMetaAdBreakOffsetsMilliseconds(campaign)) + ".");
-  console.log("Editorial ad-break markers and transition notes (for the edit): " +
-    campaign.editorial_ad_breaks_seconds.map((seconds) => {
-      const minutes = Math.floor(seconds / 60);
-      const remainder = String(seconds % 60).padStart(2, "0");
-      return minutes + ":" + remainder;
-    }).join(", ") + ".");
+  const adBreakOffsets = toMetaAdBreakOffsetsMilliseconds(campaign);
+  if (adBreakOffsets.length > 0) {
+    console.log("Requested Meta ad-break offsets in milliseconds (ad serving still depends on eligibility and Meta delivery): " +
+      JSON.stringify(adBreakOffsets) + ".");
+    console.log("Editorial ad-break markers and transition notes (for the edit): " +
+      campaign.editorial_ad_breaks_seconds.map((seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainder = String(seconds % 60).padStart(2, "0");
+        return minutes + ":" + remainder;
+      }).join(", ") + ".");
+  }
 
   const before = await getState();
   const live = before.campaigns.find((item) => item.id === campaign.id);
@@ -134,9 +137,9 @@ try {
     file_url: mediaCheck.finalUrl,
     title: campaign.title,
     description: campaign.caption,
-    published: "true",
-    ad_breaks: JSON.stringify(toMetaAdBreakOffsetsMilliseconds(campaign))
+    published: "true"
   });
+  if (adBreakOffsets.length > 0) body.set("ad_breaks", JSON.stringify(adBreakOffsets));
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
