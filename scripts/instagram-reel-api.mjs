@@ -103,11 +103,17 @@ export async function verifyInstagramPublishedReel({
 export async function publishInstagramReelFlow({
   graphVersion, instagramUserId, accessToken, videoUrl, caption, shareToFeed,
   fetchImpl = fetch, waitImpl = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  onContainerCreated = async () => {}, onMediaCreated = async () => {},
   maxStatusAttempts = 24, pollIntervalMs = 5000
 }) {
   const containerId = await createInstagramReelContainer({
     graphVersion, instagramUserId, accessToken, videoUrl, caption, shareToFeed, fetchImpl
   });
+  try {
+    await onContainerCreated(containerId);
+  } catch (error) {
+    throw new Error("Instagram container " + containerId + " was created but could not be durably recorded; do not publish or recreate it. " + (error?.message ?? "State persistence failed."));
+  }
   let finished = false;
   for (let attempt = 0; attempt < maxStatusAttempts; attempt++) {
     const status = await getInstagramReelContainerStatus({ graphVersion, accessToken, containerId, fetchImpl });
@@ -119,6 +125,11 @@ export async function publishInstagramReelFlow({
   }
   if (!finished) throw new Error("Instagram Reel container did not reach FINISHED within the verification window; do not publish or recreate automatically.");
   const mediaId = await publishInstagramReelContainer({ graphVersion, instagramUserId, accessToken, containerId, fetchImpl });
+  try {
+    await onMediaCreated(mediaId);
+  } catch (error) {
+    throw new Error("Instagram media " + mediaId + " was published but its ID could not be durably recorded; do not retry. " + (error?.message ?? "State persistence failed."));
+  }
   const remote = await verifyInstagramPublishedReel({ graphVersion, accessToken, mediaId, expectedCaption: caption, fetchImpl });
   return { containerId, mediaId, permalink: remote.permalink, timestamp: remote.timestamp, username: remote.username };
 }
