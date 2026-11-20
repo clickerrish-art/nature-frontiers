@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const sharedEnv = {
+  PUBLISH_CAMPAIGN_ID: "test-no-approved-campaign",
   META_PAGE_ID: "1431329126735709",
   META_EXPECTED_PAGE_ID: "1431329126735709",
   META_INSTAGRAM_USER_ID: "17841400000000000",
@@ -30,7 +31,7 @@ const cases = [
     name: "legacy feed publisher has no approved campaigns",
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved Facebook feed campaigns exist."
+    expected: "No explicitly approved Facebook feed campaign matches PUBLISH_CAMPAIGN_ID."
   },
   {
     name: "long-form publisher is disabled by default",
@@ -55,7 +56,7 @@ const cases = [
     name: "long-form publisher finds no approved video campaigns and makes no Meta request",
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved long-form Facebook video campaigns exist."
+    expected: "No explicitly approved long-form Facebook video campaign matches PUBLISH_CAMPAIGN_ID."
   },
   {
     name: "Instagram Reel publisher is disabled by default",
@@ -80,7 +81,7 @@ const cases = [
     name: "Instagram Reel publisher finds no approved campaigns and makes no Meta request",
     script: "scripts/publish-instagram-reel.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved Instagram Reel campaigns exist."
+    expected: "No explicitly approved Instagram Reel campaign matches PUBLISH_CAMPAIGN_ID."
   },
   {
     name: "discovery Reel publisher is disabled by default",
@@ -105,7 +106,7 @@ const cases = [
     name: "discovery Reel publisher finds no approved funnel clips and makes no Meta request",
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved Facebook Reel campaigns exist."
+    expected: "No explicitly approved Facebook Reel campaign matches PUBLISH_CAMPAIGN_ID."
   }
 ];
 
