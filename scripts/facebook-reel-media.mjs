@@ -138,16 +138,28 @@ async function inspectReelVideo(filePath, probeImpl, durationProfile = {}) {
   if (width < 540 || height < 960 || Math.abs(width / height - 9 / 16) > 0.005) {
     throw new Error("Facebook Reel must be portrait 9:16 and at least 540x960 pixels.");
   }
-  if (!Number.isFinite(duration) || duration < 25 || duration > 35) {
-    throw new Error("Nature Frontiers discovery Reels must be between 25 and 35 seconds (approximately 30 seconds).");
+  const minDuration = Number.isFinite(durationProfile.minSeconds) ? durationProfile.minSeconds : 25;
+  const maxDuration = Number.isFinite(durationProfile.maxSeconds) ? durationProfile.maxSeconds : 35;
+  if (!Number.isFinite(duration) || duration < minDuration || duration > maxDuration) {
+    throw new Error("Reel duration must be between " + minDuration + " and " + maxDuration + " seconds for the selected campaign profile.");
   }
   if (!Number.isFinite(frameRate) || frameRate < 23) {
     throw new Error("Facebook Reel frame rate must be at least 23 fps.");
   }
   if (!/(mpeg-4|quicktime)/i.test(formatName)) {
-    throw new Error("Facebook Reel must use a supported MP4/MOV video container.");
+    throw new Error("Reel must use a supported MP4/MOV video container.");
   }
-  return { width, height, duration, frameRate, formatName };
+  if (durationProfile.requireInstagramProfile === true) {
+    if (!/(avc|h.?264|hevc)/i.test(videoCodec)) throw new Error("Instagram Reels require an H.264 or HEVC video stream.");
+    if (!audioStream || !/^AAC$/i.test(audioFormat) || Math.round(audioSampleRateHz) !== 48000) {
+      throw new Error("Instagram Reels require an AAC audio stream sampled at 48 kHz.");
+    }
+    if (Number.isFinite(audioBitRate) && audioBitRate > 128000) {
+      throw new Error("Instagram Reel audio bitrate must not exceed 128 kbps.");
+    }
+  }
+  const audioMetadata = audioStream ? { format: audioFormat, sampleRateHz: audioSampleRateHz, bitRate: Number.isFinite(audioBitRate) ? audioBitRate : null } : null;
+  return { width, height, duration, frameRate, formatName, ...(audioMetadata ? { audioMetadata } : {}), ...(videoCodec ? { videoCodec } : {}) };
 }
 
 export async function verifyRemoteMedia(
@@ -156,7 +168,8 @@ export async function verifyRemoteMedia(
   fetchImpl = fetch,
   lookupImpl = lookup,
   maxBytes = MAX_MEDIA_BYTES,
-  probeImpl = execFileAsync
+  probeImpl = execFileAsync,
+  durationProfile = {}
 ) {
   if (!/^[a-f0-9]{64}$/i.test(expectedSha256 ?? "")) {
     throw new Error("A verified SHA-256 digest is required before media transfer.");
