@@ -57,7 +57,11 @@ for (const [field, value, message] of [
   });
 }
 
-test("blocks licensed stock unless the owner-approved policy is explicitly attached to the campaign", () => {\n  assert.ok(validateReelCampaign({ ...base, wildlife_media_policy: "original_camera_only" }).some((error) => error.includes("owner-approved licensed_stock_allowed")));\n});\n\ntest("blocks a stock-origin claim when stock_footage_used is false", () => {
+test("blocks licensed stock unless the owner-approved policy is explicitly attached to the campaign", () => {
+  assert.ok(validateReelCampaign({ ...base, wildlife_media_policy: "original_camera_only" }).some((error) => error.includes("owner-approved licensed_stock_allowed")));
+});
+
+test("blocks a stock-origin claim when stock_footage_used is false", () => {
   assert.ok(validateReelCampaign({ ...base, stock_footage_used: false }).some((error) => error.includes("stock_footage_used=true")));
 });
 
