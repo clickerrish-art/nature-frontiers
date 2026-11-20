@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 const now = new Date("2026-11-20T12:00:00.000Z");
-const policy = { banned_phrases: ["guaranteed income"], allowed_link_hosts: ["selar.com"], link_max_age_hours: 24, approval_max_age_days: 30 };
+const policy = { banned_phrases: ["guaranteed income"], allowed_link_hosts: ["selar.com", "safari.com"], link_max_age_hours: 24, approval_max_age_days: 30 };
 const caption = "A wildlife fact. Footage: Creator via Pexels. Licensed stock footage — illustrative, not a Nature Frontiers field recording.";
 const media = {
   media_sha256: "a".repeat(64),
@@ -81,6 +81,24 @@ test("requires a link check and paid disclosure only for promotional campaigns",
   campaign.human_approval.caption_sha256 = createHash("sha256").update(campaign.caption.trim()).digest("hex");
   assert.ok(validatePrepublishCampaign(campaign, [], policy, now).issues.length === 0);
   assert.ok(validatePrepublishCampaign({ ...campaign, disclosure: { paid_promotion: false } }, [], policy, now).issues.some((e) => e.code === "PAID_DISCLOSURE_MISSING"));
+});
+
+test("requires verification and affiliate disclosure only when affiliate links are present", () => {
+  const link = "https://www.safari.com/reserve? a=GM26";
+  const disclosure = "Disclosure: Nature Frontiers may earn a commission from this affiliate link.";
+  const campaign = validCampaign({
+    caption: caption + " " + link + " " + disclosure,
+    affiliate_links: [link],
+    affiliate_links_verified: true,
+    affiliate_verification_note: "Owner-approved Safari affiliate URL checked.",
+    affiliate_disclosure: disclosure,
+    link_checks: [{ url: link, status: 200, checked_at: "2026-11-20T11:30:00.000Z", final_url: link }]
+  });
+  campaign.human_approval.caption_sha256 = createHash("sha256").update(campaign.caption.trim()).digest("hex");
+  assert.deepEqual(validatePrepublishCampaign(campaign, [], policy, now).issues, []);
+  const withoutDisclosure = { ...campaign, caption: campaign.caption.replace(disclosure, "") };
+  withoutDisclosure.human_approval = { ...campaign.human_approval, caption_sha256: createHash("sha256").update(withoutDisclosure.caption.trim()).digest("hex") };
+  assert.ok(validatePrepublishCampaign(withoutDisclosure, [], policy, now).issues.some((e) => e.code === "AFFILIATE_DISCLOSURE_MISSING"));
 });
 
 test("blocks duplicate captions, stale links and banned claims", () => {
