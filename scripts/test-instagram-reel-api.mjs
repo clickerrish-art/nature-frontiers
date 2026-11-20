@@ -39,7 +39,7 @@ test("runs Instagram container creation, waits for FINISHED, publishes once and 
     }
     if (target.includes("/ig-media-456?")) {
       return jsonResponse({
-        id: "ig-media-456", media_type: "REEL",
+        id: "ig-media-456", media_type: "VIDEO", media_product_type: "REELS",
         permalink: "https://www.instagram.com/reel/ABC123/",
         caption: config.caption, timestamp: "2026-11-20T20:00:00+0000", username: "naturefrontiers"
       });
@@ -89,7 +89,7 @@ test("rejects remote media with wrong type, caption or non-HTTPS permalink", asy
     verifyInstagramPublishedReel({
       graphVersion: config.graphVersion, accessToken: config.accessToken, mediaId: "ig-media-1",
       expectedCaption: config.caption,
-      fetchImpl: async () => jsonResponse({ id: "ig-media-1", media_type: "VIDEO", permalink: "https://instagram.com/x", caption: config.caption })
+      fetchImpl: async () => jsonResponse({ id: "ig-media-1", media_type: "IMAGE", media_product_type: "FEED", permalink: "https://instagram.com/x", caption: config.caption })
     }),
     /does not match/
   );
@@ -97,7 +97,7 @@ test("rejects remote media with wrong type, caption or non-HTTPS permalink", asy
     verifyInstagramPublishedReel({
       graphVersion: config.graphVersion, accessToken: config.accessToken, mediaId: "ig-media-1",
       expectedCaption: config.caption,
-      fetchImpl: async () => jsonResponse({ id: "ig-media-1", media_type: "REEL", permalink: "http://instagram.com/x", caption: config.caption })
+      fetchImpl: async () => jsonResponse({ id: "ig-media-1", media_type: "VIDEO", media_product_type: "REELS", permalink: "http://instagram.com/x", caption: config.caption })
     }),
     /does not match/
   );
