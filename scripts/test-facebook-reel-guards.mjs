@@ -9,7 +9,7 @@ const base = {
   policy_review_passed: true, wildlife_welfare_confirmed: true, non_graphic_review_passed: true,
   media_accessibility_confirmed: true, media_technical_review_passed: true,
   media_sha256: "a".repeat(64), synthetic_visuals: false, ai_generated_video: false,
-  media_origin: "licensed_stock", stock_footage_used: true,
+  media_origin: "licensed_stock", wildlife_media_policy: "licensed_stock_allowed", stock_footage_used: true,
   source_url: "https://www.pexels.com/video/example/", source_creator: "Creator",
   license_name: "Pexels License", license_evidence_url: "https://www.pexels.com/license/",
   provenance_review_passed: true, provenance_reviewer: "editor", provenance_reviewed_at: "2026-11-20T10:00:00Z",
@@ -57,7 +57,7 @@ for (const [field, value, message] of [
   });
 }
 
-test("blocks a stock-origin claim when stock_footage_used is false", () => {
+test("blocks licensed stock unless the owner-approved policy is explicitly attached to the campaign", () => {\n  assert.ok(validateReelCampaign({ ...base, wildlife_media_policy: "original_camera_only" }).some((error) => error.includes("owner-approved licensed_stock_allowed")));\n});\n\ntest("blocks a stock-origin claim when stock_footage_used is false", () => {
   assert.ok(validateReelCampaign({ ...base, stock_footage_used: false }).some((error) => error.includes("stock_footage_used=true")));
 });
 
