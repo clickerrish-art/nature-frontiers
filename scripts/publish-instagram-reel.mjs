@@ -17,6 +17,7 @@ if (dryRun) safeStop("PUBLISH_DRY_RUN is not false; no public publishing is perm
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
 const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
+const selectedCampaignId = process.env.PUBLISH_CAMPAIGN_ID ?? "";
 const instagramUserId = process.env.META_INSTAGRAM_USER_ID;
 const expectedInstagramUserId = process.env.META_EXPECTED_INSTAGRAM_USER_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
@@ -34,12 +35,13 @@ if (typeof graphVersion !== "string" || !/^v\d+\.\d+$/.test(graphVersion)) {
   throw new Error("META_GRAPH_API_VERSION must be configured as vNN.N.");
 }
 if (!accessToken) throw new Error("Meta Page access token is required.");
+if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
 
 const localCampaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = localCampaigns.filter((item) =>
-  item?.network === "instagram" && item?.status === "approved" && item?.instagram_type === "REEL");
-if (approved.length === 0) safeStop("No explicitly approved Instagram Reel campaigns exist.");
+  item?.id === selectedCampaignId && item?.network === "instagram" && item?.status === "approved" && item?.instagram_type === "REEL");
+if (approved.length === 0) safeStop("No explicitly approved Instagram Reel campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved Instagram Reel is allowed per manual run.");
 const campaign = approved[0];
 const validation = validateInstagramReelCampaign(campaign);
