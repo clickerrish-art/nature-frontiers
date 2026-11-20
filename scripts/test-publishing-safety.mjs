@@ -18,6 +18,12 @@ const cases = [
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
   },
   {
+    name: "legacy feed publisher rejects a mismatched Meta Page identity before any API request",
+    script: "scripts/publish-facebook.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID."
+  },
+  {
     name: "legacy feed publisher has no approved campaigns",
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
