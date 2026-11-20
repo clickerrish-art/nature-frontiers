@@ -24,6 +24,7 @@ export function validateReelCampaign(campaign) {
   if (campaign?.non_graphic_review_passed !== true) errors.push("wildlife footage must pass a human non-graphic imagery review.");
   if (campaign?.media_accessibility_confirmed !== true) errors.push("public media URL accessibility must be verified.");
   if (campaign?.media_technical_review_passed !== true) errors.push("media technical specifications must be reviewed and confirmed.");
+  if (campaign?.media_integrity_review_passed !== true) errors.push("final Reel media must pass human media-integrity review.");
   if (campaign?.watermark_scan_passed !== true) errors.push("media must pass a human watermark scan.");
   if (campaign?.audio_present !== true && campaign?.audio_present !== false) errors.push("media must explicitly declare whether audio is present.");
   if (campaign?.audio_present === true && (campaign?.audio_license_status !== "licensed" || !campaign?.audio_license_ref)) errors.push("media audio requires verified licence evidence.");
