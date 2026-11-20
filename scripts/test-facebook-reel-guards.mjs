@@ -5,7 +5,11 @@ import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mj
 const base = {
   id: "nf-editorial-reel-001", network: "facebook", status: "approved", facebook_type: "REEL",
   title: "Nile crocodile behaviour", caption: "A responsible wildlife fact. Footage: Creator via Pexels. Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
-  media_url: "https://cdn.example.org/wildlife.mp4", media_rights_confirmed: true,
+  media_url: "https://cdn.example.org/wildlife.mp4",
+  media_url_immutable_confirmed: true,
+  duration_seconds: 30,
+  media_duration_min_seconds: 25,
+  media_duration_max_seconds: 35, media_rights_confirmed: true,
   policy_review_passed: true, wildlife_welfare_confirmed: true, non_graphic_review_passed: true,
   media_accessibility_confirmed: true, media_technical_review_passed: true,
   media_sha256: "a".repeat(64), synthetic_visuals: false, ai_generated_video: false,
