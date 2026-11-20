@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
 
 const sharedEnv = {
-  META_PAGE_ID: "1003575786161492",
+  META_PAGE_ID: "1431329126735709",
+  META_EXPECTED_PAGE_ID: "1431329126735709",
   META_PAGE_ACCESS_TOKEN: "not-a-real-token-used-only-for-safe-stop-tests",
   META_GRAPH_API_VERSION: "v27.0",
   GITHUB_REPOSITORY: "clickerrish-art/nature-frontiers",
@@ -35,6 +36,12 @@ const cases = [
     expected: "PUBLISH_DRY_RUN is not false; no public publishing is permitted."
   },
   {
+    name: "long-form publisher rejects a mismatched Meta Page identity before any API request",
+    script: "scripts/publish-facebook-video.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID."
+  },
+  {
     name: "long-form publisher finds no approved video campaigns and makes no Meta request",
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
@@ -51,6 +58,12 @@ const cases = [
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true" },
     expected: "PUBLISH_DRY_RUN is not false; no public publishing is permitted."
+  },
+  {
+    name: "discovery Reel publisher rejects a mismatched Meta Page identity before any API request",
+    script: "scripts/publish-facebook-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID."
   },
   {
     name: "discovery Reel publisher finds no approved funnel clips and makes no Meta request",
