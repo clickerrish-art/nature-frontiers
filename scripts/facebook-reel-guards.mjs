@@ -51,6 +51,11 @@ export function validateReelCampaign(campaign) {
     if (typeof campaign?.provenance_reviewer !== "string" || !campaign.provenance_reviewer.trim()) errors.push("a named provenance reviewer is required.");
     if (typeof campaign?.provenance_reviewed_at !== "string" || !Number.isFinite(Date.parse(campaign.provenance_reviewed_at))) errors.push("a valid provenance review timestamp is required.");
     if (campaign?.on_screen_disclosure_confirmed !== true) errors.push("licensed stock requires a confirmed on-screen disclosure.");
+    if (typeof campaign?.on_screen_disclosure_media_sha256 !== "string" ||
+        !/^[a-f0-9]{64}$/i.test(campaign.on_screen_disclosure_media_sha256) ||
+        campaign.on_screen_disclosure_media_sha256.toLowerCase() !== campaign.media_sha256.toLowerCase()) {
+      errors.push("on-screen stock disclosure confirmation must be bound to the exact final media SHA-256.");
+    }
     if (typeof campaign?.on_screen_disclosure_text !== "string" || !/licensed stock footage/i.test(campaign.on_screen_disclosure_text)) errors.push("on-screen disclosure must clearly identify licensed stock footage.");
     if (typeof campaign?.caption_attribution !== "string" || !campaign.caption_attribution.trim() || !caption.includes(campaign.caption_attribution)) errors.push("licensed stock requires exact creator/source attribution in the caption or rendered credits.");
   } else if (campaign?.media_origin === "original_camera_recording") {
