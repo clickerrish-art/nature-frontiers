@@ -20,6 +20,7 @@ function jsonResponse(payload, status = 200) {
 
 test("runs Instagram container creation, waits for FINISHED, publishes once and verifies exact remote Reel", async () => {
   const calls = [];
+  const persisted = [];
   const fetchImpl = async (url, options = {}) => {
     const target = String(url);
     calls.push({ url: target, options });
@@ -46,7 +47,7 @@ test("runs Instagram container creation, waits for FINISHED, publishes once and 
     }
     throw new Error("Unexpected Instagram API request: " + target);
   };
-  const result = await publishInstagramReelFlow({ ...config, fetchImpl });
+  const result = await publishInstagramReelFlow({ ...config, fetchImpl, onContainerCreated: async (id) => persisted.push("container:" + id), onMediaCreated: async (id) => persisted.push("media:" + id) });
   assert.deepEqual(result, {
     containerId: "container-123",
     mediaId: "ig-media-456",
@@ -56,6 +57,22 @@ test("runs Instagram container creation, waits for FINISHED, publishes once and 
   });
   assert.equal(calls.length, 4);
   assert.equal(calls.filter((call) => call.options.method === "POST").length, 2);
+  assert.deepEqual(persisted, ["container:container-123", "media:ig-media-456"]);
+});
+
+test("does not publish if the created container cannot be durably recorded", async () => {
+  let publishCalls = 0;
+  const fetchImpl = async (url, options = {}) => {
+    const target = String(url);
+    if (target.endsWith("/media") && options.method === "POST") return jsonResponse({ id: "container-unrecorded" });
+    if (target.endsWith("/media_publish")) publishCalls++;
+    throw new Error("Unexpected request after failed persistence callback: " + target);
+  };
+  await assert.rejects(
+    publishInstagramReelFlow({ ...config, fetchImpl, onContainerCreated: async () => { throw new Error("GitHub state write failed"); } }),
+    /container-unrecorded was created but could not be durably recorded/
+  );
+  assert.equal(publishCalls, 0);
 });
 
 test("never publishes a container that reaches ERROR or EXPIRED", async () => {
