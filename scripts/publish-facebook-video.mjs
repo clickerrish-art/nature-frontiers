@@ -4,6 +4,7 @@ import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publi
 import { validateLongFormVideoCampaign, toMetaAdBreakOffsetsMilliseconds } from "./facebook-video-guards.mjs";
 import { verifyRemoteLongFormVideo } from "./facebook-video-media.mjs";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
+import { createGitHubMetaStateStore, createMetaAuditedFetch } from "./meta-ops-state.mjs";
 
 function safeStop(message) {
   console.log("SAFE STOP: " + message);
@@ -32,6 +33,10 @@ if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Config
 if (!accessToken) throw new Error("Meta Page access token is required.");
 if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
+const metaStateStore = createGitHubMetaStateStore({ repository: repo, branch: ref, githubToken });
+const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
+const circuitState = await metaStateStore.readCircuitState();
+if (circuitState.state === "open" || circuitState.open === true) safeStop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
 
 const localCampaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = localCampaigns.filter((item) =>
@@ -54,7 +59,7 @@ const ghHeaders = {
 };
 
 async function getState() {
-  const response = await fetch(stateUrl + "?ref=" + encodeURIComponent(ref), {
+  const response = await metaFetch(stateUrl + "?ref=" + encodeURIComponent(ref), {
     headers: ghHeaders,
     signal: AbortSignal.timeout(15000)
   });
@@ -66,7 +71,7 @@ async function getState() {
 
 async function saveState(sha, items, message) {
   const content = Buffer.from(JSON.stringify(items, null, 2) + String.fromCharCode(10)).toString("base64");
-  const response = await fetch(stateUrl, {
+  const response = await metaFetch(stateUrl, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ message, content, sha, branch: ref }),
@@ -79,7 +84,7 @@ async function saveState(sha, items, message) {
 async function graphGetVideo(videoId) {
   const url = new URL("https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(videoId));
   url.searchParams.set("fields", "id,published,permalink_url,status");
-  const response = await fetch(url, {
+  const response = await metaFetch(url, {
     headers: { Authorization: "Bearer " + accessToken },
     signal: AbortSignal.timeout(15000)
   });
@@ -140,7 +145,7 @@ try {
     published: "true"
   });
   if (adBreakOffsets.length > 0) body.set("ad_breaks", JSON.stringify(adBreakOffsets));
-  const response = await fetch(endpoint, {
+  const response = await metaFetch(endpoint, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + accessToken,
