@@ -10,7 +10,7 @@ export function assessTokenDebugInfo(debug, expectedAppId, nowSeconds = Math.flo
   if (!debug || debug.is_valid !== true) issues.push("The Page access token is invalid or revoked.");
   if (expectedAppId && String(debug?.app_id ?? "") !== String(expectedAppId)) issues.push("The token belongs to an unexpected Meta app.");
   const scopes = new Set(Array.isArray(debug?.scopes) ? debug.scopes : []);
-  for (const scope of ["pages_manage_posts", "pages_read_engagement"]) if (!scopes.has(scope)) issues.push("Required permission is missing: " + scope);
+  for (const scope of ["pages_manage_posts", "pages_read_engagement", "instagram_basic", "instagram_content_publish"]) if (!scopes.has(scope)) issues.push("Required permission is missing: " + scope);
   for (const [field, label] of [["expires_at", "token"], ["data_access_expires_at", "data access"]]) {
     if (!debug || !Object.hasOwn(debug, field)) { issues.push("The " + label + " expiry field is missing."); continue; }
     const expiry = Number(debug[field]);
