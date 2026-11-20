@@ -1,6 +1,7 @@
 import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
 import { readFile } from "node:fs/promises";
 import { validateFeedRelease } from "./facebook-feed-guards.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
@@ -83,6 +84,9 @@ if (pending.length !== 1) {
 }
 
 const campaign = pending[0];
+const policy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
+const prepublish = validatePrepublishCampaign(campaign, campaigns, policy);
+if (!prepublish.ok) throw new Error("Prepublish gate failed: " + prepublish.issues.map((item) => item.code + ": " + item.message).join(" "));
 const message = campaign.caption.trim();
 
 if (dryRun) {
