@@ -68,6 +68,7 @@ test("accepts licensed stock with source, licence, provenance, attribution and o
     provenance_reviewer: "rights-editor",
     provenance_reviewed_at: "2026-11-20T10:00:00Z",
     on_screen_disclosure_confirmed: true,
+    on_screen_disclosure_media_sha256: valid.media_sha256,
     on_screen_disclosure_text: "Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
     caption_attribution: "Footage: Creator via Pexels.",
     media_originality_confirmed: undefined,
@@ -77,6 +78,8 @@ test("accepts licensed stock with source, licence, provenance, attribution and o
   };
   assert.deepEqual(validateLongFormVideoCampaign(stock), []);
   assert.ok(validateLongFormVideoCampaign({ ...stock, on_screen_disclosure_confirmed: false }).some((e) => e.includes("on-screen disclosure")));
+  assert.ok(validateLongFormVideoCampaign({ ...stock, on_screen_disclosure_media_sha256: "c".repeat(64) }).some((e) => e.includes("exact final media SHA-256")));
+  assert.ok(validateLongFormVideoCampaign({ ...stock, on_screen_disclosure_media_sha256: undefined }).some((e) => e.includes("exact final media SHA-256")));
   assert.ok(validateLongFormVideoCampaign({ ...stock, caption: valid.caption }).some((e) => e.includes("exact creator/source attribution")));
   assert.ok(validateLongFormVideoCampaign({ ...stock, wildlife_media_policy: "original_camera_only" }).some((e) => e.includes("owner-approved licensed_stock_allowed")));
   assert.ok(validateLongFormVideoCampaign({ ...stock, license_evidence_url: "javascript:alert(1)" }).some((e) => e.includes("licence evidence URL")));
