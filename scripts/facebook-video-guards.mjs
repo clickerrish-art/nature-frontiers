@@ -94,7 +94,6 @@ export function validateLongFormVideoCampaign(campaign) {
     ["voiceover_originality_confirmed", "voiceover must be original or appropriately licensed."],
     ["media_rights_confirmed", "all video footage must have human-confirmed commercial rights."],
     ["media_integrity_review_passed", "all visuals must pass human media-integrity review."],
-    ["audio_rights_confirmed", "all music and sound effects must be cleared for commercial use."],
     ["policy_review_passed", "the exact video, thumbnail and caption must pass human Meta policy review."],
     ["content_accuracy_confirmed", "species identification and factual claims must be human-verified."],
     ["wildlife_welfare_confirmed", "footage must confirm no baiting, harassment, handling, staging or disturbance of animals."],
@@ -106,7 +105,7 @@ export function validateLongFormVideoCampaign(campaign) {
   ];
   for (const [field, message] of requiredReviews) if (campaign?.[field] !== true) errors.push(message);
   if (campaign?.audio_present !== true && campaign?.audio_present !== false) errors.push("media must explicitly declare whether audio is present.");
-  if (campaign?.audio_present === true && (campaign?.audio_license_status !== "licensed" || !campaign?.audio_license_ref)) errors.push("media audio requires verified licence evidence.");
+  if (campaign?.audio_present === true && (campaign?.audio_rights_confirmed !== true || campaign?.audio_license_status !== "licensed" || !campaign?.audio_license_ref)) errors.push("media audio requires verified commercial rights and licence evidence.");
 
   if (campaign?.synthetic_visuals !== false) errors.push("AI-generated or synthetic wildlife visuals are prohibited; synthetic_visuals must be false.");
   if (campaign?.ai_generated_video !== false) errors.push("AI-generated video must be explicitly false.");
