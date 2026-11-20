@@ -4,6 +4,7 @@ import { validateInstagramReelCampaign } from "./instagram-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 import { publishInstagramReelFlow } from "./instagram-reel-api.mjs";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
+import { createGitHubMetaStateStore, createMetaAuditedFetch } from "./meta-ops-state.mjs";
 
 function safeStop(message) {
   console.log("SAFE STOP: " + message);
@@ -38,6 +39,10 @@ if (typeof graphVersion !== "string" || !/^v\d+\.\d+$/.test(graphVersion)) {
 if (!accessToken) throw new Error("Meta Page access token is required.");
 if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
+const metaStateStore = createGitHubMetaStateStore({ repository: repo, branch: ref, githubToken });
+const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
+const circuitState = await metaStateStore.readCircuitState();
+if (circuitState.state === "open" || circuitState.open === true) safeStop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
 
 const localCampaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = localCampaigns.filter((item) =>
@@ -59,7 +64,7 @@ const ghHeaders = {
 };
 
 async function getState() {
-  const response = await fetch(stateUrl + "?ref=" + encodeURIComponent(ref), {
+  const response = await metaFetch(stateUrl + "?ref=" + encodeURIComponent(ref), {
     headers: ghHeaders,
     signal: AbortSignal.timeout(15000)
   });
@@ -72,7 +77,7 @@ async function getState() {
 
 async function saveState(sha, items, message) {
   const encoded = Buffer.from(JSON.stringify(items, null, 2) + String.fromCharCode(10)).toString("base64");
-  const response = await fetch(stateUrl, {
+  const response = await metaFetch(stateUrl, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ message, content: encoded, sha, branch: ref }),
@@ -101,7 +106,7 @@ try {
   mediaCheck = await verifyRemoteMedia(
     campaign.media_url,
     campaign.media_sha256,
-    fetch,
+    metaFetch,
     undefined,
     1024 * 1024 * 1024,
     undefined,
@@ -138,6 +143,7 @@ try {
     videoUrl: mediaCheck.finalUrl,
     caption: campaign.caption,
     shareToFeed: campaign.share_to_feed,
+    fetchImpl: metaFetch,
     onContainerCreated: async (containerId) => {
       await updateReservedCampaign({ instagram_container_id: containerId }, "Record Instagram Reel container " + containerId + " for " + campaign.id);
     },
