@@ -78,6 +78,19 @@ async function saveState(sha, items, message) {
   return response.json();
 }
 
+async function updateReservedCampaign(fields, message) {
+  const current = await getState();
+  let found = false;
+  const updated = current.campaigns.map((item) => {
+    if (item.id !== campaign.id) return item;
+    if (item.status !== "publishing") throw new Error("Campaign is no longer reserved as publishing; stop and reconcile.");
+    found = true;
+    return { ...item, ...fields };
+  });
+  if (!found) throw new Error("Reserved Instagram campaign disappeared from durable state.");
+  await saveState(current.sha, updated, message);
+}
+
 let mediaCheck;
 let reserved = false;
 try {
@@ -120,7 +133,13 @@ try {
     accessToken,
     videoUrl: mediaCheck.finalUrl,
     caption: campaign.caption,
-    shareToFeed: campaign.share_to_feed
+    shareToFeed: campaign.share_to_feed,
+    onContainerCreated: async (containerId) => {
+      await updateReservedCampaign({ instagram_container_id: containerId }, "Record Instagram Reel container " + containerId + " for " + campaign.id);
+    },
+    onMediaCreated: async (mediaId) => {
+      await updateReservedCampaign({ instagram_media_id: mediaId }, "Record Instagram Reel media ID " + mediaId + " for " + campaign.id);
+    }
   });
 
   const after = await getState();
