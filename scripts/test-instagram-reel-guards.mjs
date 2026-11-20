@@ -23,6 +23,8 @@ const valid = {
   non_graphic_review_passed: true,
   media_accessibility_confirmed: true,
   media_technical_review_passed: true,
+  watermark_scan_passed: true,
+  audio_present: false,
   media_sha256: "a".repeat(64),
   synthetic_visuals: false,
   ai_generated_video: false,
