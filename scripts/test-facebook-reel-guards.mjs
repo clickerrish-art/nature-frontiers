@@ -12,6 +12,8 @@ const base = {
   media_duration_max_seconds: 35, media_rights_confirmed: true,
   policy_review_passed: true, wildlife_welfare_confirmed: true, non_graphic_review_passed: true,
   media_accessibility_confirmed: true, media_technical_review_passed: true,
+  watermark_scan_passed: true,
+  audio_present: false,
   media_sha256: "a".repeat(64), synthetic_visuals: false, ai_generated_video: false,
   media_origin: "licensed_stock", wildlife_media_policy: "licensed_stock_allowed", stock_footage_used: true,
   source_url: "https://www.pexels.com/video/example/", source_creator: "Creator",
