@@ -15,8 +15,8 @@ function parseBitRate(value) {
   const raw = String(value ?? "");
   const numeric = Number.parseFloat(raw.replace(/,/g, ""));
   if (!Number.isFinite(numeric)) return NaN;
-  if (/m(?:bit|b)\\/s|mbps/i.test(raw)) return numeric * 1000000;
-  if (/k(?:bit|b)\\/s|kbps/i.test(raw)) return numeric * 1000;
+  if (/m(?:bit|b)\/s|mbps/i.test(raw)) return numeric * 1000000;
+  if (/k(?:bit|b)\/s|kbps/i.test(raw)) return numeric * 1000;
   return numeric;
 }
 const MAX_MEDIA_BYTES = 4 * 1024 * 1024 * 1024;
