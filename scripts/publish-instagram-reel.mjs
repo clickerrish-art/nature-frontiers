@@ -3,6 +3,7 @@ import { isVerifiedMetaPageIdentity, isVerifiedMetaInstagramIdentity } from "./m
 import { validateInstagramReelCampaign } from "./instagram-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 import { publishInstagramReelFlow } from "./instagram-reel-api.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 
 function safeStop(message) {
   console.log("SAFE STOP: " + message);
@@ -44,6 +45,9 @@ const approved = localCampaigns.filter((item) =>
 if (approved.length === 0) safeStop("No explicitly approved Instagram Reel campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved Instagram Reel is allowed per manual run.");
 const campaign = approved[0];
+const policy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
+const prepublish = validatePrepublishCampaign(campaign, localCampaigns, policy);
+if (!prepublish.ok) throw new Error("Prepublish gate failed: " + prepublish.issues.map((item) => item.code + ": " + item.message).join(" "));
 const validation = validateInstagramReelCampaign(campaign);
 if (validation.length) throw new Error("Instagram Reel failed release checks: " + validation.join(" "));
 
