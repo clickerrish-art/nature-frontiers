@@ -26,7 +26,6 @@ Research on Nile crocodile feeding ecology also shows that diet can change with 
 
 The most important part of the story may be what happens before the attack. Positioning, patience and the ability to move efficiently through water all matter. The animal does not need to chase every opportunity. A missed opportunity is part of the natural process too.
 
-**[META AD BREAK — 02:00 — place after the hunting mechanics and before the section on diet and size. Never cut into a strike, chase, bite or recovery sequence.]**
 
 The difference between a strong wildlife documentary and a misleading one is often the edit. A dramatic shot can be real and still be presented dishonestly if it is taken out of context. Keep the original recording, preserve its sequence and make clear when narration is explaining general research rather than describing the exact filmed moment.
 
@@ -34,11 +33,11 @@ A crocodile's hunting strategy is shaped by its body, its habitat and the opport
 
 In the next episode, we move away from the hunt and look at a different side of crocodile behaviour: the care some Nile crocodile mothers provide around their nests and hatchlings.
 
-Follow Nature Frontiers on YouTube for the next episode of Wild Encounters.
+Follow Nature Frontiers on Facebook and Instagram for the next episode of Wild Encounters.
 
 ## Footage and editorial requirements
 
-- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+- Use original camera recordings or properly licensed stock footage. Retain the exact source file and SHA-256; for stock, record the source URL, creator, licence, provenance review and visible on-screen disclosure.
 
 - No staged feeding, baiting, provocation or human interaction.
 - Preserve continuous source footage for any claimed hunting sequence.
