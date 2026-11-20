@@ -13,6 +13,8 @@ on:
       - "codex/facebook-reels-publisher"
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/meta-page-identity.mjs"
+      - "scripts/test-meta-page-identity.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
@@ -39,6 +41,8 @@ on:
   pull_request:
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/meta-page-identity.mjs"
+      - "scripts/test-meta-page-identity.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
@@ -89,6 +93,8 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
+      - name: Test configured Meta Page identity matching
+        run: npm run test:meta-readiness
       - name: Verify MediaInfo is available for video media verification
         run: mediainfo --Version
       - name: Check Facebook publishing script syntax
