@@ -17,6 +17,7 @@ if (dryRun) stop("PUBLISH_DRY_RUN is not false; no public publishing is permitte
 
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
+const selectedCampaignId = process.env.PUBLISH_CAMPAIGN_ID ?? "";
 const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 const repo = process.env.GITHUB_REPOSITORY;
@@ -28,11 +29,12 @@ if (typeof graphVersion !== "string" || !graphVersion.startsWith("v") || version
 }
 if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
 if (!accessToken) throw new Error("Meta Page access token is required.");
+if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
 
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = campaigns.filter((item) => item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
-if (approved.length === 0) stop("No explicitly approved Facebook Reel campaigns exist.");
+if (approved.length === 0) stop("No explicitly approved Facebook Reel campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved Reel is allowed per manual run.");
 const campaign = approved[0];
 const validation = validateReelCampaign(campaign);
