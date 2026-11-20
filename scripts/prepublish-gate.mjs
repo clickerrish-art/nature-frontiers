@@ -8,6 +8,7 @@ const issue = (code, message) => ({ code, message });
 export function validatePrepublishCampaign(campaign, history = [], policy = {}, now = new Date()) {
   const issues = [];
   const add = (code, message) => issues.push(issue(code, message));
+  const allowedHost = (hostname) => (policy?.allowed_link_hosts ?? []).some((host) => hostname === host.toLowerCase() || hostname.endsWith("." + host.toLowerCase()));
   const caption = typeof campaign?.caption === "string" ? campaign.caption.trim() : "";
   const network = campaign?.network;
   const destination = network === "facebook" || network === "instagram" ? network + ":nature-frontiers" : "";
@@ -43,7 +44,7 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
   for (const link of links) {
     try {
       const url = new URL(link);
-      if (url.protocol !== "https:" || !(policy?.allowed_link_hosts ?? []).includes(url.hostname.toLowerCase())) {
+      if (url.protocol !== "https:" || !allowedHost(url.hostname.toLowerCase())) {
         add("LINK_HOST_NOT_ALLOWED", "Link host is not approved: " + url.hostname);
       }
     } catch { add("LINK_INVALID", "Caption contains an invalid URL."); }
@@ -60,7 +61,7 @@ export function validatePrepublishCampaign(campaign, history = [], policy = {}, 
       } else {
         try {
           const finalUrl = new URL(check.final_url);
-          if (finalUrl.protocol !== "https:" || !(policy?.allowed_link_hosts ?? []).includes(finalUrl.hostname.toLowerCase())) {
+          if (finalUrl.protocol !== "https:" || !allowedHost(finalUrl.hostname.toLowerCase())) {
             add("LINK_REDIRECT_NOT_ALLOWED", "The verified link destination is not an approved HTTPS host.");
           }
         } catch { add("LINK_FINAL_URL_MISSING", "The link check must record a valid final URL."); }
