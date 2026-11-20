@@ -11,6 +11,14 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+function parseBitRate(value) {
+  const raw = String(value ?? "");
+  const numeric = Number.parseFloat(raw.replace(/,/g, ""));
+  if (!Number.isFinite(numeric)) return NaN;
+  if (/m(?:bit|b)\\/s|mbps/i.test(raw)) return numeric * 1000000;
+  if (/k(?:bit|b)\\/s|kbps/i.test(raw)) return numeric * 1000;
+  return numeric;
+}
 const MAX_MEDIA_BYTES = 4 * 1024 * 1024 * 1024;
 
 function isPublicIPv4(address) {
@@ -131,7 +139,8 @@ async function inspectReelVideo(filePath, probeImpl, durationProfile = {}) {
   const audioSampleRateHz = /khz/i.test(audioRateText)
     ? Number.parseFloat(audioRateText) * 1000
     : Number.parseFloat(audioRateText.replace(/[^0-9.]/g, ""));
-  const audioBitRate = Number.parseFloat(String(audioStream?.BitRate ?? "").replace(/[^0-9.]/g, ""));
+  const audioBitRate = parseBitRate(audioStream?.BitRate);
+  const videoBitRate = parseBitRate(stream?.BitRate);
   if (!stream || !Number.isFinite(width) || !Number.isFinite(height)) {
     throw new Error("Reel media must contain a readable video stream.");
   }
@@ -150,6 +159,9 @@ async function inspectReelVideo(filePath, probeImpl, durationProfile = {}) {
     throw new Error("Reel must use a supported MP4/MOV video container.");
   }
   if (durationProfile.requireInstagramProfile === true) {
+    if (width > 1920 || height > 1920) throw new Error("Instagram Reel dimensions must not exceed 1920 pixels on either axis.");
+    if (frameRate > 60) throw new Error("Instagram Reel frame rate must not exceed 60 fps.");
+    if (Number.isFinite(videoBitRate) && videoBitRate > 25000000) throw new Error("Instagram Reel video bitrate must not exceed 25 Mbps.");
     if (!/(avc|h.?264|hevc)/i.test(videoCodec)) throw new Error("Instagram Reels require an H.264 or HEVC video stream.");
     if (!audioStream || !/^AAC$/i.test(audioFormat) || Math.round(audioSampleRateHz) !== 48000) {
       throw new Error("Instagram Reels require an AAC audio stream sampled at 48 kHz.");
