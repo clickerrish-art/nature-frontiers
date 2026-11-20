@@ -21,6 +21,7 @@ if (!Array.isArray(products) || !Array.isArray(campaigns)) {
   throw new Error("Products and campaigns must be JSON arrays.");
 }
 if (!enabled) stop("PUBLISH_ENABLED is not true; public publishing is disabled.");
+if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
 
 const pending = campaigns.filter((c) => c?.network === "facebook" && c?.status === "approved" && c?.facebook_type === "POST");
 if (pending.length === 0) stop("No explicitly approved Facebook feed campaigns exist.");
@@ -91,7 +92,6 @@ if (dryRun) {
 if (!graphVersion || !/^v\d+\.\d+$/.test(graphVersion)) {
   throw new Error("META_GRAPH_API_VERSION must be set to a currently supported Meta Graph API version.");
 }
-if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
 if (!accessToken) stop("Facebook Page access token is missing.");
 if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPOSITORY || !process.env.GITHUB_REF_NAME) {
   throw new Error("GitHub state persistence is required to prevent duplicate publication.");
