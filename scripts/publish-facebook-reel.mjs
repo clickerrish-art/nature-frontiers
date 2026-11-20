@@ -5,6 +5,7 @@ import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publi
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
+import { createGitHubMetaStateStore, createMetaAuditedFetch } from "./meta-ops-state.mjs";
 
 function stop(message) {
   console.log("SAFE STOP: " + message);
@@ -32,6 +33,10 @@ if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Config
 if (!accessToken) throw new Error("Meta Page access token is required.");
 if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
+const metaStateStore = createGitHubMetaStateStore({ repository: repo, branch: ref, githubToken });
+const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
+const circuitState = await metaStateStore.readCircuitState();
+if (circuitState.state === "open" || circuitState.open === true) stop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
 
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = campaigns.filter((item) => item?.id === selectedCampaignId && item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
@@ -53,7 +58,7 @@ const ghHeaders = {
 };
 
 async function getState() {
-  const response = await fetch(stateUrl + "?ref=" + encodeURIComponent(ref), { headers: ghHeaders });
+  const response = await metaFetch(stateUrl + "?ref=" + encodeURIComponent(ref), { headers: ghHeaders });
   if (!response.ok) throw new Error("Could not read durable campaign state (HTTP " + response.status + ").");
   const data = await response.json();
   const content = Buffer.from(data.content.replaceAll("\n", "").replaceAll("\r", ""), "base64").toString("utf8");
@@ -62,7 +67,7 @@ async function getState() {
 
 async function saveState(sha, items, message) {
   const content = Buffer.from(JSON.stringify(items, null, 2) + String.fromCharCode(10)).toString("base64");
-  const response = await fetch(stateUrl, {
+  const response = await metaFetch(stateUrl, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ message, content, sha, branch: ref })
@@ -125,7 +130,7 @@ await saveState(before.sha, reserved, "Reserve Facebook Reel campaign " + campai
 const graph = "https://graph.facebook.com/" + graphVersion;
 const startUrl = new URL(graph + "/" + encodeURIComponent(pageId) + "/video_reels");
 startUrl.searchParams.set("upload_phase", "start");
-const started = await fetch(startUrl, {
+const started = await metaFetch(startUrl, {
   method: "POST",
   headers: { Authorization: "Bearer " + accessToken }
 });
@@ -138,7 +143,7 @@ if (uploadUrl.protocol !== "https:" || uploadUrl.hostname !== "rupload.facebook.
   throw new Error("Meta returned an unexpected upload host; refusing to send media.");
 }
 
-const uploaded = await fetch(uploadUrl, {
+const uploaded = await metaFetch(uploadUrl, {
   method: "POST",
   headers: {
     Authorization: "OAuth " + accessToken,
@@ -160,7 +165,7 @@ finishUrl.searchParams.set("upload_phase", "finish");
 finishUrl.searchParams.set("video_state", "PUBLISHED");
 finishUrl.searchParams.set("description", campaign.caption);
 finishUrl.searchParams.set("title", campaign.title);
-const finished = await fetch(finishUrl, {
+const finished = await metaFetch(finishUrl, {
   method: "POST",
   headers: { Authorization: "Bearer " + accessToken }
 });
@@ -173,7 +178,7 @@ let confirmed = false;
 for (let attempt = 0; attempt < 12; attempt++) {
   const statusUrl = new URL(graph + "/" + encodeURIComponent(startPayload.video_id));
   statusUrl.searchParams.set("fields", "status");
-  const statusResponse = await fetch(statusUrl, {
+  const statusResponse = await metaFetch(statusUrl, {
     headers: { Authorization: "Bearer " + accessToken }
   });
   const statusPayload = await statusResponse.json().catch(() => ({}));
