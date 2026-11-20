@@ -49,8 +49,8 @@ test("supports the 50–60 second Instagram Reel profile and verifies H.264/AAC 
   const instagramMetadata = {
     media: { track: [
       { "@type": "General", Format: "MPEG-4", Duration: "55" },
-      { "@type": "Video", Format: "AVC", Width: "1080", Height: "1920", FrameRate: "30", Duration: "55" },
-      { "@type": "Audio", Format: "AAC", SamplingRate: "48000", BitRate: "128000" }
+      { "@type": "Video", Format: "AVC", Width: "1080", Height: "1920", FrameRate: "30", Duration: "55", BitRate: "25 Mb/s" },
+      { "@type": "Audio", Format: "AAC", SamplingRate: "48000", BitRate: "128 kb/s" }
     ] }
   };
   const result = await verifyRemoteMedia(
@@ -88,6 +88,25 @@ test("rejects Instagram media without AAC 48 kHz audio or outside the configured
       ] } }) }), { minSeconds: 50, maxSeconds: 60, requireInstagramProfile: true }),
     /between 50 and 60 seconds/
   );
+});
+
+test("rejects Instagram Reels that exceed Meta's maximum bitrate, dimensions or frame rate", async () => {
+  const metadata = (video) => ({ media: { track: [
+    { "@type": "General", Format: "MPEG-4", Duration: "55" },
+    { "@type": "Video", Format: "AVC", Width: "1080", Height: "1920", FrameRate: "30", Duration: "55", ...video },
+    { "@type": "Audio", Format: "AAC", SamplingRate: "48000", BitRate: "128 kb/s" }
+  ] } });
+  for (const [video, expected] of [
+    [{ BitRate: "25.1 Mb/s" }, /25 Mbps/],
+    [{ Width: "2160", Height: "3840" }, /dimensions/],
+    [{ FrameRate: "60.1" }, /60 fps/]
+  ]) {
+    await assert.rejects(
+      verifyRemoteMedia("https://cdn.example.org/instagram-reel.mp4", digest, async () => response(), publicLookup, undefined,
+        async () => ({ stdout: JSON.stringify(metadata(video)) }), { minSeconds: 50, maxSeconds: 60, requireInstagramProfile: true }),
+      expected
+    );
+  }
 });
 
 test("rejects a changed remote file before video inspection", async () => {
