@@ -43,9 +43,9 @@ The handler is tested as a Node HTTP module. It is NOT a deployed HTTPS endpoint
 
 ## Circuit breaker and audit trail
 
-scripts/meta-error-policy.mjs classifies rate-limit, OAuth, permission, abuse/restriction and usage-header conditions; deterministic tests cover the classification. This classifier is not yet wired into every publisher, and there is no verified persistent circuit-breaker/audit write path in this branch. Do not describe it as an operational circuit breaker until the publishers check durable open/closed state before every mutation, record every attempt/error, and tests prove that an open circuit blocks all platform writes.
+scripts/meta-error-policy.mjs classifies rate-limit, OAuth, permission, abuse/restriction and usage-header conditions. scripts/meta-ops-state.mjs persists a redacted audit record for every Graph API request and opens a durable GitHub-backed circuit state on unsafe errors or usage thresholds. The Facebook feed, Facebook video, Facebook Reel and Instagram Reel publishers check the circuit before reservation and again before each Graph API mutation; an open circuit blocks further mutations while permitting read-only reconciliation GETs. If audit persistence fails after a platform response, the publisher treats the result as ambiguous and requires reconciliation. Automated mock tests cover the state adapter, open-circuit blocking, usage thresholds and persistence failures. The store is currently GitHub JSON files (500-event rolling audit), not a deployed D1-backed service; live Meta behavior remains unverified until credentials are configured and read-only readiness succeeds.
 
-No automatic retry is allowed for ambiguous publication results, OAuth/permission failures, abuse restrictions or rate limits. Do not use proxies, IP rotation or alternate accounts to evade Meta enforcement.
+No automatic retry is allowed for ambiguous publication results, OAuth/permission failures, abuse restrictions or rate limits. The circuit remains open until a reviewed owner-authorized state change resets it; it never auto-closes. Do not use proxies, IP rotation or alternate accounts to evade Meta enforcement.
 
 ## Future owner inputs and deployment gates
 
