@@ -84,7 +84,7 @@ test("requires a link check and paid disclosure only for promotional campaigns",
 });
 
 test("requires verification and affiliate disclosure only when affiliate links are present", () => {
-  const link = "https://www.safari.com/reserve? a=GM26";
+  const link = "https://www.safari.com/reserve?a=GM26";
   const disclosure = "Disclosure: Nature Frontiers may earn a commission from this affiliate link.";
   const campaign = validCampaign({
     caption: caption + " " + link + " " + disclosure,
