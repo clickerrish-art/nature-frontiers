@@ -14,6 +14,7 @@
     "check:meta": "node scripts/check-meta-readiness.mjs",
     "test:meta-readiness": "node --test scripts/test-meta-page-identity.mjs",
     "test:instagram-reels": "node --test scripts/test-instagram-reel-guards.mjs scripts/test-instagram-reel-api.mjs",
-    "test:prepublish": "node --test scripts/test-prepublish-gate.mjs"
+    "test:prepublish": "node --test scripts/test-prepublish-gate.mjs",
+    "test:video-descriptions": "node --test scripts/test-video-description.mjs"
   }
 }
