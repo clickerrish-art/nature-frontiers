@@ -102,7 +102,7 @@ async function fetchPublicMediaResponse(initialUrl, fetchImpl, lookupImpl) {
   throw new Error("Reel media redirect validation failed.");
 }
 
-async function inspectReelVideo(filePath, probeImpl) {
+async function inspectReelVideo(filePath, probeImpl, durationProfile = {}) {
   let result;
   try {
     result = await probeImpl("mediainfo", ["--Output=JSON", filePath], {
@@ -124,6 +124,14 @@ async function inspectReelVideo(filePath, probeImpl) {
   const duration = Number(stream?.Duration ?? general?.Duration);
   const frameRate = Number(stream?.FrameRate);
   const formatName = String(general?.Format ?? "");
+  const videoCodec = String(stream?.Format ?? stream?.CodecID ?? "");
+  const audioStream = Array.isArray(tracks) ? tracks.find((track) => track?.["@type"] === "Audio") : null;
+  const audioFormat = String(audioStream?.Format ?? "");
+  const audioRateText = String(audioStream?.SamplingRate ?? "");
+  const audioSampleRateHz = /khz/i.test(audioRateText)
+    ? Number.parseFloat(audioRateText) * 1000
+    : Number.parseFloat(audioRateText.replace(/[^0-9.]/g, ""));
+  const audioBitRate = Number.parseFloat(String(audioStream?.BitRate ?? "").replace(/[^0-9.]/g, ""));
   if (!stream || !Number.isFinite(width) || !Number.isFinite(height)) {
     throw new Error("Reel media must contain a readable video stream.");
   }
@@ -189,7 +197,7 @@ export async function verifyRemoteMedia(
     if (actual.toLowerCase() !== expectedSha256.toLowerCase()) {
       throw new Error("Reel media SHA-256 does not match the approved campaign manifest.");
     }
-    const videoMetadata = await inspectReelVideo(filePath, probeImpl);
+    const videoMetadata = await inspectReelVideo(filePath, probeImpl, durationProfile);
     return {
       bytes,
       sha256: actual,
