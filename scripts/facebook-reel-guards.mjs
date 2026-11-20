@@ -24,6 +24,7 @@ export function validateReelCampaign(campaign) {
   if (campaign?.ai_generated_video !== false) errors.push("AI-generated video must be explicitly false.");
 
   if (campaign?.media_origin === "licensed_stock") {
+    if (campaign?.wildlife_media_policy !== "licensed_stock_allowed") errors.push("licensed stock requires the owner-approved licensed_stock_allowed wildlife media policy.");
     if (campaign?.stock_footage_used !== true) errors.push("licensed_stock media_origin requires stock_footage_used=true.");
     if (typeof campaign?.source_url !== "string") errors.push("licensed stock requires its original source-page URL.");
     else {
