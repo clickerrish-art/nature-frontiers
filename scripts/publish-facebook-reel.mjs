@@ -84,14 +84,16 @@ const dailyCapacity = assertDailyReleaseCapacity(before.campaigns, "REEL");
 console.log("Johannesburg daily release capacity: " + dailyCapacity.longForm + "/2 long-form videos, " +
   dailyCapacity.reels + "/1 Reel, " + dailyCapacity.total + "/3 total releases used.");
 
-const linkedVideo = before.campaigns.find((item) =>
-  item.id === campaign.related_longform_campaign_id &&
-  item.facebook_type === "VIDEO" &&
-  item.status === "published" &&
-  item.platform_video_url === campaign.full_video_url &&
-  typeof item.platform_video_id === "string"
-);
-if (!linkedVideo) throw new Error("SAFE STOP: the linked long-form episode is not yet confirmed published at the exact URL in this Reel; refusing to publish a disconnected funnel clip.");
+if (campaign.series_requires_parent === true) {
+  const linkedVideo = before.campaigns.find((item) =>
+    item.id === campaign.related_longform_campaign_id &&
+    item.facebook_type === "VIDEO" &&
+    item.status === "published" &&
+    item.platform_video_url === campaign.full_video_url &&
+    typeof item.platform_video_id === "string"
+  );
+  if (!linkedVideo) throw new Error("SAFE STOP: the explicitly required series parent is not confirmed published at the exact URL; refusing to publish a disconnected series clip.");
+}
 const reserved = before.campaigns.map((item) => item.id === campaign.id
   ? { ...item, status: "publishing", publishing_started_at: new Date().toISOString() }
   : item);
