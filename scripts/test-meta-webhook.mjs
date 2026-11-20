@@ -6,12 +6,12 @@ import { createMetaWebhookHandler } from "./meta-webhook.mjs";
 
 const verifyToken = "test-verify-token";
 const appSecret = "test-app-secret";
-const saved = [];
+const saved = new Map();
 let failPersistence = false;
 const server = createServer(createMetaWebhookHandler({
   verifyToken,
   appSecret,
-  persistEvent: async (item) => { if (failPersistence) throw new Error("database unavailable"); saved.push(item); }
+  persistEvent: async (item) => { if (failPersistence) throw new Error("database unavailable"); if (!saved.has(item.event_id)) saved.set(item.event_id, item); }
 }));
 server.listen(0, "127.0.0.1");
 await once(server, "listening");
@@ -29,13 +29,31 @@ try {
   const accepted = await fetch(base + "/webhooks/meta", { method: "POST", headers: { "content-type": "application/json", "x-hub-signature-256": signature }, body: event });
   assert.equal(accepted.status, 200);
   assert.equal(await accepted.text(), "EVENT_RECEIVED");
-  assert.equal(saved.length, 1);
-  assert.equal(saved[0].object, "page");
-  assert.equal(saved[0].event.entry.length, 1);
+  assert.equal(saved.size, 1);
+  const firstSaved = [...saved.values()][0];
+  assert.equal(firstSaved.object, "page");
+  assert.equal(firstSaved.event.entry.length, 1);
+
+  const duplicate = await fetch(base + "/webhooks/meta", { method: "POST", headers: { "content-type": "application/json", "x-hub-signature-256": signature }, body: event });
+  assert.equal(duplicate.status, 200);
+  assert.equal(saved.size, 1, "the persistence adapter must deduplicate the deterministic event ID");
+  assert.equal([...saved.values()][0].event_id, firstSaved.event_id);
 
   const badSignature = await fetch(base + "/webhooks/meta", { method: "POST", headers: { "x-hub-signature-256": "sha256=" + "0".repeat(64) }, body: event });
   assert.equal(badSignature.status, 401);
-  assert.equal(saved.length, 1);
+  assert.equal(saved.size, 1);
+
+  const invalidSchemaBody = JSON.stringify({ object: "page", entry: {} });
+  const invalidSchemaSignature = "sha256=" + createHmac("sha256", appSecret).update(invalidSchemaBody).digest("hex");
+  const invalidSchema = await fetch(base + "/webhooks/meta", { method: "POST", headers: { "x-hub-signature-256": invalidSchemaSignature }, body: invalidSchemaBody });
+  assert.equal(invalidSchema.status, 400);
+
+  const wrongMethod = await fetch(base + "/webhooks/meta", { method: "PUT" });
+  assert.equal(wrongMethod.status, 405);
+
+  const oversized = Buffer.alloc(1024 * 1024 + 1, 65);
+  const tooLarge = await fetch(base + "/webhooks/meta", { method: "POST", body: oversized });
+  assert.equal(tooLarge.status, 413);
 
   const malformedBody = "not-json";
   const malformedSignature = "sha256=" + createHmac("sha256", appSecret).update(malformedBody).digest("hex");
@@ -48,7 +66,7 @@ try {
 
   const wrongPath = await fetch(base + "/wrong");
   assert.equal(wrongPath.status, 404);
-  console.log("Meta webhook tests: 7/7 passed.");
+  console.log("Meta webhook tests: PASS (signature, challenge, schema, size, idempotency and persistence).");
 } finally {
   server.close();
   await once(server, "close");
