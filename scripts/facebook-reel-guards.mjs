@@ -8,6 +8,12 @@ export function validateReelCampaign(campaign) {
   if (typeof campaign?.caption !== "string" || !campaign.caption.trim()) errors.push("campaign needs a caption.");
   if (typeof campaign?.title !== "string" || !campaign.title.trim()) errors.push("campaign needs a Reel title.");
   if (typeof campaign?.media_url !== "string") errors.push("campaign needs a public media_url.");
+  if (campaign?.media_url_immutable_confirmed !== true) errors.push("Reel media URL must be human-confirmed stable and available to Meta during processing.");
+  const minDuration = Number.isFinite(campaign?.media_duration_min_seconds) ? campaign.media_duration_min_seconds : 25;
+  const maxDuration = Number.isFinite(campaign?.media_duration_max_seconds) ? campaign.media_duration_max_seconds : 35;
+  if (!Number.isFinite(campaign?.duration_seconds) || campaign.duration_seconds < minDuration || campaign.duration_seconds > maxDuration || minDuration <= 0 || maxDuration < minDuration) {
+    errors.push("Reel duration_seconds must fall within the campaign declared media duration range.");
+  }
   try {
     const url = new URL(campaign.media_url);
     if (url.protocol !== "https:" || !url.hostname || url.hostname === "localhost") errors.push("media_url must be a public HTTPS URL.");
