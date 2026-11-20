@@ -26,7 +26,7 @@ export function validateReelCampaign(campaign) {
   if (campaign?.media_origin === "licensed_stock") {
     if (campaign?.wildlife_media_policy !== "licensed_stock_allowed") errors.push("licensed stock requires the owner-approved licensed_stock_allowed wildlife media policy.");
     if (campaign?.stock_footage_used !== true) errors.push("licensed_stock media_origin requires stock_footage_used=true.");
-    if (typeof campaign?.source_url !== "string") errors.push("licensed stock requires its original source-page URL.");
+    if (typeof campaign?.source_url !== "string" || !campaign.source_url.trim()) errors.push("licensed stock requires its original source-page URL.");
     else {
       try { const source = new URL(campaign.source_url); if (source.protocol !== "https:") errors.push("stock source URL must use HTTPS."); }
       catch { errors.push("stock source URL must be valid HTTPS."); }
