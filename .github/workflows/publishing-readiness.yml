@@ -140,7 +140,7 @@ jobs:
       - name: Test long-form video guards and media integrity
         run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs
       - name: Test editorial-first video descriptions
-        run: npm run test:video-descriptions scripts/test-series-scripts.mjs
+        run: npm run test:video-descriptions
       - name: Test Johannesburg daily publishing limits
         run: node --test scripts/test-publishing-cadence.mjs
 
