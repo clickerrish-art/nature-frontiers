@@ -69,7 +69,21 @@ async function saveState(sha, items, message) {
 
 // Verify the actual remote bytes and digest before reserving campaign state or
 // contacting Meta. A missing, changed, or non-video asset must fail before any upload.
-const mediaCheck = await verifyRemoteMedia(campaign.media_url, campaign.media_sha256);
+const mediaCheck = await verifyRemoteMedia(
+  campaign.media_url,
+  campaign.media_sha256,
+  fetch,
+  undefined,
+  undefined,
+  undefined,
+  {
+    minSeconds: campaign.media_duration_min_seconds ?? 25,
+    maxSeconds: campaign.media_duration_max_seconds ?? 35
+  }
+);
+if (Math.abs(mediaCheck.videoMetadata.duration - campaign.duration_seconds) > 1.5) {
+  throw new Error("Measured Facebook Reel duration does not match the approved campaign manifest.");
+}
 console.log("Reel media preflight passed: " + mediaCheck.bytes + " bytes; " + mediaCheck.contentType + "; SHA-256 verified; " +
   mediaCheck.videoMetadata.width + "x" + mediaCheck.videoMetadata.height + "; " +
   mediaCheck.videoMetadata.duration + "s; " + mediaCheck.videoMetadata.frameRate + "fps.");
