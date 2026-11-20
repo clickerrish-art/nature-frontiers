@@ -13,6 +13,7 @@ const media = {
   ai_generated_video: false,
   media_technical_review_passed: true,
   media_accessibility_confirmed: true,
+  media_url_immutable_confirmed: true,
   watermark_scan_passed: true,
   audio_present: false,
   media_origin: "licensed_stock",
@@ -73,7 +74,7 @@ test("allows original camera footage only with retained original and provenance 
 });
 
 test("requires a link check and paid disclosure only for promotional campaigns", () => {
-  const campaign = validCampaign({ campaign_type: "promotion", caption: "Get the creator pack: https://selar.com/example" });
+  const campaign = validCampaign({ campaign_type: "promotion", caption: "Get the creator pack: https://selar.com/example. Footage: Creator via Pexels." });
   campaign.link_check = { status: 200, checked_at: "2026-11-20T11:30:00.000Z", final_url: "https://selar.com/example" };
   campaign.disclosure = { paid_promotion: true, paid_promotion_text: "Disclosure: This is a promotional post for a paid digital product." };
   campaign.caption += " Disclosure: This is a promotional post for a paid digital product.";
