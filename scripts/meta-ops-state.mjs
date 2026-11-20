@@ -3,6 +3,7 @@ import { shouldOpenMetaCircuit, shouldOpenMetaCircuitFromUsage, parseMetaUsageHe
 
 const API_ROOT = "https://api.github.com/repos/";
 const MAX_AUDIT_EVENTS = 500;
+const META_API_HOSTS = new Set(["graph.facebook.com", "graph-video.facebook.com", "rupload.facebook.com", "upload.facebook.com"]);
 
 export function createGitHubMetaStateStore({ repository, branch, githubToken, fetchImpl = fetch }) {
   if (!repository?.includes("/") || !branch || !githubToken) {
@@ -78,7 +79,7 @@ export function createMetaAuditedFetch({ fetchImpl = fetch, readCircuitState, re
   return async function metaAuditedFetch(input, init = {}) {
     const rawUrl = input instanceof URL ? input.href : typeof input === "string" ? input : input.url;
     const url = new URL(rawUrl);
-    if (url.hostname !== "graph.facebook.com") return fetchImpl(input, init);
+    if (!META_API_HOSTS.has(url.hostname)) return fetchImpl(input, init);
     const method = String(init.method ?? input?.method ?? "GET").toUpperCase();
     const mutation = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
     if (mutation) {
