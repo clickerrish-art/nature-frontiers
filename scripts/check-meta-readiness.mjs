@@ -1,19 +1,23 @@
-import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
+import { isVerifiedMetaPageIdentity, isVerifiedMetaInstagramIdentity } from "./meta-page-identity.mjs";
 
 const pageId = process.env.META_PAGE_ID ?? "";
 const expectedPageId = process.env.META_EXPECTED_PAGE_ID ?? "";
+const instagramUserId = process.env.META_INSTAGRAM_USER_ID ?? "";
+const expectedInstagramUserId = process.env.META_EXPECTED_INSTAGRAM_USER_ID ?? "";
 const pageToken = process.env.META_PAGE_ACCESS_TOKEN ?? "";
 const graphVersion = process.env.META_GRAPH_API_VERSION ?? "";
 const publishEnabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
 const validVersion = /^v\d+\.\d+$/.test(graphVersion);
-const identityConfigured = isVerifiedMetaPageIdentity(pageId, expectedPageId);
+const pageIdentityConfigured = isVerifiedMetaPageIdentity(pageId, expectedPageId);
+const instagramIdentityConfigured = isVerifiedMetaInstagramIdentity(instagramUserId, expectedInstagramUserId);
+const identityConfigured = pageIdentityConfigured && instagramIdentityConfigured;
 let tokenPageCheck = "NOT TESTED";
 
-if (identityConfigured && pageToken && validVersion) {
+if (pageIdentityConfigured && pageToken && validVersion) {
   try {
     const url = new URL("https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(pageId));
-    url.searchParams.set("fields", "id,name");
+    url.searchParams.set("fields", "id,name,instagram_business_account");
     const response = await fetch(url, { headers: { Authorization: "Bearer " + pageToken }, signal: AbortSignal.timeout(15000) });
     const payload = await response.json().catch(() => ({}));
     if (response.ok && payload.id === expectedPageId && payload.name === "Nature Frontiers") {
@@ -33,7 +37,7 @@ if (identityConfigured && pageToken && validVersion) {
 const checks = [
   ["Configured Meta Page ID", /^\d+$/.test(pageId) ? "CONFIGURED: value withheld" : "BLOCKED: META_PAGE_ID must be configured as a numeric repository variable."],
   ["Expected Nature Frontiers Page ID", /^\d+$/.test(expectedPageId) ? "CONFIGURED: value withheld" : "BLOCKED: META_EXPECTED_PAGE_ID must be independently configured."],
-  ["Page identity match", identityConfigured ? "PASS: configured and expected IDs match" : "BLOCKED: configured and expected Page IDs are missing or differ."],
+  ["Page identity match", pageIdentityConfigured ? "PASS: configured and expected Page IDs match" : "BLOCKED: configured and expected Page IDs are missing or differ."],\n  ["Instagram professional account ID", /^\\d+$/.test(instagramUserId) ? "CONFIGURED: value withheld" : "BLOCKED: META_INSTAGRAM_USER_ID must be numeric."],\n  ["Expected Instagram professional account ID", /^\\d+$/.test(expectedInstagramUserId) ? "CONFIGURED: value withheld" : "BLOCKED: META_EXPECTED_INSTAGRAM_USER_ID must be independently configured."],\n  ["Instagram account identity match", instagramIdentityConfigured ? "PASS: configured and expected Instagram IDs match" : "BLOCKED: configured and expected Instagram IDs are missing or differ."],
   ["Meta Page access token", pageToken.length > 0 ? "PRESENT: value withheld" : "BLOCKED: secret is not configured."],
   ["Meta Page token read access", tokenPageCheck],
   ["Meta Graph API version", validVersion ? "CONFIGURED: version syntax valid; Meta support still needs verification" : "BLOCKED: version configuration missing or malformed."],
