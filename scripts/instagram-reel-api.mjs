@@ -1,6 +1,6 @@
 function assertGraphConfig({ graphVersion, instagramUserId, accessToken }) {
-  if (typeof graphVersion !== "string" || !/^v\\d+\\.\\d+$/.test(graphVersion)) throw new Error("Instagram Graph API version must be configured as vNN.N.");
-  if (typeof instagramUserId !== "string" || !/^\\d+$/.test(instagramUserId)) throw new Error("A numeric Instagram professional account ID is required.");
+  if (typeof graphVersion !== "string" || !/^v\d+\.\d+$/.test(graphVersion)) throw new Error("Instagram Graph API version must be configured as vNN.N.");
+  if (typeof instagramUserId !== "string" || !/^\d+$/.test(instagramUserId)) throw new Error("A numeric Instagram professional account ID is required.");
   if (typeof accessToken !== "string" || !accessToken.trim()) throw new Error("Instagram publishing access token is required.");
 }
 
@@ -45,7 +45,7 @@ export async function createInstagramReelContainer({
 export async function getInstagramReelContainerStatus({
   graphVersion, accessToken, containerId, fetchImpl = fetch
 }) {
-  if (typeof graphVersion !== "string" || !/^v\\d+\\.\\d+$/.test(graphVersion) ||
+  if (typeof graphVersion !== "string" || !/^v\d+\.\d+$/.test(graphVersion) ||
       typeof accessToken !== "string" || !accessToken.trim() ||
       typeof containerId !== "string" || !containerId.trim()) {
     throw new Error("Instagram container status lookup requires a Graph version, token and container ID.");
@@ -80,7 +80,7 @@ export async function publishInstagramReelContainer({
 export async function verifyInstagramPublishedReel({
   graphVersion, accessToken, mediaId, expectedCaption, fetchImpl = fetch
 }) {
-  if (typeof graphVersion !== "string" || !/^v\\d+\\.\\d+$/.test(graphVersion) ||
+  if (typeof graphVersion !== "string" || !/^v\d+\.\d+$/.test(graphVersion) ||
       typeof accessToken !== "string" || !accessToken.trim() ||
       typeof mediaId !== "string" || !mediaId.trim()) {
     throw new Error("Instagram publication verification requires a Graph version, token and media ID.");
