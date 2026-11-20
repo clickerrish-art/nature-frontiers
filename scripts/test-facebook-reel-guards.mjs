@@ -42,6 +42,7 @@ for (const [field, value, message] of [
   ["synthetic_visuals", true, "synthetic"],
   ["ai_generated_video", true, "AI-generated video"],
   ["source_url", "", "source-page URL"],
+  ["source_url", "javascript:alert(1)", "HTTPS"],
   ["source_creator", "", "credited creator"],
   ["license_name", "", "licence name"],
   ["license_evidence_url", "javascript:alert(1)", "HTTPS"],
