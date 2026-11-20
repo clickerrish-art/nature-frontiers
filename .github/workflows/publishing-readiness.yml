@@ -32,6 +32,10 @@ on:
       - "scripts/check-meta-token-health.mjs"
       - "scripts/test-meta-token-health.mjs"
       - "scripts/meta-error-policy.mjs"
+      - "scripts/meta-ops-state.mjs"
+      - "scripts/test-meta-ops-state.mjs"
+      - "data/meta-circuit-breaker.json"
+      - "data/meta-api-audit.json"
       - "scripts/test-meta-error-policy.mjs"
       - "scripts/check-meta-api-version.mjs"
       - ".github/workflows/meta-token-health.yml"
@@ -78,6 +82,10 @@ on:
       - "scripts/check-meta-token-health.mjs"
       - "scripts/test-meta-token-health.mjs"
       - "scripts/meta-error-policy.mjs"
+      - "scripts/meta-ops-state.mjs"
+      - "scripts/test-meta-ops-state.mjs"
+      - "data/meta-circuit-breaker.json"
+      - "data/meta-api-audit.json"
       - "scripts/test-meta-error-policy.mjs"
       - "scripts/check-meta-api-version.mjs"
       - ".github/workflows/meta-token-health.yml"
@@ -151,6 +159,8 @@ jobs:
         run: node scripts/test-meta-token-health.mjs
       - name: Test Meta API error and circuit-breaker classification
         run: node scripts/test-meta-error-policy.mjs
+      - name: Test durable Meta circuit breaker and API audit wrapper
+        run: npm run test:meta-ops
       - name: Check Meta API version monitor syntax
         run: node --check scripts/check-meta-api-version.mjs
       - name: Test Instagram Reel guards and container API flow
