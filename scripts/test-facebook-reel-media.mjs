@@ -45,6 +45,51 @@ test("stages exact hash-verified bytes and confirms Facebook Reel technical requ
   }
 });
 
+test("supports the 50–60 second Instagram Reel profile and verifies H.264/AAC 48 kHz media", async () => {
+  const instagramMetadata = {
+    media: { track: [
+      { "@type": "General", Format: "MPEG-4", Duration: "55" },
+      { "@type": "Video", Format: "AVC", Width: "1080", Height: "1920", FrameRate: "30", Duration: "55" },
+      { "@type": "Audio", Format: "AAC", SamplingRate: "48000", BitRate: "128000" }
+    ] }
+  };
+  const result = await verifyRemoteMedia(
+    "https://cdn.example.org/instagram-reel.mp4",
+    digest,
+    async () => response(),
+    publicLookup,
+    undefined,
+    async () => ({ stdout: JSON.stringify(instagramMetadata) }),
+    { minSeconds: 50, maxSeconds: 60, requireInstagramProfile: true }
+  );
+  try {
+    assert.equal(result.videoMetadata.duration, 55);
+    assert.equal(result.videoMetadata.videoCodec, "AVC");
+    assert.deepEqual(result.videoMetadata.audioMetadata, { format: "AAC", sampleRateHz: 48000, bitRate: 128000 });
+  } finally { await result.cleanup(); }
+});
+
+test("rejects Instagram media without AAC 48 kHz audio or outside the configured duration window", async () => {
+  const noAudio = { media: { track: [
+    { "@type": "General", Format: "MPEG-4", Duration: "55" },
+    { "@type": "Video", Format: "AVC", Width: "1080", Height: "1920", FrameRate: "30", Duration: "55" }
+  ] } };
+  await assert.rejects(
+    verifyRemoteMedia("https://cdn.example.org/instagram-reel.mp4", digest, async () => response(), publicLookup, undefined,
+      async () => ({ stdout: JSON.stringify(noAudio) }), { minSeconds: 50, maxSeconds: 60, requireInstagramProfile: true }),
+    /AAC audio stream sampled at 48 kHz/
+  );
+  await assert.rejects(
+    verifyRemoteMedia("https://cdn.example.org/instagram-reel.mp4", digest, async () => response(), publicLookup, undefined,
+      async () => ({ stdout: JSON.stringify({ media: { track: [
+        { "@type": "General", Format: "MPEG-4", Duration: "61" },
+        { "@type": "Video", Format: "AVC", Width: "1080", Height: "1920", FrameRate: "30", Duration: "61" },
+        { "@type": "Audio", Format: "AAC", SamplingRate: "48000", BitRate: "128000" }
+      ] } }) }), { minSeconds: 50, maxSeconds: 60, requireInstagramProfile: true }),
+    /between 50 and 60 seconds/
+  );
+});
+
 test("rejects a changed remote file before video inspection", async () => {
   await assert.rejects(
     verifyRemoteMedia("https://cdn.example.org/wildlife.mp4", digest, async () => response({ body: Buffer.from("changed video") }), publicLookup, undefined, validProbe),
