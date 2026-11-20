@@ -1,5 +1,3 @@
-export const NATURE_FRONTIERS_YOUTUBE_URL = "https://www.youtube.com/@naturefrontiers-life";
-
 export const REQUIRED_PRODUCT_LINKS = Object.freeze([
   { title: "Complete YouTube Wildlife Creator’s Vault — Premium Combo PDF", url: "https://selar.com/0u19v8u99l" },
   { title: "The Full Video Creation Prompt Pack Premium Edition", url: "https://selar.com/539497q11t" },
@@ -29,34 +27,42 @@ export function buildLongFormVideoDescription({
   episodeNumber,
   episodeTitle,
   episodeDescription,
-  nextEpisodeTeaser
+  nextEpisodeTeaser,
+  productLinks = [],
+  affiliateLinks = []
 }) {
-  for (const [field, value] of Object.entries({
-    seriesTitle, episodeTitle, episodeDescription, nextEpisodeTeaser
-  })) {
-    if (typeof value !== "string" || !value.trim()) {
-      throw new Error(field + " is required to build a series episode description.");
+  if (typeof episodeDescription !== "string" || !episodeDescription.trim()) {
+    throw new Error("episodeDescription is required.");
+  }
+  const hasSeriesMetadata = Boolean(seriesTitle || episodeNumber || episodeTitle || nextEpisodeTeaser);
+  if (hasSeriesMetadata) {
+    for (const [field, value] of Object.entries({ seriesTitle, episodeTitle, nextEpisodeTeaser })) {
+      if (typeof value !== "string" || !value.trim()) throw new Error(field + " is required for a series episode.");
     }
+    if (!Number.isInteger(episodeNumber) || episodeNumber < 1) throw new Error("episodeNumber must be a positive integer.");
   }
-  if (!Number.isInteger(episodeNumber) || episodeNumber < 1) {
-    throw new Error("episodeNumber must be a positive integer.");
+  if (!Array.isArray(productLinks) || !Array.isArray(affiliateLinks)) {
+    throw new Error("productLinks and affiliateLinks must be arrays.");
   }
+  const sections = [];
+  if (hasSeriesMetadata) sections.push(seriesTitle + " — Episode " + episodeNumber + ": " + episodeTitle);
+  sections.push(episodeDescription.trim());
 
-  const productSection = REQUIRED_PRODUCT_LINKS
-    .map((item) => item.title + ": " + item.url)
-    .join("\n");
-  const affiliateSection = APPROVED_AFFILIATE_LINKS.join("\n");
-
-  return [
-    seriesTitle + " — Episode " + episodeNumber + ": " + episodeTitle,
-    episodeDescription.trim(),
-    "Watch Nature Frontiers on YouTube and follow the next episode: " + NATURE_FRONTIERS_YOUTUBE_URL,
-    "Explore our creator resources:",
-    PRODUCT_DISCLOSURE,
-    productSection,
-    "Explore Safari destinations:",
-    affiliateSection,
-    AFFILIATE_DISCLOSURE,
-    "Next episode: " + nextEpisodeTeaser.trim()
-  ].join("\n\n");
+  if (productLinks.length > 0) {
+    const known = new Map(REQUIRED_PRODUCT_LINKS.map((item) => [item.url, item.title]));
+    if (productLinks.some((url) => !known.has(url))) throw new Error("Product link is not in the owner-approved catalogue.");
+    sections.push("Optional creator resources:");
+    sections.push(PRODUCT_DISCLOSURE);
+    sections.push(productLinks.map((url) => known.get(url) + ": " + url).join("\n"));
+  }
+  if (affiliateLinks.length > 0) {
+    if (affiliateLinks.some((url) => !APPROVED_AFFILIATE_LINKS.includes(url))) {
+      throw new Error("Affiliate link is not in the owner-approved Safari catalogue.");
+    }
+    sections.push("Optional Safari affiliate links:");
+    sections.push(affiliateLinks.join("\n"));
+    sections.push(AFFILIATE_DISCLOSURE);
+  }
+  if (hasSeriesMetadata) sections.push("Next episode: " + nextEpisodeTeaser.trim());
+  return sections.join("\n\n");
 }
