@@ -101,9 +101,12 @@ export function validateLongFormVideoCampaign(campaign) {
     ["non_graphic_review_passed", "the finished video must pass a human non-graphic imagery review."],
     ["thumbnail_accuracy_confirmed", "the thumbnail must accurately represent the actual episode."],
     ["media_technical_review_passed", "the final export must pass human technical review."],
+    ["watermark_scan_passed", "the final export must pass a clean watermark scan."],
     ["human_review_confirmed", "the exact final export must receive human approval."]
   ];
   for (const [field, message] of requiredReviews) if (campaign?.[field] !== true) errors.push(message);
+  if (campaign?.audio_present !== true && campaign?.audio_present !== false) errors.push("media must explicitly declare whether audio is present.");
+  if (campaign?.audio_present === true && (campaign?.audio_license_status !== "licensed" || !campaign?.audio_license_ref)) errors.push("media audio requires verified licence evidence.");
 
   if (campaign?.synthetic_visuals !== false) errors.push("AI-generated or synthetic wildlife visuals are prohibited; synthetic_visuals must be false.");
   if (campaign?.ai_generated_video !== false) errors.push("AI-generated video must be explicitly false.");
