@@ -24,7 +24,6 @@ There is another reason to be precise. Crocodiles are often described as keyston
 
 That does not make crocodiles unimportant. It means good conservation storytelling should separate what has been demonstrated from what still needs to be studied.
 
-**[META AD BREAK — 02:00 — place after the global-versus-regional status explanation and before the discussion of evidence gaps.]**
 
 For the Nile crocodile, conservation depends on local knowledge: reliable population surveys, healthy wetlands and rivers, sound water management, and practical ways for people and wildlife to share landscapes safely.
 
@@ -32,11 +31,11 @@ The best wildlife footage can help audiences care about an animal. But footage a
 
 The series began with a crocodile waiting in apparently still water. We have looked at its sensory system, hunting behaviour, early life and changing habitat. Now we can see why the story matters: the animal is part of a much larger natural system, and our understanding must be based on evidence rather than assumptions.
 
-Thank you for following Wild Encounters. Follow Nature Frontiers on YouTube to continue exploring original wildlife stories.
+Thank you for following Wild Encounters. Follow Nature Frontiers on Facebook and Instagram for the next episode of Wild Encounters.
 
 ## Footage and editorial requirements
 
-- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+- Use original camera recordings or properly licensed stock footage. Retain the exact source file and SHA-256; for stock, record the source URL, creator, licence, provenance review and visible on-screen disclosure.
 
 - Date every conservation-status claim and identify whether it is global or South African.
 - Do not call the Nile crocodile globally endangered; the cited global assessment lists it as Least Concern, while the cited South African assessment lists it as Vulnerable.
