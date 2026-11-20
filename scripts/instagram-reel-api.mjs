@@ -86,16 +86,16 @@ export async function verifyInstagramPublishedReel({
     throw new Error("Instagram publication verification requires a Graph version, token and media ID.");
   }
   const url = new URL("https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(mediaId));
-  url.searchParams.set("fields", "id,media_type,permalink,caption,timestamp,username");
+  url.searchParams.set("fields", "id,media_type,media_product_type,permalink,caption,timestamp,username");
   const response = await fetchImpl(url, {
     headers: { Authorization: "Bearer " + accessToken },
     signal: AbortSignal.timeout(15000)
   });
   const payload = await readJson(response, "Instagram Reel remote verification");
-  if (payload.id !== mediaId || payload.media_type !== "REEL" ||
+  if (payload.id !== mediaId || payload.media_type !== "VIDEO" || payload.media_product_type !== "REELS" ||
       typeof payload.permalink !== "string" || !payload.permalink.startsWith("https://") ||
       payload.caption !== expectedCaption) {
-    throw new Error("Instagram remote Reel does not match the exact approved media ID, type, permalink and caption.");
+    throw new Error("Instagram remote Reel does not match the exact approved media ID, video type, REELS product surface, permalink and caption.");
   }
   return { id: payload.id, permalink: payload.permalink, timestamp: payload.timestamp, username: payload.username };
 }
