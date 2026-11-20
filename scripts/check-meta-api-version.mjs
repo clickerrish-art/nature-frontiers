@@ -52,30 +52,33 @@ if (latest) {
     await summary("Version pin matches the current official version. Retirement date and changelog still require periodic human review.");
   }
 
-  if (process.env.GITHUB_ACTIONS === "true" && token && repository && process.exitCode) {
-    const [owner, repo] = repository.split("/");
-    const title = `Meta Graph API version review required: pinned ${pinned || "unset"}, latest ${latest}`;
-    const headers = {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${token}`,
-      "X-GitHub-Api-Version": "2022-11-28"
-    };
-    const existing = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=100`, { headers });
-    if (existing.ok) {
-      const issues = await existing.json();
-      if (!issues.some((issue) => issue.title === title)) {
-        const created = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues`, {
-          method: "POST",
-          headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title,
-            body: `The daily version monitor found a version mismatch or unconfigured pin. Official source: ${docsUrl}. Latest: ${latest}. Pinned: ${pinned || "unset"}. Do not update production until development-app tests and owner review pass. This issue contains no credentials and no production API mutation was made.`
-          })
-        });
-        if (!created.ok) await summary(`WARNING: Could not open a GitHub maintenance issue (HTTP ${created.status}).`);
-      }
-    } else {
-      await summary(`WARNING: Could not inspect open maintenance issues (HTTP ${existing.status}).`);
+
+}
+
+if (process.env.GITHUB_ACTIONS === "true" && token && repository && process.exitCode) {
+  const [owner, repo] = repository.split("/");
+  const latestLabel = latest ?? "unverified";
+  const title = "Meta Graph API version review required: pinned " + (pinned || "unset") + ", latest " + latestLabel;
+  const headers = {
+    Accept: "application/vnd.github+json",
+    Authorization: "Bearer " + token,
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const existing = await fetch("https://api.github.com/repos/" + owner + "/" + repo + "/issues?state=open&per_page=100", { headers });
+  if (existing.ok) {
+    const issues = await existing.json();
+    if (!issues.some((issue) => issue.title === title)) {
+      const created = await fetch("https://api.github.com/repos/" + owner + "/" + repo + "/issues", {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          body: "The daily version monitor could not verify the pinned Meta Graph API version. Official source: " + docsUrl + ". Latest parsed version: " + latestLabel + ". Pinned: " + (pinned || "unset") + ". Review the official documentation and do not update production until development-app tests and owner approval pass. No credentials are included and no production API mutation was made."
+        })
+      });
+      if (!created.ok) await summary("WARNING: Could not open a GitHub maintenance issue (HTTP " + created.status + ").");
     }
+  } else {
+    await summary("WARNING: Could not inspect open maintenance issues (HTTP " + existing.status + ").");
   }
 }
