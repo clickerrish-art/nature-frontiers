@@ -27,6 +27,15 @@ on:
       - "codex/facebook-reels-publisher"
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/meta-webhook.mjs"
+      - "scripts/test-meta-webhook.mjs"
+      - "scripts/check-meta-token-health.mjs"
+      - "scripts/test-meta-token-health.mjs"
+      - "scripts/meta-error-policy.mjs"
+      - "scripts/test-meta-error-policy.mjs"
+      - "scripts/check-meta-api-version.mjs"
+      - ".github/workflows/meta-token-health.yml"
+      - ".github/workflows/meta-api-version-monitor.yml"
       - "scripts/prepublish-gate.mjs"
       - "scripts/test-prepublish-gate.mjs"
       - "data/prepublish-policy.json"
@@ -64,6 +73,15 @@ on:
   pull_request:
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/meta-webhook.mjs"
+      - "scripts/test-meta-webhook.mjs"
+      - "scripts/check-meta-token-health.mjs"
+      - "scripts/test-meta-token-health.mjs"
+      - "scripts/meta-error-policy.mjs"
+      - "scripts/test-meta-error-policy.mjs"
+      - "scripts/check-meta-api-version.mjs"
+      - ".github/workflows/meta-token-health.yml"
+      - ".github/workflows/meta-api-version-monitor.yml"
       - "scripts/prepublish-gate.mjs"
       - "scripts/test-prepublish-gate.mjs"
       - "data/prepublish-policy.json"
@@ -127,6 +145,14 @@ jobs:
         run: node scripts/test-publishing-safety.mjs
       - name: Test configured Meta Page and Instagram identity matching
         run: npm run test:meta-readiness
+      - name: Test Meta webhook signature and durable-acknowledgement handler
+        run: node --test scripts/test-meta-webhook.mjs
+      - name: Test Meta token permissions and expiry assessment
+        run: node scripts/test-meta-token-health.mjs
+      - name: Test Meta API error and circuit-breaker classification
+        run: node scripts/test-meta-error-policy.mjs
+      - name: Check Meta API version monitor syntax
+        run: node --check scripts/check-meta-api-version.mjs
       - name: Test Instagram Reel guards and container API flow
         run: npm run test:instagram-reels
       - name: Test cross-platform prepublish evidence gate
@@ -164,7 +190,7 @@ jobs:
           META_INSTAGRAM_USER_ID: ${{ vars.META_INSTAGRAM_USER_ID }}
           META_EXPECTED_INSTAGRAM_USER_ID: ${{ vars.META_EXPECTED_INSTAGRAM_USER_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          META_GRAPH_API_VERSION: "v27.0"
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN }}
         run: node scripts/check-meta-readiness.mjs
@@ -191,7 +217,7 @@ jobs:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
-          META_GRAPH_API_VERSION: "v27.0"
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
@@ -205,7 +231,7 @@ jobs:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
-          META_GRAPH_API_VERSION: "v27.0"
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
           META_INSTAGRAM_USER_ID: ${{ vars.META_INSTAGRAM_USER_ID }}
@@ -221,7 +247,7 @@ jobs:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
           PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
-          META_GRAPH_API_VERSION: "v27.0"
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
