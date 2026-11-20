@@ -22,7 +22,6 @@ This is an important distinction. A pattern recorded in one river system does no
 
 For a wildlife filmmaker, this creates an opportunity to tell a more complete story. Instead of presenting a crocodile as an isolated animal, show the habitat around it. Record the waterline, banks, vegetation and other visible features. Return to the same viewpoint when possible. A repeated camera position can reveal change without needing exaggerated narration.
 
-**[META AD BREAK — 02:00 — place after the explanation of habitat-use research and before the field-observation section.]**
 
 There is also a reason to be careful with the word “migration”. A crocodile moving from one part of a waterway to another is not automatically making a seasonal migration. Use that term only when a study or tracking data supports it.
 
@@ -32,16 +31,16 @@ The wider lesson is that behaviour cannot be separated from habitat. A crocodile
 
 In the final episode, we will look at conservation — what is known about Nile crocodile populations, what differs between global and regional assessments, and why accurate evidence matters.
 
-Follow Nature Frontiers on YouTube for the final episode of Wild Encounters.
+Follow Nature Frontiers on Facebook and Instagram for the next episode of Wild Encounters.
 
 ## Footage and editorial requirements
 
-- Original camera recordings only; retain the unedited source file and its SHA-256 checksum.
+- Use original camera recordings or properly licensed stock footage. Retain the exact source file and SHA-256; for stock, record the source URL, creator, licence, provenance review and visible on-screen disclosure.
 
 - Record location, date and camera position for habitat comparisons.
 - Do not label a movement as migration without tracking or published evidence.
 - Do not attribute an observed movement to drought without supporting evidence.
-- Use original camera recordings only; no stock habitat montages.
+- Use original camera recordings or properly licensed stock habitat footage with source, licence, provenance and on-screen disclosure; never imply stock is a Nature Frontiers field recording.
 - Identify the study's Lake Albert location when describing its findings.
 
 ## Fact-check sources
