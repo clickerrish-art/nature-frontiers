@@ -304,7 +304,7 @@ async function handlePublisherApi(request, env) {
         apiStatement(env, `DELETE FROM approvals WHERE content_id = ? AND ${revisionGuard}`, [item.id, item.id, storyHash]),
         apiStatement(env, `INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at)
           SELECT ?, ?, ?, ?, ?, ? WHERE ${revisionGuard}`,
-          [crypto.randomUUID(), "content.educational_story_revised", item.id, "publisher_api",
+          [crypto.randomUUID(), "content.educational_story_revised", item.id, identity.actor,
             JSON.stringify({ previous_story_sha256: item.educational_story_sha256 || null, educational_story_sha256: storyHash,
               previous_review_and_approval_invalidated: true }), timestamp, item.id, storyHash])
       ]);
@@ -419,7 +419,7 @@ async function handlePublisherApi(request, env) {
       const results = await apiBatch(env, [
         apiStatement(env, "UPDATE content_items SET status = 'needs_review', updated_at = ? WHERE id = ? AND status IN ('draft','held','failed')", [timestamp, item.id]),
         apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'content.submitted_for_review', ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM content_items WHERE id = ? AND status = 'needs_review')",
-          [crypto.randomUUID(), item.id, JSON.stringify({ media_sha256: item.media_sha256 }), timestamp, item.id])
+          [crypto.randomUUID(), item.id, identity.actor, JSON.stringify({ media_sha256: item.media_sha256 }), timestamp, item.id])
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "content_not_in_submittable_state" }, 409);
       return json({ ok: true, content_id: item.id, status: "needs_review" });
@@ -429,7 +429,7 @@ async function handlePublisherApi(request, env) {
       const item = await apiFirst(env, "SELECT * FROM content_items WHERE id = ?", [parts[2]]);
       if (!item) return json({ ok: false, error: "content_not_found" }, 404);
       const decision = body.decision;
-      const reviewer = typeof body.reviewer === "string" ? body.reviewer.trim() : "";
+      const reviewer = identity.actor;
       const mediaHash = typeof body.content_sha256 === "string" ? body.content_sha256.toLowerCase() : "";
       if (!["approved", "rejected"].includes(decision) || !reviewer || reviewer.length > 200 || mediaHash !== item.media_sha256 ||
           !item.educational_story_sha256 || body.educational_story_sha256 !== item.educational_story_sha256) {
@@ -518,7 +518,7 @@ async function handlePublisherApi(request, env) {
         apiStatement(env, "UPDATE content_items SET status = 'publishing', updated_at = ? WHERE id = ? AND status = 'approved' AND EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved')",
           [timestamp, contentId, reservationId]),
         apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'publication.reserved', ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved')",
-          [crypto.randomUUID(), contentId, JSON.stringify({ platform, account_id: accountId, media_sha256: item.media_sha256, educational_story_sha256: item.educational_story_sha256, reservation_id: reservationId }), timestamp, reservationId])
+          [crypto.randomUUID(), contentId, identity.actor, JSON.stringify({ platform, account_id: accountId, media_sha256: item.media_sha256, educational_story_sha256: item.educational_story_sha256, reservation_id: reservationId }), timestamp, reservationId])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1 || results[2]?.meta?.changes !== 1) {
         return json({ ok: false, error: "reservation_state_or_concurrency_conflict" }, 409);
@@ -555,7 +555,7 @@ async function handlePublisherApi(request, env) {
         apiStatement(env, "UPDATE content_items SET status = ?, updated_at = ? WHERE id = ? AND status IN ('publishing','held') AND EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = ?)",
           [contentStatus, timestamp, attempt.content_id, attemptId, body.outcome]),
         apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = ?)",
-          [crypto.randomUUID(), "publication." + body.outcome, attempt.content_id, JSON.stringify({ reservation_id: attemptId, platform: attempt.platform, platform_post_id: remoteId, error_code: body.error_code || null }), timestamp, attemptId, body.outcome])
+          [crypto.randomUUID(), "publication." + body.outcome, attempt.content_id, identity.actor, JSON.stringify({ reservation_id: attemptId, platform: attempt.platform, platform_post_id: remoteId, error_code: body.error_code || null }), timestamp, attemptId, body.outcome])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1 || results[2]?.meta?.changes !== 1) {
         return json({ ok: false, error: "reconciliation_state_conflict" }, 409);
