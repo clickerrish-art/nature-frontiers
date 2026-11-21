@@ -115,6 +115,8 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test Meta token health assessment
         run: node scripts/test-meta-token-health.mjs
+      - name: Test read-only Facebook Page identity verification
+        run: npm run test:facebook-live-readiness
       - name: Test Meta webhook verification
         run: node scripts/test-meta-webhook.mjs
       - name: Test Cloudflare publisher Worker media and Meta webhook routes
