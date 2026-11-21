@@ -8,6 +8,7 @@ database.exec("PRAGMA foreign_keys = ON");
 database.exec(readFileSync(new URL("./migrations/0001_initial_schema.sql", import.meta.url), "utf8"));
 database.exec(readFileSync(new URL("./migrations/0002_meta_webhook_events.sql", import.meta.url), "utf8"));
 database.exec(readFileSync(new URL("./migrations/0003_media_evidence.sql", import.meta.url), "utf8"));
+database.exec(readFileSync(new URL("./migrations/0004_review_evidence.sql", import.meta.url), "utf8"));
 
 function d1Adapter(db) {
   function statement(sql, params = []) {
@@ -119,6 +120,23 @@ const mismatchedRights = await call("/api/content/crocodile-reel-001/rights", "P
   verified_by: "rights-reviewer", verified_at: "2026-11-21T05:00:00.000Z"
 });
 assert.equal(mismatchedRights.status, 400);
+
+const reviewMissing = await call("/api/content/crocodile-reel-001/submit-review", "POST", {});
+assert.equal(reviewMissing.status, 409);
+
+const reviewBody = {
+  content_sha256: mediaHash, reviewer: "editorial-reviewer", reviewed_at: "2026-11-21T05:10:00.000Z",
+  human_review_confirmed: true, content_accuracy_confirmed: true, wildlife_welfare_confirmed: true,
+  non_graphic_review_passed: true, media_integrity_review_passed: true, media_technical_review_passed: true,
+  watermark_scan_passed: true, media_accessibility_confirmed: true,
+  script_originality_confirmed: true, voiceover_originality_confirmed: true
+};
+const incompleteReview = await call("/api/content/crocodile-reel-001/review-evidence", "PUT", {
+  ...reviewBody, wildlife_welfare_confirmed: false
+});
+assert.equal(incompleteReview.status, 400);
+const reviewRecorded = await call("/api/content/crocodile-reel-001/review-evidence", "PUT", reviewBody);
+assert.equal(reviewRecorded.status, 200);
 
 const submitted = await call("/api/content/crocodile-reel-001/submit-review", "POST", {});
 assert.equal(submitted.status, 200);
