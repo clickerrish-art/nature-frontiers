@@ -20,7 +20,7 @@ One study examined the structure and response properties of these organs in juve
 
 A separate study compared sensory organs in Nile crocodiles and spectacled caimans. It found evidence that these tiny organs can respond to more than one kind of stimulus, including mechanical and thermal changes. The results are specific to the species and conditions studied; they should not be turned into a claim that every crocodile can detect every change in the water.
 
-**[VISUAL REQUIREMENT: Film only genuine close-ups of the jaw and body scales. A macro shot must come from the original recording, not an AI reconstruction or an unrelated stock image.]**
+**[VISUAL REQUIREMENT: Use genuine, correctly identified close-ups of the jaw and body scales. The source may be an original camera recording or properly licensed stock footage with source, creator, licence, provenance, exact file hash and visible disclosure documented. Do not use AI reconstructions or unrelated stock imagery.]**
 
 The important point is not that a crocodile has a magical sixth sense. It is that its body is equipped with a specialised sensory system suited to life in and around water.
 
@@ -41,7 +41,7 @@ Follow Nature Frontiers on Facebook and Instagram for the next episode of Wild E
 
 - Use original camera recordings or properly licensed stock footage. Retain the exact source file and SHA-256; for stock, record the source URL, creator, licence, provenance review and visible on-screen disclosure.
 
-- Use original recordings of naturally occurring behaviour.
+- Use original camera recordings or properly licensed stock footage of naturally occurring behaviour. Do not stage or provoke a water disturbance; retain source, licence, provenance and disclosure evidence for stock.
 - Do not stage water disturbances or provoke a crocodile to demonstrate a sensory response.
 - Do not add artificial ripples or fabricated prey events.
 - Any close-up of sensory structures must be genuine and correctly identified.
