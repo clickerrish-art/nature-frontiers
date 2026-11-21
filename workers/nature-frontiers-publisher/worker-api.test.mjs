@@ -44,34 +44,57 @@ function d1Adapter(db) {
   };
 }
 
+const ROLE_TOKENS = {
+  editor: "test-editor-token-000000000000000000000000000000",
+  rights_reviewer: "test-rights-reviewer-token-000000000000000000",
+  provenance_reviewer: "test-provenance-reviewer-token-00000000",
+  editorial_reviewer: "test-editorial-reviewer-token-000000000",
+  owner_approver: "test-owner-approver-token-00000000000000000",
+  publishing_operator: "test-publishing-operator-token-0000000000"
+};
+const ROLE_ACTORS = {
+  editor: "editor-test-identity", rights_reviewer: "rights-reviewer-test-identity",
+  provenance_reviewer: "provenance-reviewer-test-identity", editorial_reviewer: "editorial-reviewer-test-identity",
+  owner_approver: "owner-approver-test-identity", publishing_operator: "publishing-operator-test-identity"
+};
 const env = {
   DB: d1Adapter(database),
-  PUBLISHER_API_TOKEN: "test-publisher-token",
-  PUBLISH_ENABLED: "false",
-  PUBLISH_DRY_RUN: "true",
-  PUBLISH_EMERGENCY_STOP: "true",
-  META_PAGE_ID: "1431329126735709",
-  META_EXPECTED_PAGE_ID: "1431329126735709",
-  META_INSTAGRAM_USER_ID: "17841413164146618",
-  META_EXPECTED_INSTAGRAM_USER_ID: "17841413164146618"
+  PUBLISHER_EDITOR_TOKEN: ROLE_TOKENS.editor, PUBLISHER_EDITOR_ACTOR: ROLE_ACTORS.editor,
+  PUBLISHER_RIGHTS_REVIEWER_TOKEN: ROLE_TOKENS.rights_reviewer, PUBLISHER_RIGHTS_REVIEWER_ACTOR: ROLE_ACTORS.rights_reviewer,
+  PUBLISHER_PROVENANCE_REVIEWER_TOKEN: ROLE_TOKENS.provenance_reviewer, PUBLISHER_PROVENANCE_REVIEWER_ACTOR: ROLE_ACTORS.provenance_reviewer,
+  PUBLISHER_EDITORIAL_REVIEWER_TOKEN: ROLE_TOKENS.editorial_reviewer, PUBLISHER_EDITORIAL_REVIEWER_ACTOR: ROLE_ACTORS.editorial_reviewer,
+  PUBLISHER_OWNER_APPROVER_TOKEN: ROLE_TOKENS.owner_approver, PUBLISHER_OWNER_APPROVER_ACTOR: ROLE_ACTORS.owner_approver,
+  PUBLISHER_PUBLISHING_OPERATOR_TOKEN: ROLE_TOKENS.publishing_operator, PUBLISHER_PUBLISHING_OPERATOR_ACTOR: ROLE_ACTORS.publishing_operator,
+  PUBLISH_ENABLED: "false", PUBLISH_DRY_RUN: "true", PUBLISH_EMERGENCY_STOP: "true",
+  META_PAGE_ID: "1431329126735709", META_EXPECTED_PAGE_ID: "1431329126735709",
+  META_INSTAGRAM_USER_ID: "17841413164146618", META_EXPECTED_INSTAGRAM_USER_ID: "17841413164146618"
 };
 
-function request(path, method = "GET", body, token = "test-publisher-token") {
+function roleForRoute(path, method) {
+  if (path.endsWith("/rights")) return "rights_reviewer";
+  if (path.endsWith("/media-evidence")) return "provenance_reviewer";
+  if (path.endsWith("/review-evidence")) return "editorial_reviewer";
+  if (path.endsWith("/approval")) return "owner_approver";
+  if (path === "/api/publication-reservations" || path.endsWith("/reconcile")) return "publishing_operator";
+  if (method === "GET") return "editor";
+  return "editor";
+}
+function request(path, method = "GET", body, token) {
   const headers = {};
-  if (token !== null) headers.authorization = "Bearer " + token;
+  if (token !== null && token !== undefined) headers.authorization = "Bearer " + token;
   if (body !== undefined) headers["content-type"] = "application/json";
   return new Request("https://publisher.example" + path, {
     method, headers, ...(body === undefined ? {} : { body: JSON.stringify(body) })
   });
 }
-
 async function call(path, method, body, token) {
-  return worker.fetch(request(path, method, body, token), env);
+  return worker.fetch(request(path, method, body, token ?? ROLE_TOKENS[roleForRoute(path, method)]), env);
 }
-
-const missingToken = await worker.fetch(request("/api/content", "GET", undefined, null), { ...env, PUBLISHER_API_TOKEN: undefined });
+const missingToken = await worker.fetch(request("/api/content", "GET", undefined, null), { ...env, PUBLISHER_EDITOR_TOKEN: undefined });
 assert.equal(missingToken.status, 503);
 assert.equal((await call("/api/content", "GET", undefined, "wrong-token")).status, 401);
+assert.equal((await call("/api/content", "POST", {}, ROLE_TOKENS.rights_reviewer)).status, 403);
+assert.equal((await call("/api/content/unknown/approval", "POST", {}, ROLE_TOKENS.editor)).status, 403);
 
 const mediaHash = "a".repeat(64);
 const educationalStory = {
