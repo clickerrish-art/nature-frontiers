@@ -94,6 +94,7 @@ const missingToken = await worker.fetch(request("/api/content", "GET", undefined
 assert.equal(missingToken.status, 503);
 assert.equal((await call("/api/content", "GET", undefined, "wrong-token")).status, 401);
 assert.equal((await call("/api/content", "POST", {}, ROLE_TOKENS.rights_reviewer)).status, 403);
+assert.equal((await worker.fetch(request("/api/content", "GET", undefined, ROLE_TOKENS.editor), { ...env, PUBLISHER_OWNER_APPROVER_TOKEN: ROLE_TOKENS.editor })).status, 503);
 assert.equal((await call("/api/content/unknown/approval", "POST", {}, ROLE_TOKENS.editor)).status, 403);
 
 const mediaHash = "a".repeat(64);
@@ -155,6 +156,7 @@ const rights = await call("/api/content/crocodile-reel-001/rights", "PUT", {
   verified_by: "rights-reviewer", verified_at: "2026-11-21T05:00:00.000Z"
 });
 assert.equal(rights.status, 200);
+assert.equal(database.prepare("SELECT verified_by FROM media_rights WHERE media_sha256 = ?").get(mediaHash).verified_by, ROLE_ACTORS.rights_reviewer);
 
 const mediaEvidence = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
   media_sha256: mediaHash, media_origin: "original_camera_recording", stock_footage_used: false,
@@ -164,6 +166,7 @@ const mediaEvidence = await call("/api/content/crocodile-reel-001/media-evidence
   provenance_reviewed_at: "2026-11-21T05:05:00.000Z"
 });
 assert.equal(mediaEvidence.status, 200);
+assert.equal(database.prepare("SELECT provenance_reviewer FROM media_evidence WHERE media_sha256 = ?").get(mediaHash).provenance_reviewer, ROLE_ACTORS.provenance_reviewer);
 
 const stockRejected = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
   media_sha256: mediaHash, media_origin: "licensed_stock", stock_footage_used: true,
@@ -200,6 +203,7 @@ const incompleteReview = await call("/api/content/crocodile-reel-001/review-evid
 assert.equal(incompleteReview.status, 400);
 const reviewRecorded = await call("/api/content/crocodile-reel-001/review-evidence", "PUT", reviewBody);
 assert.equal(reviewRecorded.status, 200);
+assert.equal(database.prepare("SELECT reviewer FROM review_evidence WHERE content_id = ?").get("crocodile-reel-001").reviewer, ROLE_ACTORS.editorial_reviewer);
 
 const submitted = await call("/api/content/crocodile-reel-001/submit-review", "POST", {});
 assert.equal(submitted.status, 200);
@@ -213,6 +217,7 @@ const approved = await call("/api/content/crocodile-reel-001/approval", "POST", 
 });
 assert.equal(approved.status, 200);
 assert.equal((await approved.json()).status, "approved");
+assert.equal(database.prepare("SELECT reviewer FROM approvals WHERE content_id = ? ORDER BY created_at DESC LIMIT 1").get("crocodile-reel-001").reviewer, ROLE_ACTORS.owner_approver);
 
 const wrongStoryApproval = await call("/api/content/crocodile-reel-001/approval", "POST", {
   decision: "approved", reviewer: "owner", content_sha256: mediaHash, educational_story_sha256: "0".repeat(64)
