@@ -185,7 +185,7 @@ function validReviewEvidence(record, contentId, mediaHash) {
 
 async function apiBody(request) {
   const contentType = request.headers.get("content-type") || "";
-  if (!/^application\\/json(?:\\s*;|\\s*$)/i.test(contentType)) return { error: "application_json_required", status: 415 };
+  if (!/^application\/json(?:\s*;|\s*$)/i.test(contentType)) return { error: "application_json_required", status: 415 };
   let bytes;
   try { bytes = await readBoundedBody(request, 64 * 1024); }
   catch { return { error: "body_too_large", status: 413 }; }
