@@ -27,7 +27,7 @@ Research on Nile crocodile feeding ecology also shows that diet can change with 
 The most important part of the story may be what happens before the attack. Positioning, patience and the ability to move efficiently through water all matter. The animal does not need to chase every opportunity. A missed opportunity is part of the natural process too.
 
 
-The difference between a strong wildlife documentary and a misleading one is often the edit. A dramatic shot can be real and still be presented dishonestly if it is taken out of context. Keep the original recording, preserve its sequence and make clear when narration is explaining general research rather than describing the exact filmed moment.
+The difference between a strong wildlife documentary and a misleading one is often the edit. A dramatic shot can be real and still be presented dishonestly if it is taken out of context. Retain the unedited source asset (original camera recording or licensed source file), preserve its sequence where available and make clear when narration is explaining general research rather than describing the exact filmed moment. For stock, disclose that it is illustrative and not a Nature Frontiers field recording.
 
 A crocodile's hunting strategy is shaped by its body, its habitat and the opportunity in front of it. The stillness is not wasted time. It is part of the strategy.
 
