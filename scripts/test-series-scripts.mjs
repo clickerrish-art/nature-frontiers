@@ -64,3 +64,17 @@ for (const [index, filename] of scriptFiles.entries()) {
     assert.ok(/https:\/\//.test(markdown), "each episode must cite research sources");
   });
 }
+
+
+test("all six episode briefs consistently permit properly licensed stock and prohibit misleading documentary claims", async () => {
+  for (const filename of scriptFiles) {
+    const path = new URL("../content/series/wild-encounters-crocodile-behaviour/" + filename, import.meta.url);
+    const markdown = await readFile(path, "utf8");
+    assert.match(markdown, /properly licensed stock/i, filename + " must follow the owner-approved stock policy");
+    assert.match(markdown, /on-screen disclosure/i, filename + " must require visible stock disclosure");
+    assert.match(markdown, /provenance/i, filename + " must require provenance evidence");
+    assert.match(markdown, /SHA-256/i, filename + " must preserve exact source or final media hashes");
+    assert.doesNotMatch(markdown, /original camera footage only/i, filename + " must not retain a blanket original-only rule");
+    assert.doesNotMatch(markdown, /no stock footage/i, filename + " must not prohibit licensed stock");
+  }
+});
