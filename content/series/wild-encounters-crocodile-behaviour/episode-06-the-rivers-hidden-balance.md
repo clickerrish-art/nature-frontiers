@@ -18,7 +18,7 @@ Those assessments answer different questions. A species can be widespread across
 
 The South African assessment identified habitat loss and degradation among the main threats. Changes to rivers, wetlands and water quality can affect the places crocodiles depend on. Human persecution, destruction of nests and fishing practices that entangle wildlife can add further pressure.
 
-**[VISUAL REQUIREMENT: Use original footage of the actual location being discussed. Conservation claims must be tied to the relevant assessment and date. Do not use a generic crocodile shot to imply a population trend or a specific threat.]**
+**[VISUAL REQUIREMENT: Use original camera footage or properly licensed stock with documented location that matches the conservation claim. Clearly disclose illustrative stock; never use a generic crocodile shot to imply a population trend, local decline or specific threat. Tie every conservation claim to the relevant assessment and date.]**
 
 There is another reason to be precise. Crocodiles are often described as keystone species or ecosystem engineers. Those terms can sound impressive, but they should be used only when evidence supports them. A 2020 scientific review found that many broad claims about crocodilians' ecosystem roles were based on limited evidence or anecdotal observations. The authors called for more targeted research into their ecological effects.
 
@@ -40,7 +40,7 @@ Thank you for following Wild Encounters. Follow Nature Frontiers on Facebook and
 - Date every conservation-status claim and identify whether it is global or South African.
 - Do not call the Nile crocodile globally endangered; the cited global assessment lists it as Least Concern, while the cited South African assessment lists it as Vulnerable.
 - Do not claim it is a keystone species or ecosystem engineer without location-specific evidence.
-- Use original, location-verified footage; no generic stock montage.
+- Use location-verified original camera footage or properly licensed stock whose source location matches the claim. Generic stock may appear only as clearly disclosed illustration and must not imply a local population trend or threat.
 - Add a final human review of all conservation statements and disclosures.
 
 ## Fact-check sources
