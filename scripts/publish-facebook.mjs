@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { shouldOpenMetaCircuit, shouldOpenMetaCircuitFromUsage, redactMetaError } from "./meta-error-policy.mjs";
 import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
 import { platformIdentityError } from "./platform-identity.mjs";
+import { checkFacebookLiveReadiness } from "./check-facebook-live-readiness.mjs";
 
 const enabled = process.env.PUBLISH_ENABLED === "true";
 const dryRun = process.env.PUBLISH_DRY_RUN !== "false";
@@ -96,6 +97,14 @@ if (!graphVersion || !/^v\d+\.\d+$/.test(graphVersion)) {
 const pageIdentityError = platformIdentityError(pageId, process.env.META_EXPECTED_PAGE_ID, "Nature Frontiers Facebook Page");
 if (pageIdentityError) throw new Error(pageIdentityError + " Facebook publication is blocked.");
 if (!accessToken) stop("Facebook Page access token is missing.");
+const facebookPageCheck = await checkFacebookLiveReadiness({
+  apiVersion: graphVersion,
+  pageId,
+  expectedPageId: process.env.META_EXPECTED_PAGE_ID,
+  accessToken
+});
+console.log("READ-ONLY FACEBOOK PAGE IDENTITY CHECK PASSED: " + facebookPageCheck.pageId + (facebookPageCheck.pageName ? " (" + facebookPageCheck.pageName + ")" : "") + ".");
+
 if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPOSITORY || !process.env.GITHUB_REF_NAME) {
   throw new Error("GitHub state persistence is required to prevent duplicate publication.");
 }
