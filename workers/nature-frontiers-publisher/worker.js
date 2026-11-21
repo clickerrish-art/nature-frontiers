@@ -224,7 +224,7 @@ function publisherRouteRole(parts, method) {
 async function authenticatePublisherRole(request, env, requiredRole) {
   // Static bearer credentials are permitted only in the explicit local test harness.
   // Every non-test environment requires a signed, audience-bound Cloudflare Access JWT.
-  if (env.ENVIRONMENT === "test" && env.PUBLISHER_AUTH_MODE === "static_test_only") {
+  if (globalThis.__NF_TEST_AUTH__ === true) {
     const configured = Object.entries(PUBLISHER_ROLE_CONFIG).map(([role, [tokenKey, actorKey]]) => ({ role, token: env[tokenKey], actor: env[actorKey] }));
     if (configured.some((entry) => typeof entry.token !== "string" || entry.token.length < 32 || typeof entry.actor !== "string" || !entry.actor.trim()) ||
         new Set(configured.map((entry) => entry.token)).size !== configured.length ||
