@@ -25,8 +25,8 @@ const valid = {
 };
 assert.deepEqual(validateStory(valid), []);
 assert.ok(validateStory({ ...valid, learning_objective: "", brand_logo: "elephant" }).length >= 2);
-assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: [], visual_evidence: "" }] }).some((error) => error.includes("traceable HTTPS source")));
-assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: ["http://example.org/source"], visual_evidence: "matching original footage" }] }).some((error) => error.includes("HTTPS source")));
+assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: [], visual_evidence: "" }] }).some((error) => error.includes("public HTTPS source")));
+assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: ["http://example.org/source"], visual_evidence: "matching original footage" }] }).some((error) => error.includes("public HTTPS source")));
 assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: ["https://localhost/source"], visual_evidence: "matching original footage" }] }).some((error) => error.includes("public HTTPS source")));
 assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: ["https://user:pass@example.org/source"], visual_evidence: "matching original footage" }] }).some((error) => error.includes("public HTTPS source")));
 assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: ["https://192.168.1.10/source"], visual_evidence: "matching original footage" }] }).some((error) => error.includes("public HTTPS source")));
