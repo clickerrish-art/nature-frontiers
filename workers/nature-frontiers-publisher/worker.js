@@ -170,6 +170,15 @@ function validMediaEvidence(record, caption, mediaHash) {
   return false;
 }
 
+function validReviewEvidence(record, contentId, mediaHash) {
+  if (!record || record.content_id !== contentId || record.content_sha256 !== mediaHash ||
+      !record.reviewer || !record.reviewed_at || !Number.isFinite(Date.parse(record.reviewed_at))) return false;
+  return ["human_review_confirmed", "content_accuracy_confirmed", "wildlife_welfare_confirmed",
+    "non_graphic_review_passed", "media_integrity_review_passed", "media_technical_review_passed",
+    "watermark_scan_passed", "media_accessibility_confirmed", "script_originality_confirmed",
+    "voiceover_originality_confirmed"].every((field) => record[field] === 1);
+}
+
 async function apiBody(request) {
   let bytes;
   try { bytes = await readBoundedBody(request, 64 * 1024); }
@@ -223,14 +232,15 @@ async function handlePublisherApi(request, env) {
     if (parts.length === 3 && parts[1] === "content" && method === "GET") {
       const item = await apiFirst(env, "SELECT * FROM content_items WHERE id = ?", [parts[2]]);
       if (!item) return json({ ok: false, error: "content_not_found" }, 404);
-      const [rights, evidence, approvals, targets, attempts] = await Promise.all([
+      const [rights, evidence, reviewEvidence, approvals, targets, attempts] = await Promise.all([
         apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]),
         apiFirst(env, "SELECT * FROM media_evidence WHERE media_sha256 = ?", [item.media_sha256]),
+        apiFirst(env, "SELECT * FROM review_evidence WHERE content_id = ? AND content_sha256 = ?", [item.id, item.media_sha256]),
         apiAll(env, "SELECT id, reviewer, decision, content_sha256, created_at FROM approvals WHERE content_id = ? ORDER BY created_at DESC", [item.id]),
         apiAll(env, "SELECT platform, account_id, platform_media_id, published_at, status FROM content_targets WHERE content_id = ?", [item.id]),
         apiAll(env, "SELECT id, platform, idempotency_key, state, platform_post_id, started_at, finished_at, error_code FROM publication_attempts WHERE content_id = ? ORDER BY started_at DESC", [item.id])
       ]);
-      return json({ ok: true, item, rights, evidence, approvals, targets, attempts });
+      return json({ ok: true, item, rights, evidence, review_evidence: reviewEvidence, approvals, targets, attempts });
     }
 
     if (parts.length === 4 && parts[1] === "content" && parts[3] === "rights" && method === "PUT") {
@@ -255,6 +265,7 @@ async function handlePublisherApi(request, env) {
           [mediaHash, record.rights_status, record.rights_holder, record.source_url, record.license_reference, record.verified_by, record.verified_at, record.expires_at]),
         apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
         apiStatement(env, "DELETE FROM media_evidence WHERE media_sha256 = ?", [mediaHash]),
+        apiStatement(env, "DELETE FROM review_evidence WHERE content_id = ?", [item.id]),
         auditStatement(env, "media.rights_updated", item.id, "publisher_api", { media_sha256: mediaHash, rights_status: status, verified_by: record.verified_by }, timestamp)
       ]);
       if (results.some((result) => result?.success !== true)) return json({ ok: false, error: "rights_persistence_failed" }, 503);
@@ -297,10 +308,36 @@ async function handlePublisherApi(request, env) {
             body.provenance_reviewed_at, body.on_screen_disclosure_text || null, body.on_screen_disclosure_media_sha256 || null,
             body.caption_attribution || null, timestamp]),
         apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
+        apiStatement(env, "DELETE FROM review_evidence WHERE content_id = ?", [item.id]),
         auditStatement(env, "media.provenance_reviewed", item.id, body.provenance_reviewer.trim(), { media_sha256: mediaHash, media_origin: origin }, timestamp)
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "media_evidence_persistence_failed" }, 503);
       return json({ ok: true, content_id: item.id, media_origin: origin, media_sha256: mediaHash });
+    }
+
+    if (parts.length === 4 && parts[1] === "content" && parts[3] === "review-evidence" && method === "PUT") {
+      const item = await apiFirst(env, "SELECT id, media_sha256, status FROM content_items WHERE id = ?", [parts[2]]);
+      if (!item) return json({ ok: false, error: "content_not_found" }, 404);
+      const mediaHash = typeof body.content_sha256 === "string" ? body.content_sha256.toLowerCase() : "";
+      const fields = ["human_review_confirmed", "content_accuracy_confirmed", "wildlife_welfare_confirmed",
+        "non_graphic_review_passed", "media_integrity_review_passed", "media_technical_review_passed",
+        "watermark_scan_passed", "media_accessibility_confirmed", "script_originality_confirmed",
+        "voiceover_originality_confirmed"];
+      const reviewer = typeof body.reviewer === "string" ? body.reviewer.trim() : "";
+      if (mediaHash !== item.media_sha256 || !reviewer || reviewer.length > 200 ||
+          typeof body.reviewed_at !== "string" || !Number.isFinite(Date.parse(body.reviewed_at)) ||
+          fields.some((field) => body[field] !== true)) {
+        return json({ ok: false, error: "exact_hash_human_editorial_and_safety_review_required" }, 400);
+      }
+      const values = fields.map(() => 1);
+      const results = await apiBatch(env, [
+        apiStatement(env, "INSERT INTO review_evidence (content_id, content_sha256, human_review_confirmed, content_accuracy_confirmed, wildlife_welfare_confirmed, non_graphic_review_passed, media_integrity_review_passed, media_technical_review_passed, watermark_scan_passed, media_accessibility_confirmed, script_originality_confirmed, voiceover_originality_confirmed, reviewer, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(content_id, content_sha256) DO UPDATE SET human_review_confirmed=excluded.human_review_confirmed, content_accuracy_confirmed=excluded.content_accuracy_confirmed, wildlife_welfare_confirmed=excluded.wildlife_welfare_confirmed, non_graphic_review_passed=excluded.non_graphic_review_passed, media_integrity_review_passed=excluded.media_integrity_review_passed, media_technical_review_passed=excluded.media_technical_review_passed, watermark_scan_passed=excluded.watermark_scan_passed, media_accessibility_confirmed=excluded.media_accessibility_confirmed, script_originality_confirmed=excluded.script_originality_confirmed, voiceover_originality_confirmed=excluded.voiceover_originality_confirmed, reviewer=excluded.reviewer, reviewed_at=excluded.reviewed_at",
+          [item.id, mediaHash, ...values, reviewer, body.reviewed_at]),
+        apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
+        auditStatement(env, "content.review_evidence_recorded", item.id, reviewer, { content_sha256: mediaHash, review_checks: fields.length }, timestamp)
+      ]);
+      if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "review_evidence_persistence_failed" }, 503);
+      return json({ ok: true, content_id: item.id, content_sha256: mediaHash, review_checks: fields.length });
     }
 
     if (parts.length === 4 && parts[1] === "content" && parts[3] === "submit-review" && method === "POST") {
@@ -308,8 +345,10 @@ async function handlePublisherApi(request, env) {
       if (!item) return json({ ok: false, error: "content_not_found" }, 404);
       const rights = await apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]);
       const evidence = await apiFirst(env, "SELECT * FROM media_evidence WHERE media_sha256 = ?", [item.media_sha256]);
-      if (!validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256)) {
-        return json({ ok: false, error: "verified_rights_and_exact_hash_media_evidence_required" }, 409);
+      const reviewEvidence = await apiFirst(env, "SELECT * FROM review_evidence WHERE content_id = ? AND content_sha256 = ?", [item.id, item.media_sha256]);
+      if (!validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
+          !validReviewEvidence(reviewEvidence, item.id, item.media_sha256)) {
+        return json({ ok: false, error: "verified_rights_media_evidence_and_human_review_required" }, 409);
       }
       const results = await apiBatch(env, [
         apiStatement(env, "UPDATE content_items SET status = 'needs_review', updated_at = ? WHERE id = ? AND status IN ('draft','held','failed')", [timestamp, item.id]),
@@ -332,8 +371,10 @@ async function handlePublisherApi(request, env) {
       if (decision === "approved") {
         const rights = await apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]);
         const evidence = await apiFirst(env, "SELECT * FROM media_evidence WHERE media_sha256 = ?", [item.media_sha256]);
-        if (!validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256)) {
-          return json({ ok: false, error: "verified_rights_and_exact_hash_media_evidence_required" }, 409);
+        const reviewEvidence = await apiFirst(env, "SELECT * FROM review_evidence WHERE content_id = ? AND content_sha256 = ?", [item.id, item.media_sha256]);
+        if (!validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
+            !validReviewEvidence(reviewEvidence, item.id, item.media_sha256)) {
+          return json({ ok: false, error: "verified_rights_media_evidence_and_human_review_required" }, 409);
         }
       }
       const approvalId = crypto.randomUUID();
@@ -381,8 +422,10 @@ async function handlePublisherApi(request, env) {
       }
       const rights = await apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]);
       const evidence = await apiFirst(env, "SELECT * FROM media_evidence WHERE media_sha256 = ?", [item.media_sha256]);
+      const reviewEvidence = await apiFirst(env, "SELECT * FROM review_evidence WHERE content_id = ? AND content_sha256 = ?", [item.id, item.media_sha256]);
       const approval = await apiFirst(env, "SELECT id, decision FROM approvals WHERE content_id = ? AND content_sha256 = ? ORDER BY created_at DESC, rowid DESC LIMIT 1", [contentId, item.media_sha256]);
-      if (!validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) || approval?.decision !== "approved") {
+      if (!validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
+          !validReviewEvidence(reviewEvidence, item.id, item.media_sha256) || approval?.decision !== "approved") {
         return json({ ok: false, error: "current_approval_verified_rights_and_media_evidence_required" }, 409);
       }
       const activeAttempt = await apiFirst(env, "SELECT id FROM publication_attempts WHERE content_id = ? AND platform = ? AND state IN ('reserved','confirmed','ambiguous') LIMIT 1", [contentId, platform]);
@@ -390,7 +433,7 @@ async function handlePublisherApi(request, env) {
 
       const reservationId = crypto.randomUUID();
       const results = await apiBatch(env, [
-        apiStatement(env, "INSERT INTO publication_attempts (id, content_id, platform, idempotency_key, state, started_at) SELECT ?, ?, ?, ?, 'reserved', ? WHERE EXISTS (SELECT 1 FROM content_items c WHERE c.id = ? AND c.status = 'approved' AND c.media_sha256 = ? AND EXISTS (SELECT 1 FROM approvals a WHERE a.content_id = c.id AND a.decision = 'approved' AND a.content_sha256 = c.media_sha256 AND a.rowid = (SELECT a2.rowid FROM approvals a2 WHERE a2.content_id = c.id ORDER BY a2.created_at DESC, a2.rowid DESC LIMIT 1)) AND EXISTS (SELECT 1 FROM media_evidence e WHERE e.media_sha256 = c.media_sha256) AND EXISTS (SELECT 1 FROM media_rights r WHERE r.media_sha256 = c.media_sha256 AND r.rights_status IN ('licensed','owned','public_domain') AND r.verified_by IS NOT NULL AND r.verified_at IS NOT NULL AND (r.expires_at IS NULL OR r.expires_at > ?))) AND NOT EXISTS (SELECT 1 FROM publication_attempts p WHERE p.content_id = ? AND p.platform = ? AND p.state IN ('reserved','confirmed','ambiguous'))",
+        apiStatement(env, "INSERT INTO publication_attempts (id, content_id, platform, idempotency_key, state, started_at) SELECT ?, ?, ?, ?, 'reserved', ? WHERE EXISTS (SELECT 1 FROM content_items c WHERE c.id = ? AND c.status = 'approved' AND c.media_sha256 = ? AND EXISTS (SELECT 1 FROM approvals a WHERE a.content_id = c.id AND a.decision = 'approved' AND a.content_sha256 = c.media_sha256 AND a.rowid = (SELECT a2.rowid FROM approvals a2 WHERE a2.content_id = c.id ORDER BY a2.created_at DESC, a2.rowid DESC LIMIT 1)) AND EXISTS (SELECT 1 FROM media_evidence e WHERE e.media_sha256 = c.media_sha256) AND EXISTS (SELECT 1 FROM review_evidence re WHERE re.content_id = c.id AND re.content_sha256 = c.media_sha256 AND re.human_review_confirmed = 1 AND re.content_accuracy_confirmed = 1 AND re.wildlife_welfare_confirmed = 1 AND re.non_graphic_review_passed = 1 AND re.media_integrity_review_passed = 1 AND re.media_technical_review_passed = 1 AND re.watermark_scan_passed = 1 AND re.media_accessibility_confirmed = 1 AND re.script_originality_confirmed = 1 AND re.voiceover_originality_confirmed = 1) AND EXISTS (SELECT 1 FROM media_rights r WHERE r.media_sha256 = c.media_sha256 AND r.rights_status IN ('licensed','owned','public_domain') AND r.verified_by IS NOT NULL AND r.verified_at IS NOT NULL AND (r.expires_at IS NULL OR r.expires_at > ?))) AND NOT EXISTS (SELECT 1 FROM publication_attempts p WHERE p.content_id = ? AND p.platform = ? AND p.state IN ('reserved','confirmed','ambiguous'))",
           [reservationId, contentId, platform, idempotencyKey, timestamp, contentId, body.media_sha256.toLowerCase(), timestamp, contentId, platform]),
         apiStatement(env, "INSERT INTO content_targets (content_id, platform, account_id, status) SELECT ?, ?, ?, 'publishing' WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved') ON CONFLICT(content_id, platform) DO UPDATE SET account_id = excluded.account_id, status = 'publishing'",
           [contentId, platform, accountId, reservationId]),
@@ -454,8 +497,8 @@ export default {
     if (url.pathname === "/health") {
       if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
       try {
-        const requiredTables = ["content_items", "approvals", "audit_events", "content_targets", "media_rights", "media_evidence", "publication_attempts", "meta_webhook_events"];
-        const tableRows = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('content_items','approvals','audit_events','content_targets','media_rights','media_evidence','publication_attempts','meta_webhook_events')").all();
+        const requiredTables = ["content_items", "approvals", "audit_events", "content_targets", "media_rights", "media_evidence", "review_evidence", "publication_attempts", "meta_webhook_events"];
+        const tableRows = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('content_items','approvals','audit_events','content_targets','media_rights','media_evidence','review_evidence','publication_attempts','meta_webhook_events')").all();
         const foundTables = new Set((tableRows?.results || []).map((row) => row.name));
         const schemaReady = requiredTables.every((name) => foundTables.has(name));
         return Response.json({
