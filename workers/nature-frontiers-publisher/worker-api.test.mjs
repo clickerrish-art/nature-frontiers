@@ -246,6 +246,8 @@ const publishedJson = await published.json();
 assert.equal(publishedJson.item.status, "published");
 assert.equal(publishedJson.targets[0].status, "published");
 assert.equal(publishedJson.targets[0].platform_media_id, "meta-media-123");
+const publishedStoryEdit = await call("/api/content/crocodile-reel-001/educational-story", "PUT", { educational_story: educationalStory });
+assert.equal(publishedStoryEdit.status, 409);
 
 const confirmationReplay = await call("/api/publication-attempts/" + reservationJson.reservation_id + "/reconcile", "POST", {
   outcome: "confirmed", platform_post_id: "meta-media-123"
@@ -255,6 +257,28 @@ const conflictingConfirmation = await call("/api/publication-attempts/" + reserv
   outcome: "confirmed", platform_post_id: "different-remote-id"
 });
 assert.equal(conflictingConfirmation.status, 409);
+
+const storyEditContent = await call("/api/content", "POST", {
+  id: "story-edit-001", content_type: "feed_post", caption: "Story revision test",
+  media_url: "https://cdn.example.org/story-edit.jpg", media_sha256: "c".repeat(64), educational_story: educationalStory
+});
+assert.equal(storyEditContent.status, 201);
+database.prepare("UPDATE content_items SET status = 'approved' WHERE id = ?").run("story-edit-001");
+database.prepare("INSERT INTO approvals (id, content_id, reviewer, decision, content_sha256, educational_story_sha256, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run("story-edit-approval", "story-edit-001", "owner", "approved", "c".repeat(64), educationalStorySha256, "2026-11-21T05:00:00.000Z");
+database.prepare("INSERT INTO review_evidence (content_id, content_sha256, educational_story_sha256, human_review_confirmed, content_accuracy_confirmed, wildlife_welfare_confirmed, non_graphic_review_passed, media_integrity_review_passed, media_technical_review_passed, watermark_scan_passed, media_accessibility_confirmed, script_originality_confirmed, voiceover_originality_confirmed, reviewer, reviewed_at) VALUES (?, ?, ?, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ?, ?)").run("story-edit-001", "c".repeat(64), educationalStorySha256, "editor", "2026-11-21T05:00:00.000Z");
+const invalidStoryRevision = await call("/api/content/story-edit-001/educational-story", "PUT", {
+  educational_story: { ...educationalStory, claims: [{ ...educationalStory.claims[0], sources: [] }] }
+});
+assert.equal(invalidStoryRevision.status, 400);
+const revisedStory = { ...educationalStory, audience_takeaway: "A revised, more precise learning takeaway" };
+const storyRevision = await call("/api/content/story-edit-001/educational-story", "PUT", { educational_story: revisedStory });
+assert.equal(storyRevision.status, 200);
+const revisedRecord = await call("/api/content/story-edit-001", "GET");
+const revisedRecordJson = await revisedRecord.json();
+assert.equal(revisedRecordJson.item.status, "held");
+assert.notEqual(revisedRecordJson.item.educational_story_sha256, educationalStorySha256);
+assert.equal(revisedRecordJson.approvals.length, 0);
+assert.equal(revisedRecordJson.review_evidence, null);
 
 const expiredContent = await call("/api/content", "POST", {
   id: "expired-rights-001", content_type: "feed_post", caption: "Expired licence test.",
