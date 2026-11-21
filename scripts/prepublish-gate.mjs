@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import { validateStory } from "./validate-nature-frontiers-story.mjs";
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+const canonicalJson = (value) => value === null || typeof value !== "object" ? JSON.stringify(value)
+  : Array.isArray(value) ? "[" + value.map(canonicalJson).join(",") + "]"
+  : "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonicalJson(value[key])).join(",") + "}";
+
 const normalizeCaption = (value) => String(value ?? "").normalize("NFKC").toLowerCase().replace(/https?:\/\/\S+/g, " ").replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
 
 function issue(code, message) { return { code, message }; }
@@ -12,6 +16,8 @@ export function validatePrepublishCampaign(campaign, history, policy, now = new 
   const caption = typeof campaign?.caption === "string" ? campaign.caption.trim() : "";
   const storyIssues = validateStory(campaign?.educational_story);
   for (const message of storyIssues) add("EDUCATIONAL_STORY_GATE", message);
+  const educationalStorySha256 = campaign?.educational_story && typeof campaign.educational_story === "object"
+    ? sha256(canonicalJson(campaign.educational_story)) : "";
   if (!caption) add("CAPTION_MISSING", "Caption is missing.");
   if (caption.length > 60000) add("CAPTION_TOO_LONG", "Caption exceeds the configured safety limit.");
 
@@ -73,6 +79,7 @@ export function validatePrepublishCampaign(campaign, history, policy, now = new 
   const approval = campaign?.human_approval;
   const approvalAge = now.getTime() - Date.parse(approval?.approved_at ?? "");
   if (!approval?.reviewer || approval?.caption_sha256 !== captionHash ||
+      !educationalStorySha256 || approval?.educational_story_sha256 !== educationalStorySha256 ||
       !Array.isArray(approval?.media_sha256) ||
       [...approval.media_sha256].map((x) => String(x).toLowerCase()).sort().join(",") !== [...mediaHashes].sort().join(",") ||
       approval?.destination !== "facebook:nature-frontiers" ||
@@ -83,5 +90,5 @@ export function validatePrepublishCampaign(campaign, history, policy, now = new 
   if (campaign?.status !== "approved") add("CAMPAIGN_NOT_APPROVED", "Campaign status must be approved.");
   if (campaign?.disclosure?.paid_promotion !== true) add("PAID_DISCLOSURE_MISSING", "Paid-promotion disclosure has not been explicitly verified.");
   if (campaign?.destination !== "facebook:nature-frontiers") add("DESTINATION_MISMATCH", "Campaign destination is not the Nature Frontiers Facebook Page.");
-  return { ok: issues.length === 0, issues, caption_sha256: captionHash, media_sha256: mediaHashes };
+  return { ok: issues.length === 0, issues, caption_sha256: captionHash, educational_story_sha256: educationalStorySha256, media_sha256: mediaHashes };
 }
