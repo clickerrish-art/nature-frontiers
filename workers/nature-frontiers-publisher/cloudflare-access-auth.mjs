@@ -59,7 +59,7 @@ export async function verifyCloudflareAccessIdentity(request, env, nowSeconds = 
     });
     if (!response.ok) return { ok: false, error: "identity_verification_unavailable", status: 503 };
     const jwks = await response.json();
-    const jwk = Array.isArray(jwks?.keys) ? jwks.keys.find((key) => key?.kid === header.kid && key?.kty === "RSA" && key?.alg === "RS256" && key?.use === "sig") : null;
+    const jwk = Array.isArray(jwks?.keys) ? jwks.keys.find((key) => key?.kid === header.kid && key?.kty === "RSA" && (!key.alg || key.alg === "RS256") && key?.use === "sig") : null;
     if (!jwk) return { ok: false, error: "unauthorized", status: 401 };
     const publicKey = await crypto.subtle.importKey("jwk", jwk, {
       name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"
