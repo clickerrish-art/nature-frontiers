@@ -264,7 +264,7 @@ async function handlePublisherApi(request, env) {
       const results = await apiBatch(env, [
         apiStatement(env, "INSERT INTO content_items (id, content_type, caption, media_url, media_sha256, educational_story_json, educational_story_sha256, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)",
           [id, body.content_type, body.caption, body.media_url, mediaHash, storyJson, storyHash, timestamp, timestamp]),
-        auditStatement(env, "content.draft_created", id, "publisher_api", { content_type: body.content_type, media_sha256: mediaHash }, timestamp)
+        auditStatement(env, "content.draft_created", id, identity.actor, { content_type: body.content_type, media_sha256: mediaHash }, timestamp)
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "content_not_created" }, 409);
       return json({ ok: true, content_id: id, status: "draft", educational_story_sha256: storyHash }, 201);
