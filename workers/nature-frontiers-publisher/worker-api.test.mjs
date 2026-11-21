@@ -271,7 +271,9 @@ const invalidStoryRevision = await call("/api/content/story-edit-001/educational
 });
 assert.equal(invalidStoryRevision.status, 400);
 const revisedStory = { ...educationalStory, audience_takeaway: "A revised, more precise learning takeaway" };
-const storyRevision = await call("/api/content/story-edit-001/educational-story", "PUT", { educational_story: revisedStory });
+const storyRevision = await call("/api/content/story-edit-001/educational-story", "PUT", {
+  educational_story: revisedStory, expected_educational_story_sha256: educationalStorySha256
+});
 assert.equal(storyRevision.status, 200);
 const revisedRecord = await call("/api/content/story-edit-001", "GET");
 const revisedRecordJson = await revisedRecord.json();
@@ -279,6 +281,16 @@ assert.equal(revisedRecordJson.item.status, "held");
 assert.notEqual(revisedRecordJson.item.educational_story_sha256, educationalStorySha256);
 assert.equal(revisedRecordJson.approvals.length, 0);
 assert.equal(revisedRecordJson.review_evidence, null);
+const staleStoryRevision = await call("/api/content/story-edit-001/educational-story", "PUT", {
+  educational_story: { ...educationalStory, audience_takeaway: "Stale concurrent edit" },
+  expected_educational_story_sha256: educationalStorySha256
+});
+assert.equal(staleStoryRevision.status, 409);
+const afterStaleRevision = await call("/api/content/story-edit-001", "GET");
+const afterStaleRevisionJson = await afterStaleRevision.json();
+assert.equal(afterStaleRevisionJson.item.educational_story_sha256, revisedRecordJson.item.educational_story_sha256);
+assert.equal(afterStaleRevisionJson.item.status, "held");
+assert.equal(afterStaleRevisionJson.approvals.length, 0);
 
 const expiredContent = await call("/api/content", "POST", {
   id: "expired-rights-001", content_type: "feed_post", caption: "Expired licence test.",
