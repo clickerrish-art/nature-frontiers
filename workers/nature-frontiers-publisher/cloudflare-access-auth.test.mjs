@@ -49,6 +49,11 @@ try {
   });
   const valid = await verifyCloudflareAccessIdentity(requestFor(token()), config, now);
   assert.deepEqual(valid, { ok: true, identity: { role: "editor", actor: "editor@example.org" } });
+  const revoked = await verifyCloudflareAccessIdentity(requestFor(token()), {
+    ...config, PUBLISHER_ACCESS_REVOKED_SUBJECTS_JSON: JSON.stringify(["verified-subject"])
+  }, now);
+  assert.equal(revoked.status, 403);
+  assert.equal(revoked.error, "identity_revoked");
   assert.equal((await verifyCloudflareAccessIdentity(requestFor(null), config, now)).status, 401);
   assert.equal((await verifyCloudflareAccessIdentity(requestFor("not.a.jwt"), config, now)).status, 401);
   assert.equal((await verifyCloudflareAccessIdentity(requestFor(token({ exp: now })), config, now)).status, 401);
