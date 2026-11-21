@@ -115,6 +115,16 @@ const unsafeUrl = await call("/api/content", "POST", {
   media_url: "http://127.0.0.1/video.mp4", media_sha256: "b".repeat(64)
 });
 assert.equal(unsafeUrl.status, 400);
+const privateClaimSource = {
+  ...educationalStory,
+  claims: [{ ...educationalStory.claims[0], sources: ["https://localhost/internal-source"] }]
+};
+const privateSourceContent = await call("/api/content", "POST", {
+  id: "private-source-content", content_type: "reel", caption: "Private source must be rejected",
+  media_url: "https://cdn.example.org/private-source.mp4", media_sha256: "d".repeat(64),
+  educational_story: privateClaimSource
+});
+assert.equal(privateSourceContent.status, 400);
 
 const rights = await call("/api/content/crocodile-reel-001/rights", "PUT", {
   media_sha256: mediaHash, rights_status: "licensed", rights_holder: "Original camera operator",
