@@ -86,7 +86,8 @@ const unsafeUrl = await call("/api/content", "POST", {
 assert.equal(unsafeUrl.status, 400);
 
 const rights = await call("/api/content/crocodile-reel-001/rights", "PUT", {
-  media_sha256: mediaHash, rights_status: "owned", rights_holder: "Nature Frontiers",
+  media_sha256: mediaHash, rights_status: "licensed", rights_holder: "Original camera operator",
+  source_url: "https://creator.example.org/original-recording", license_reference: "Direct written licence on file",
   verified_by: "rights-reviewer", verified_at: "2026-11-21T05:00:00.000Z"
 });
 assert.equal(rights.status, 200);
