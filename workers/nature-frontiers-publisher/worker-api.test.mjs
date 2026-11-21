@@ -58,6 +58,7 @@ const ROLE_ACTORS = {
   owner_approver: "owner-approver-test-identity", publishing_operator: "publishing-operator-test-identity"
 };
 const env = {
+  ENVIRONMENT: "test", PUBLISHER_AUTH_MODE: "static_test_only",
   DB: d1Adapter(database),
   PUBLISHER_EDITOR_TOKEN: ROLE_TOKENS.editor, PUBLISHER_EDITOR_ACTOR: ROLE_ACTORS.editor,
   PUBLISHER_RIGHTS_REVIEWER_TOKEN: ROLE_TOKENS.rights_reviewer, PUBLISHER_RIGHTS_REVIEWER_ACTOR: ROLE_ACTORS.rights_reviewer,
