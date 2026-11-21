@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
+import { createPublicKey } from "node:crypto";
 import { verifyCloudflareAccessIdentity } from "./cloudflare-access-auth.mjs";
 
 const { publicKey, privateKey } = generateKeyPairSync("rsa", {
@@ -13,9 +14,8 @@ function createPublicJwk(pem) {
   return { ...jwk, kid: "test-key-1", alg: "RS256", use: "sig" };
 }
 function requirePublicKey(pem) {
-  return (awaitImportCrypto).createPublicKey(pem);
+  return createPublicKey(pem);
 }
-const awaitImportCrypto = await import("node:crypto");
 const now = Math.floor(Date.now() / 1000);
 const config = {
   CF_ACCESS_TEAM_DOMAIN: "test-team.cloudflareaccess.com",
