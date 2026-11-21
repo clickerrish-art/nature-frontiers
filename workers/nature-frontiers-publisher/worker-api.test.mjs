@@ -95,6 +95,7 @@ assert.equal(missingToken.status, 503);
 assert.equal((await call("/api/content", "GET", undefined, "wrong-token")).status, 401);
 assert.equal((await call("/api/content", "POST", {}, ROLE_TOKENS.rights_reviewer)).status, 403);
 assert.equal((await worker.fetch(request("/api/content", "GET", undefined, ROLE_TOKENS.editor), { ...env, PUBLISHER_OWNER_APPROVER_TOKEN: ROLE_TOKENS.editor })).status, 503);
+assert.equal((await worker.fetch(request("/api/content", "GET", undefined, ROLE_TOKENS.editor), { ...env, PUBLISHER_OWNER_APPROVER_ACTOR: ROLE_ACTORS.editor })).status, 503);
 assert.equal((await call("/api/content/unknown/approval", "POST", {}, ROLE_TOKENS.editor)).status, 403);
 
 const mediaHash = "a".repeat(64);
