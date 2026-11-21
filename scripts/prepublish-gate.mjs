@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { validateStory } from "./validate-nature-frontiers-story.mjs";
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const normalizeCaption = (value) => String(value ?? "").normalize("NFKC").toLowerCase().replace(/https?:\/\/\S+/g, " ").replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
@@ -9,6 +10,8 @@ export function validatePrepublishCampaign(campaign, history, policy, now = new 
   const issues = [];
   const add = (code, message) => issues.push(issue(code, message));
   const caption = typeof campaign?.caption === "string" ? campaign.caption.trim() : "";
+  const storyIssues = validateStory(campaign?.educational_story);
+  for (const message of storyIssues) add("EDUCATIONAL_STORY_GATE", message);
   if (!caption) add("CAPTION_MISSING", "Caption is missing.");
   if (caption.length > 60000) add("CAPTION_TOO_LONG", "Caption exceeds the configured safety limit.");
 
