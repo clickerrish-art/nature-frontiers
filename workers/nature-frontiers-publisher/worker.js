@@ -247,8 +247,9 @@ async function handlePublisherApi(request, env) {
       const rights = await apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]);
       if (!validRightsRecord(rights)) return json({ ok: false, error: "verified_media_rights_required" }, 409);
       const results = await apiBatch(env, [
-        apiStatement(env, "UPDATE content_items SET status = 'needs_review', updated_at = ? WHERE id = ? AND status IN ('draft','held')", [timestamp, item.id]),
-        auditStatement(env, "content.submitted_for_review", item.id, "publisher_api", { media_sha256: item.media_sha256 }, timestamp)
+        apiStatement(env, "UPDATE content_items SET status = 'needs_review', updated_at = ? WHERE id = ? AND status IN ('draft','held','failed')", [timestamp, item.id]),
+        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'content.submitted_for_review', ?, 'publisher_api', ?, ? WHERE EXISTS (SELECT 1 FROM content_items WHERE id = ? AND status = 'needs_review')",
+          [crypto.randomUUID(), item.id, JSON.stringify({ media_sha256: item.media_sha256 }), timestamp, item.id])
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "content_not_in_submittable_state" }, 409);
       return json({ ok: true, content_id: item.id, status: "needs_review" });
@@ -273,7 +274,8 @@ async function handlePublisherApi(request, env) {
           [approvalId, item.id, reviewer, decision, mediaHash, timestamp, item.id, mediaHash]),
         apiStatement(env, "UPDATE content_items SET status = ?, updated_at = ? WHERE id = ? AND status = 'needs_review' AND EXISTS (SELECT 1 FROM approvals WHERE id = ?)",
           [decision === "approved" ? "approved" : "held", timestamp, item.id, approvalId]),
-        auditStatement(env, "content.approval_recorded", item.id, reviewer, { decision, media_sha256: mediaHash, approval_id: approvalId }, timestamp)
+        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'content.approval_recorded', ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM approvals WHERE id = ?)",
+          [crypto.randomUUID(), item.id, reviewer, JSON.stringify({ decision, media_sha256: mediaHash, approval_id: approvalId }), timestamp, approvalId])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1) return json({ ok: false, error: "approval_state_or_hash_conflict" }, 409);
       return json({ ok: true, content_id: item.id, decision, status: decision === "approved" ? "approved" : "held", approval_id: approvalId });
@@ -360,7 +362,8 @@ async function handlePublisherApi(request, env) {
           [targetStatus, remoteId, body.outcome === "confirmed" ? timestamp : null, attempt.content_id, attempt.platform, attemptId, body.outcome]),
         apiStatement(env, "UPDATE content_items SET status = ?, updated_at = ? WHERE id = ? AND status IN ('publishing','held') AND EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = ?)",
           [contentStatus, timestamp, attempt.content_id, attemptId, body.outcome]),
-        auditStatement(env, "publication." + body.outcome, attempt.content_id, "publisher_api", { reservation_id: attemptId, platform: attempt.platform, platform_post_id: remoteId, error_code: body.error_code || null }, timestamp)
+        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, ?, ?, 'publisher_api', ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = ?)",
+          [crypto.randomUUID(), "publication." + body.outcome, attempt.content_id, JSON.stringify({ reservation_id: attemptId, platform: attempt.platform, platform_post_id: remoteId, error_code: body.error_code || null }), timestamp, attemptId, body.outcome])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1 || results[2]?.meta?.changes !== 1) {
         return json({ ok: false, error: "reconciliation_state_conflict" }, 409);
@@ -380,8 +383,10 @@ export default {
     if (url.pathname === "/health") {
       if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
       try {
-        const row = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='meta_webhook_events'").first();
-        const schemaReady = row?.name === "meta_webhook_events";
+        const requiredTables = ["content_items", "approvals", "audit_events", "content_targets", "media_rights", "publication_attempts", "meta_webhook_events"];
+        const tableRows = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('content_items','approvals','audit_events','content_targets','media_rights','publication_attempts','meta_webhook_events')").all();
+        const foundTables = new Set((tableRows?.results || []).map((row) => row.name));
+        const schemaReady = requiredTables.every((name) => foundTables.has(name));
         return Response.json({
           service: "nature-frontiers-publisher",
           status: schemaReady ? "online" : "degraded",
