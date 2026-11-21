@@ -20,14 +20,14 @@ The same research documented something even more striking. Five females were obs
 
 The researchers recorded thirteen trips between the nest and the water during that sequence. It is a remarkable example of maternal care in Nile crocodiles, but it must be described accurately: it is evidence from monitored females at one South African study site, not proof that every female behaves in exactly the same way.
 
-**[VISUAL REQUIREMENT: Nest and hatchling footage must be original, non-invasive and legally obtained. Do not approach, handle, move or illuminate a nest to create footage. If no ethically recorded source exists, use habitat footage and explain the research without illustrating a fabricated nest scene.]**
+**[VISUAL REQUIREMENT: Nest and hatchling footage must come from a documented, non-invasive and legally obtained source. Original camera footage or properly licensed stock is allowed only where source provenance supports ethical capture and permissions. Do not approach, handle, move or illuminate a nest to create footage; if no ethically recorded source exists, use disclosed habitat illustration and explain the research without fabricating a nest scene.]**
 
 Nest defence also involves risk. Eggs can be raided by other animals. The female may spend time near the nest, sometimes in nearby shade rather than directly on top of it. The study found that females returned after predation events, and that repeated raids could occur before a nest was abandoned.
 
 
 The story of a crocodile's early life is therefore more complicated than the image of a silent predator. Before a young crocodile ever enters the water, its survival may depend on nest location, environmental conditions, predators and the behaviour of its mother.
 
-If your original footage shows hatchlings, keep a respectful distance and avoid revealing sensitive nest locations. The welfare of the animals is more important than a close-up.
+If the source footage shows hatchlings, keep a respectful distance and avoid revealing sensitive nest locations. The welfare of the animals is more important than a close-up.
 
 This episode also reminds us to be precise. One carefully documented study can reveal behaviour that is easy to miss, but it does not justify turning a local observation into a universal rule.
 
@@ -40,7 +40,7 @@ Follow Nature Frontiers on Facebook and Instagram for the next episode of Wild E
 - Use original camera recordings or properly licensed stock footage. Retain the exact source file and SHA-256; for stock, record the source URL, creator, licence, provenance review and visible on-screen disclosure.
 
 - No nest disturbance, handling, baiting, close approach or location disclosure that could expose a nest.
-- Use only original, non-invasive footage with documented permissions.
+- Use only documented, non-invasive source footage with permissions; licensed stock must include source, creator, licence, provenance and visible disclosure.
 - Clearly distinguish the Lake St Lucia research from any other filmed location.
 - Do not claim that all Nile crocodile females show the same behaviour.
 - Keep hatchling scenes factual, brief and non-graphic.
