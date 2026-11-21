@@ -1489,8 +1489,8 @@
       "title": "The crocodile's sensory map",
       "hook": null,
       "narration": null,
-      "caption": "ep1",
-      "source_episode": "Carousel: sensory structure close-up, labelled research diagram, observation-versus-inference reminder.",
+      "caption": "Nile crocodiles have specialised sensory structures in their skin. Researchers have studied receptors around the jaws and across the body that respond to mechanical stimulation. This helps explain how crocodilians detect movement and contact in water. It does not let us infer exactly what an individual animal sensed from a short video.",
+      "source_episode": "ep1",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1522,7 +1522,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4074209/",
+        "https://www.nature.com/articles/417241a",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711810/"
+      ],
+      "carousel_outline": "Carousel: sensory structure close-up, labelled research diagram, observation-versus-inference reminder."
     },
     {
       "id": "NF-WE-F02",
@@ -1530,8 +1536,8 @@
       "title": "How to read a wildlife clip responsibly",
       "hook": null,
       "narration": null,
-      "caption": "ep1",
-      "source_episode": "Carousel: what the camera shows / what research explains / what remains unknown.",
+      "caption": "A camera records what happened in front of the lens. It does not automatically reveal why an animal moved. Nature Frontiers separates visible behaviour from scientific explanation, preserves source context and avoids turning every quiet crocodile into a dramatic hunt. The most trustworthy wildlife stories are often the ones that are careful about what they do not know.",
+      "source_episode": "ep1",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1563,7 +1569,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4074209/",
+        "https://www.nature.com/articles/417241a",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711810/"
+      ],
+      "carousel_outline": "Carousel: what the camera shows / what research explains / what remains unknown."
     },
     {
       "id": "NF-WE-F03",
@@ -1571,8 +1583,8 @@
       "title": "The tail behind the glide",
       "hook": null,
       "narration": null,
-      "caption": "ep3",
-      "source_episode": "Carousel: tail propulsion diagram, verified swimming footage, source note.",
+      "caption": "When a Nile crocodile swims, its powerful tail provides the main forward thrust. Waves travel along the body and tail, while the legs can be held close to the body. This is one reason the animal moves so effectively through water. Watch a continuous, accurately sourced clip—and remember that a single frame rarely tells the whole story.",
+      "source_episode": "ep3",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1604,7 +1616,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://ielc.libguides.com/sdzg/factsheets/nile_crocodile/behavior",
+        "https://ielc.libguides.com/sdzg/factsheets/nile_crocodile/diet",
+        "https://www.iucncsg.org/365_docs/attachments/protarea/3cfcf6470aeda16b72a85faa9a38ee9c.pdf"
+      ],
+      "carousel_outline": "Carousel: tail propulsion diagram, verified swimming footage, source note."
     },
     {
       "id": "NF-WE-F04",
@@ -1612,8 +1630,8 @@
       "title": "Resting does not always mean hunting",
       "hook": null,
       "narration": null,
-      "caption": "ep3",
-      "source_episode": "Carousel: visible behaviour examples with neutral labels; no staged prey sequence.",
+      "caption": "A crocodile near the waterline may be resting, regulating its body temperature, moving or waiting. A dramatic edit can make a quiet moment look like an ambush even when the source does not support that interpretation. We describe what the camera shows first, then use research to explain behaviour without inventing intent.",
+      "source_episode": "ep3",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1645,7 +1663,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://ielc.libguides.com/sdzg/factsheets/nile_crocodile/behavior",
+        "https://ielc.libguides.com/sdzg/factsheets/nile_crocodile/diet",
+        "https://www.iucncsg.org/365_docs/attachments/protarea/3cfcf6470aeda16b72a85faa9a38ee9c.pdf"
+      ],
+      "carousel_outline": "Carousel: visible behaviour examples with neutral labels; no staged prey sequence."
     },
     {
       "id": "NF-WE-F05",
@@ -1653,8 +1677,8 @@
       "title": "Inside a Lake St Lucia nesting study",
       "hook": null,
       "narration": null,
-      "caption": "ep4",
-      "source_episode": "Carousel: study location, method, sample of 19 nests, limits of inference.",
+      "caption": "Researchers used camera traps over four years to study Nile crocodile nesting behaviour at Lake St Lucia. They monitored nineteen nests and recorded raids by other animals, including water monitors and marsh mongooses. The findings are valuable because they are specific: they describe the study population and should not be generalised to every crocodile everywhere.",
+      "source_episode": "ep4",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1686,7 +1710,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://pubmed.ncbi.nlm.nih.gov/27816524/",
+        "https://www.sciencedirect.com/science/article/pii/S037663571630328X",
+        "https://www.sciencedirect.com/science/article/pii/S0376635716304004"
+      ],
+      "carousel_outline": "Carousel: study location, method, sample of 19 nests, limits of inference."
     },
     {
       "id": "NF-WE-F06",
@@ -1694,8 +1724,8 @@
       "title": "Protecting sensitive nest sites",
       "hook": null,
       "narration": null,
-      "caption": "ep4",
-      "source_episode": "Carousel: non-invasive filming principles and safe illustrative habitat visuals.",
+      "caption": "Wildlife filming must not put a nest at risk. Do not approach, handle, move or illuminate a crocodile nest to create a shot, and never reveal a sensitive location. If ethically recorded footage is unavailable, use clearly disclosed habitat imagery and explain the research without fabricating a nest scene.",
+      "source_episode": "ep4",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1727,7 +1757,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://pubmed.ncbi.nlm.nih.gov/27816524/",
+        "https://www.sciencedirect.com/science/article/pii/S037663571630328X",
+        "https://www.sciencedirect.com/science/article/pii/S0376635716304004"
+      ],
+      "carousel_outline": "Carousel: non-invasive filming principles and safe illustrative habitat visuals."
     },
     {
       "id": "NF-WE-F07",
@@ -1735,8 +1771,8 @@
       "title": "A changing river changes the story",
       "hook": null,
       "narration": null,
-      "caption": "ep5",
-      "source_episode": "Carousel: river habitat features and a checklist for fair comparisons.",
+      "caption": "Rivers are dynamic habitats. Water levels rise and fall, channels shift and vegetation changes the shoreline. Crocodile habitat use can vary with factors such as size class and season. A single clip cannot prove a seasonal pattern; comparisons need a verified location, date and camera position.",
+      "source_episode": "ep5",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1768,7 +1804,12 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://www.sciencedirect.com/science/article/pii/S0380133020302306",
+        "https://ielc.libguides.com/sdzg/factsheets/nile_crocodile/behavior"
+      ],
+      "carousel_outline": "Carousel: river habitat features and a checklist for fair comparisons."
     },
     {
       "id": "NF-WE-F08",
@@ -1776,8 +1817,8 @@
       "title": "Why the Lake Albert study matters",
       "hook": null,
       "narration": null,
-      "caption": "ep5",
-      "source_episode": "Carousel: study area, size classes, seasonal context, limits.",
+      "caption": "Researchers examined Nile crocodile habitat use across size classes and seasonal activity in the Lake Albert delta. Their findings describe patterns in that study area, not a universal migration story. We should not attribute a movement to drought or call it migration without evidence that directly supports the claim.",
+      "source_episode": "ep5",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1809,7 +1850,12 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://www.sciencedirect.com/science/article/pii/S0380133020302306",
+        "https://ielc.libguides.com/sdzg/factsheets/nile_crocodile/behavior"
+      ],
+      "carousel_outline": "Carousel: study area, size classes, seasonal context, limits."
     },
     {
       "id": "NF-WE-F09",
@@ -1817,8 +1863,8 @@
       "title": "Global status and local reality",
       "hook": null,
       "narration": null,
-      "caption": "ep6",
-      "source_episode": "Carousel: global vs national scope, assessment dates and source citations.",
+      "caption": "The IUCN Crocodile Specialist Group's global summary lists the Nile crocodile as Least Concern based on the 2017 assessment. South Africa's 2017 national biodiversity assessment listed it as Vulnerable. These categories address different geographic scales. A global status does not mean every local population is secure.",
+      "source_episode": "ep6",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1850,7 +1896,14 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://www.iucncsg.org/pages/Conservation-Status.html",
+        "https://speciesstatus.sanbi.org/assessment/last-assessment/2680/",
+        "https://pubmed.ncbi.nlm.nih.gov/32154985/",
+        "https://iucn.org/our-union/commissions/group/iucn-ssc-crocodile-specialist-group"
+      ],
+      "carousel_outline": "Carousel: global vs national scope, assessment dates and source citations."
     },
     {
       "id": "NF-WE-F10",
@@ -1858,8 +1911,8 @@
       "title": "How Nature Frontiers uses licensed stock",
       "hook": null,
       "narration": null,
-      "caption": "ep1",
-      "source_episode": "Carousel: source page / licence / provenance / final-hash disclosure checklist.",
+      "caption": "Licensed stock footage can support a wildlife explanation, but it must never be presented as footage filmed by Nature Frontiers. We record the original source page, creator, licence, provenance review and exact file hash. The finished video must carry a clear on-screen stock disclosure tied to the final render.",
+      "source_episode": "ep1",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1891,7 +1944,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4074209/",
+        "https://www.nature.com/articles/417241a",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711810/"
+      ],
+      "carousel_outline": "Carousel: source page / licence / provenance / final-hash disclosure checklist."
     },
     {
       "id": "NF-WE-F11",
@@ -1899,8 +1958,8 @@
       "title": "No staged wildlife encounters",
       "hook": null,
       "narration": null,
-      "caption": "ep2",
-      "source_episode": "Carousel: ethical filming rules; use only non-invasive source media.",
+      "caption": "We do not bait, provoke, handle or disturb wildlife to create a dramatic shot. Research can explain behaviour without asking an animal to perform for the camera. When source footage is unavailable or ethically unsuitable, use a clearly labelled educational illustration or explain the research without pretending to show the event.",
+      "source_episode": "ep2",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1932,7 +1991,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4074209/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711810/",
+        "https://www.nature.com/articles/417241a"
+      ],
+      "carousel_outline": "Carousel: ethical filming rules; use only non-invasive source media."
     },
     {
       "id": "NF-WE-F12",
@@ -1940,8 +2005,8 @@
       "title": "The source file is part of the story",
       "hook": null,
       "narration": null,
-      "caption": "ep1",
-      "source_episode": "Carousel: source-to-final evidence chain.",
+      "caption": "A trustworthy wildlife asset needs more than a download link. Keep the source file, exact SHA-256, source URL, creator, licence evidence and provenance review together. If the edit changes, the final media hash changes too—and disclosure and human review must be repeated against the new file.",
+      "source_episode": "ep1",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -1973,7 +2038,13 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4074209/",
+        "https://www.nature.com/articles/417241a",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC3711810/"
+      ],
+      "carousel_outline": "Carousel: source-to-final evidence chain."
     },
     {
       "id": "NF-WE-F13",
@@ -1981,8 +2052,8 @@
       "title": "Six episodes, one standard",
       "hook": null,
       "narration": null,
-      "caption": "ep6",
-      "source_episode": "Carousel: six episode themes with draft status clearly shown.",
+      "caption": "Wild Encounters explores crocodile sensory systems, swimming and ambush behaviour, nesting, changing river habitats and conservation status. Each episode is a draft until its facts, media rights, provenance, animal-welfare checks and final render are reviewed. The goal is not the loudest wildlife story; it is the most trustworthy one.",
+      "source_episode": "ep6",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -2014,7 +2085,14 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://www.iucncsg.org/pages/Conservation-Status.html",
+        "https://speciesstatus.sanbi.org/assessment/last-assessment/2680/",
+        "https://pubmed.ncbi.nlm.nih.gov/32154985/",
+        "https://iucn.org/our-union/commissions/group/iucn-ssc-crocodile-specialist-group"
+      ],
+      "carousel_outline": "Carousel: six episode themes with draft status clearly shown."
     },
     {
       "id": "NF-WE-F14",
@@ -2022,8 +2100,8 @@
       "title": "Discover. Learn. Protect.",
       "hook": null,
       "narration": null,
-      "caption": "ep6",
-      "source_episode": "Carousel: brand end card and the Facebook/Instagram follow CTA; no YouTube or product link.",
+      "caption": "Wildlife knowledge starts with curiosity and grows through evidence. Follow Nature Frontiers on Facebook and Instagram for careful, source-led stories about Africa's wildlife. We will show what the footage supports, explain what research adds and keep the animal's welfare ahead of the edit.",
+      "source_episode": "ep6",
       "visual_direction": null,
       "editorial_status": "draft",
       "fact_check_status": "cut_level_review_required",
@@ -2055,7 +2133,14 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "source_urls": [
+        "https://www.iucncsg.org/pages/Conservation-Status.html",
+        "https://speciesstatus.sanbi.org/assessment/last-assessment/2680/",
+        "https://pubmed.ncbi.nlm.nih.gov/32154985/",
+        "https://iucn.org/our-union/commissions/group/iucn-ssc-crocodile-specialist-group"
+      ],
+      "carousel_outline": "Carousel: brand end card and the Facebook/Instagram follow CTA; no YouTube or product link."
     }
   ]
 }
