@@ -36,6 +36,8 @@ jobs:
           node-version: "24"
       - name: Validate catalogue
         run: node scripts/validate-campaign.mjs
+      - name: Test Nature Frontiers educational story gate
+        run: npm run test:nature-frontiers-story
       - name: Check Worker syntax
         run: node --check workers/nature-frontiers-publisher/worker.js
       - name: Test health, media and signed Meta webhook routes
