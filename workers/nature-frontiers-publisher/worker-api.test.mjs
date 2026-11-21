@@ -99,6 +99,14 @@ const missingContentType = await worker.fetch(new Request("https://publisher.exa
   method: "POST", headers: { authorization: "Bearer " + ROLE_TOKENS.editor }, body: JSON.stringify({ id: "missing-content-type" })
 }), env);
 assert.equal(missingContentType.status, 415);
+const oversizedJson = JSON.stringify({ caption: "x".repeat(70 * 1024) });
+const oversizedBody = await worker.fetch(new Request("https://publisher.example/api/content", {
+  method: "POST", headers: { authorization: "Bearer " + ROLE_TOKENS.editor, "content-type": "application/json; charset=utf-8" },
+  body: oversizedJson
+}), env);
+assert.equal(oversizedBody.status, 413);
+assert.equal((await oversizedBody.json()).error, "body_too_large");
+
 
 const missingToken = await worker.fetch(request("/api/content", "GET", undefined, null), { ...env, PUBLISHER_EDITOR_TOKEN: undefined });
 assert.equal(missingToken.status, 503);
