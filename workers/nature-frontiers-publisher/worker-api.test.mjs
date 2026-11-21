@@ -97,6 +97,25 @@ assert.equal((await call("/api/content", "POST", {}, ROLE_TOKENS.rights_reviewer
 assert.equal((await worker.fetch(request("/api/content", "GET", undefined, ROLE_TOKENS.editor), { ...env, PUBLISHER_OWNER_APPROVER_TOKEN: ROLE_TOKENS.editor })).status, 503);
 assert.equal((await worker.fetch(request("/api/content", "GET", undefined, ROLE_TOKENS.editor), { ...env, PUBLISHER_OWNER_APPROVER_ACTOR: ROLE_ACTORS.editor })).status, 503);
 assert.equal((await call("/api/content/unknown/approval", "POST", {}, ROLE_TOKENS.editor)).status, 403);
+const protectedRouteCases = [
+  ["/api/content", "POST", "editor"],
+  ["/api/content/item/educational-story", "PUT", "editor"],
+  ["/api/content/item/rights", "PUT", "rights_reviewer"],
+  ["/api/content/item/media-evidence", "PUT", "provenance_reviewer"],
+  ["/api/content/item/review-evidence", "PUT", "editorial_reviewer"],
+  ["/api/content/item/submit-review", "POST", "editor"],
+  ["/api/content/item/approval", "POST", "owner_approver"],
+  ["/api/publication-reservations", "POST", "publishing_operator"],
+  ["/api/publication-attempts/attempt/reconcile", "POST", "publishing_operator"]
+];
+for (const [path, method, requiredRole] of protectedRouteCases) {
+  const wrongRole = Object.keys(ROLE_TOKENS).find((role) => role !== requiredRole);
+  assert.equal((await call(path, method, {}, ROLE_TOKENS[wrongRole])).status, 403, `${method} ${path} must reject ${wrongRole}`);
+  assert.notEqual((await call(path, method, {}, ROLE_TOKENS[requiredRole])).status, 403, `${method} ${path} must accept ${requiredRole} authentication`);
+}
+for (const token of Object.values(ROLE_TOKENS)) {
+  assert.equal((await call("/api/content", "GET", undefined, token)).status, 200, "every configured role may read content");
+}
 
 const mediaHash = "a".repeat(64);
 const educationalStory = {
