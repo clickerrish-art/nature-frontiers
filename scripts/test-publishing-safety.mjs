@@ -64,6 +64,7 @@ if (workflow.includes("github.ref == 'refs/heads/main'") &&
 const facebookPublisher = await readFile("scripts/publish-facebook.mjs", "utf8");
 const instagramPublisher = await readFile("scripts/publish-instagram.mjs", "utf8");
 if (facebookPublisher.includes("platformIdentityError(pageId, process.env.META_EXPECTED_PAGE_ID") &&
+    facebookPublisher.includes("checkFacebookLiveReadiness(") &&
     instagramPublisher.includes("META_EXPECTED_INSTAGRAM_USER_ID") &&
     instagramPublisher.includes("platformIdentityError(")) {
   console.log("PASS: both live publishers require an exact owner-approved destination ID match");
