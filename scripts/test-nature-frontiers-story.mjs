@@ -25,7 +25,7 @@ const valid = {
 };
 assert.deepEqual(validateStory(valid), []);
 assert.ok(validateStory({ ...valid, learning_objective: "", brand_logo: "elephant" }).length >= 2);
-assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: [], visual_evidence: "" }] }).some((error) => error.includes("traceable source")));
+assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: [], visual_evidence: "" }] }).some((error) => error.includes("traceable HTTPS source")));
 assert.ok(validateStory({ ...valid, claims: [{ text: "Claim", sources: ["http://example.org/source"], visual_evidence: "matching original footage" }] }).some((error) => error.includes("HTTPS source")));
 assert.ok(validateStory({ ...valid, media_kind: undefined }) .some((error) => error.includes("media_kind")));
 assert.ok(validateStory({ ...valid, media_kind: "image", image_teaching_point: "" }).some((error) => error.includes("image_teaching_point")));
