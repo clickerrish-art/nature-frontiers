@@ -328,7 +328,8 @@ async function handlePublisherApi(request, env) {
     if (parts.length === 4 && parts[1] === "content" && parts[3] === "rights" && method === "PUT") {
       const item = await apiFirst(env, "SELECT id, media_sha256, educational_story_sha256, status FROM content_items WHERE id = ?", [parts[2]]);
       if (!item) return json({ ok: false, error: "content_not_found" }, 404);
-      if (item.status === "publishing") return json({ ok: false, error: "media_rights_locked_during_publication" }, 409);
+      const lockedMedia = await apiFirst(env, "SELECT id, status FROM content_items WHERE media_sha256 = ? AND status IN ('publishing','published') LIMIT 1", [item.media_sha256]);
+      if (lockedMedia) return json({ ok: false, error: "media_rights_locked_after_publication_starts" }, 409);
       const mediaHash = typeof body.media_sha256 === "string" ? body.media_sha256.toLowerCase() : "";
       const status = body.rights_status;
       if (mediaHash !== item.media_sha256 || !["unverified", "licensed", "owned", "public_domain", "rejected"].includes(status)) {
@@ -346,10 +347,11 @@ async function handlePublisherApi(request, env) {
       const results = await apiBatch(env, [
         apiStatement(env, "INSERT INTO media_rights (media_sha256, rights_status, rights_holder, source_url, license_reference, verified_by, verified_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(media_sha256) DO UPDATE SET rights_status=excluded.rights_status, rights_holder=excluded.rights_holder, source_url=excluded.source_url, license_reference=excluded.license_reference, verified_by=excluded.verified_by, verified_at=excluded.verified_at, expires_at=excluded.expires_at",
           [mediaHash, record.rights_status, record.rights_holder, record.source_url, record.license_reference, record.verified_by, record.verified_at, record.expires_at]),
-        apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
+        apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE media_sha256 = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, mediaHash]),
         apiStatement(env, "DELETE FROM media_evidence WHERE media_sha256 = ?", [mediaHash]),
-        apiStatement(env, "DELETE FROM review_evidence WHERE content_id = ?", [item.id]),
-        auditStatement(env, "media.rights_updated", item.id, identity.actor, { media_sha256: mediaHash, rights_status: status, verified_by: record.verified_by }, timestamp)
+        apiStatement(env, "DELETE FROM review_evidence WHERE content_id IN (SELECT id FROM content_items WHERE media_sha256 = ?)", [mediaHash]),
+        apiStatement(env, "DELETE FROM approvals WHERE content_id IN (SELECT id FROM content_items WHERE media_sha256 = ?)", [mediaHash]),
+        auditStatement(env, "media.rights_updated", item.id, identity.actor, { media_sha256: mediaHash, rights_status: status, verified_by: record.verified_by, affected_content_items: "all_items_sharing_media_hash", approvals_invalidated: true }, timestamp)
       ]);
       if (results.some((result) => result?.success !== true)) return json({ ok: false, error: "rights_persistence_failed" }, 503);
       return json({ ok: true, content_id: item.id, rights_status: status });
@@ -358,7 +360,8 @@ async function handlePublisherApi(request, env) {
     if (parts.length === 4 && parts[1] === "content" && parts[3] === "media-evidence" && method === "PUT") {
       const item = await apiFirst(env, "SELECT id, caption, media_sha256, status FROM content_items WHERE id = ?", [parts[2]]);
       if (!item) return json({ ok: false, error: "content_not_found" }, 404);
-      if (["publishing", "published"].includes(item.status)) return json({ ok: false, error: "media_evidence_locked_after_publication_starts" }, 409);
+      const lockedMedia = await apiFirst(env, "SELECT id, status FROM content_items WHERE media_sha256 = ? AND status IN ('publishing','published') LIMIT 1", [item.media_sha256]);
+      if (lockedMedia) return json({ ok: false, error: "media_evidence_locked_after_publication_starts" }, 409);
       const mediaHash = typeof body.media_sha256 === "string" ? body.media_sha256.toLowerCase() : "";
       const origin = body.media_origin;
       const rights = await apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]);
@@ -380,9 +383,10 @@ async function handlePublisherApi(request, env) {
             body.source_recording_id || null, body.original_camera_file_sha256 || null, original ? 1 : null, identity.actor,
             timestamp, body.on_screen_disclosure_text || null, body.on_screen_disclosure_media_sha256 || null,
             body.caption_attribution || null, timestamp]),
-        apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
-        apiStatement(env, "DELETE FROM review_evidence WHERE content_id = ?", [item.id]),
-        auditStatement(env, "media.provenance_reviewed", item.id, identity.actor, { media_sha256: mediaHash, media_origin: origin }, timestamp)
+        apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE media_sha256 = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, mediaHash]),
+        apiStatement(env, "DELETE FROM review_evidence WHERE content_id IN (SELECT id FROM content_items WHERE media_sha256 = ?)", [mediaHash]),
+        apiStatement(env, "DELETE FROM approvals WHERE content_id IN (SELECT id FROM content_items WHERE media_sha256 = ?)", [mediaHash]),
+        auditStatement(env, "media.provenance_reviewed", item.id, identity.actor, { media_sha256: mediaHash, media_origin: origin, affected_content_items: "all_items_sharing_media_hash", approvals_invalidated: true }, timestamp)
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "media_evidence_persistence_failed" }, 503);
       return json({ ok: true, content_id: item.id, media_origin: origin, media_sha256: mediaHash });
