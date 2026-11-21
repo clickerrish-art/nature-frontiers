@@ -44,6 +44,8 @@ jobs:
         run: node workers/nature-frontiers-publisher/worker.test.mjs
       - name: Test SQLite-backed content, rights, approvals and durable reservation API
         run: node workers/nature-frontiers-publisher/worker-api.test.mjs
+      - name: Test Cloudflare Access JWT identity and role verification
+        run: npm run test:cloudflare-access-auth
       - name: Test Meta webhook verifier
         run: npm run test:meta-webhook
       - name: Test Instagram API and campaign gates
