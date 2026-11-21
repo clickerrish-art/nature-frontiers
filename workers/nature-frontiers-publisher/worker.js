@@ -256,17 +256,23 @@ async function handlePublisherApi(request, env) {
       if (["publishing", "published"].includes(item.status)) return json({ ok: false, error: "educational_story_locked_after_publication_starts" }, 409);
       const storyErrors = validateStory(body.educational_story);
       if (storyErrors.length) return json({ ok: false, error: "invalid_educational_story", story_errors: storyErrors }, 400);
+      if (!API_HASH.test(body.expected_educational_story_sha256 || "") ||
+          body.expected_educational_story_sha256 !== item.educational_story_sha256) {
+        return json({ ok: false, error: "educational_story_version_conflict", current_educational_story_sha256: item.educational_story_sha256 || null }, 409);
+      }
       const storyJson = canonicalJson(body.educational_story);
       const storyHash = await educationalStoryHash(body.educational_story);
+      const revisionGuard = "EXISTS (SELECT 1 FROM content_items WHERE id = ? AND educational_story_sha256 = ? AND status = 'held')";
       const results = await apiBatch(env, [
-        apiStatement(env, "UPDATE content_items SET educational_story_json = ?, educational_story_sha256 = ?, status = 'held', updated_at = ? WHERE id = ? AND status NOT IN ('publishing','published')",
-          [storyJson, storyHash, timestamp, item.id]),
-        apiStatement(env, "DELETE FROM review_evidence WHERE content_id = ?", [item.id]),
-        apiStatement(env, "DELETE FROM approvals WHERE content_id = ?", [item.id]),
-        auditStatement(env, "content.educational_story_revised", item.id, "publisher_api", {
-          previous_story_sha256: item.educational_story_sha256 || null, educational_story_sha256: storyHash,
-          previous_review_and_approval_invalidated: true
-        }, timestamp)
+        apiStatement(env, "UPDATE content_items SET educational_story_json = ?, educational_story_sha256 = ?, status = 'held', updated_at = ? WHERE id = ? AND status NOT IN ('publishing','published') AND educational_story_sha256 = ?",
+          [storyJson, storyHash, timestamp, item.id, body.expected_educational_story_sha256]),
+        apiStatement(env, `DELETE FROM review_evidence WHERE content_id = ? AND ${revisionGuard}`, [item.id, item.id, storyHash]),
+        apiStatement(env, `DELETE FROM approvals WHERE content_id = ? AND ${revisionGuard}`, [item.id, item.id, storyHash]),
+        apiStatement(env, `INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at)
+          SELECT ?, ?, ?, ?, ?, ? WHERE ${revisionGuard}`,
+          [crypto.randomUUID(), "content.educational_story_revised", item.id, "publisher_api",
+            JSON.stringify({ previous_story_sha256: item.educational_story_sha256 || null, educational_story_sha256: storyHash,
+              previous_review_and_approval_invalidated: true }), timestamp, item.id, storyHash])
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "educational_story_revision_conflict" }, 409);
       return json({ ok: true, content_id: item.id, status: "held", educational_story_sha256: storyHash, review_and_approval_invalidated: true });
