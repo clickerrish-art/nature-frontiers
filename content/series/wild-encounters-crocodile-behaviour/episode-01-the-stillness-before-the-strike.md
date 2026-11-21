@@ -22,7 +22,7 @@ That does not mean every ripple tells a crocodile exactly what made it. It means
 
 Watch the way a crocodile holds itself in the water. The eyes and nostrils may remain near the surface while the rest of the body stays submerged. The animal can observe its surroundings without exposing much of itself.
 
-**[VISUAL REQUIREMENT: Use only original camera footage showing a naturally behaving crocodile at the waterline. Do not stage a prey approach, provoke a strike, or use unrelated footage to illustrate a specific event.]**
+**[VISUAL REQUIREMENT: Use genuine footage of a naturally behaving crocodile at the waterline. Original camera footage or properly licensed stock is allowed when the exact source, creator, licence, provenance, file hash and visible stock disclosure are documented. Never stage a prey approach, provoke a strike or imply that stock footage is a Nature Frontiers field recording.]**
 
 The stillness is part of the story. A crocodile may remain in one position for a long time. But stillness should not be mistaken for a lack of awareness. The animal is receiving information through sight, hearing, smell and touch, while its sensory skin adds another layer to that picture.
 
@@ -43,10 +43,10 @@ For more original wildlife stories, Follow Nature Frontiers on Facebook and Inst
 
 - Use original camera recordings or properly licensed stock footage. Retain the exact source file and SHA-256; for stock, record the source URL, creator, licence, provenance review and visible on-screen disclosure.
 
-- Original camera footage only; retain the unedited source file and SHA-256 hash.
+- For original camera footage, retain the unedited source file and SHA-256 hash. For licensed stock, retain the source-page URL, creator, licence evidence, exact asset SHA-256, provenance review, caption attribution and on-screen disclosure bound to the final render hash.
 - Species and location must be identified only where the evidence supports them.
 - Capture waterline, head, jaw and body-scale details only from genuine recordings.
-- No AI-generated wildlife scenes, stock footage, staged encounters or animation presented as documentary.
+- No AI-generated wildlife scenes, staged encounters or animation presented as documentary. Properly licensed stock is allowed only with documented rights, provenance, attribution and visible disclosure.
 - Keep research explanation separate from claims about what a specific filmed animal perceived.
 
 ## Fact-check sources
