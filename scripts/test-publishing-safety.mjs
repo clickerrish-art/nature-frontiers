@@ -61,6 +61,16 @@ if (workflow.includes("github.ref == 'refs/heads/main'") &&
   failed++;
   console.error("FAIL: Instagram publisher production-branch or dedicated-state-branch wiring is missing");
 }
+const facebookPublisher = await readFile("scripts/publish-facebook.mjs", "utf8");
+const instagramPublisher = await readFile("scripts/publish-instagram.mjs", "utf8");
+if (facebookPublisher.includes("platformIdentityError(pageId, process.env.META_EXPECTED_PAGE_ID") &&
+    instagramPublisher.includes("META_EXPECTED_INSTAGRAM_USER_ID") &&
+    instagramPublisher.includes("platformIdentityError(")) {
+  console.log("PASS: both live publishers require an exact owner-approved destination ID match");
+} else {
+  failed++;
+  console.error("FAIL: a live publisher can target an unverified Meta destination");
+}
 const mediaHostWorkflow = await readFile(".github/workflows/publishing-readiness.yml", "utf8");
 if (mediaHostWorkflow.includes("format('https://raw.githubusercontent.com/{0}/{1}/media/instagram/', github.repository, github.sha)") &&
     !mediaHostWorkflow.includes("vars.INSTAGRAM_MEDIA_BASE_URL")) {
