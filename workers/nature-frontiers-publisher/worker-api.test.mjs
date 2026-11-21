@@ -283,6 +283,68 @@ const wrongStoryApproval = await call("/api/content/crocodile-reel-001/approval"
 });
 assert.equal(wrongStoryApproval.status, 400);
 
+// A rights change must invalidate every review and owner approval for this media hash,
+// not just the item whose rights endpoint was called.
+const sharedCreated = await call("/api/content", "POST", {
+  id: "crocodile-shared-002", content_type: "feed_post", caption: "Shared media evidence test",
+  media_url: "https://cdn.example.org/crocodile-shared.jpg", media_sha256: mediaHash,
+  educational_story: educationalStory
+});
+assert.equal(sharedCreated.status, 201);
+database.prepare("UPDATE content_items SET status = 'approved' WHERE id = ?").run("crocodile-shared-002");
+database.prepare("INSERT INTO approvals (id, content_id, reviewer, decision, content_sha256, educational_story_sha256, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+  .run("shared-approval-002", "crocodile-shared-002", "owner", "approved", mediaHash, educationalStorySha256, "2026-11-21T05:00:00.000Z");
+database.prepare("INSERT INTO review_evidence (content_id, content_sha256, educational_story_sha256, human_review_confirmed, content_accuracy_confirmed, wildlife_welfare_confirmed, non_graphic_review_passed, media_integrity_review_passed, media_technical_review_passed, watermark_scan_passed, media_accessibility_confirmed, script_originality_confirmed, voiceover_originality_confirmed, reviewer, reviewed_at) VALUES (?, ?, ?, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ?, ?)")
+  .run("crocodile-shared-002", mediaHash, educationalStorySha256, "editor", "2026-11-21T05:00:00.000Z");
+const rightsRevision = await call("/api/content/crocodile-reel-001/rights", "PUT", {
+  media_sha256: mediaHash, rights_status: "owned", rights_holder: "Original camera operator",
+  source_url: "https://creator.example.org/original-recording",
+  license_reference: "Signed ownership declaration NF-OWN-002"
+});
+assert.equal(rightsRevision.status, 200);
+assert.equal(database.prepare("SELECT COUNT(*) AS count FROM approvals WHERE content_id IN ('crocodile-reel-001','crocodile-shared-002')").get().count, 0);
+assert.equal(database.prepare("SELECT COUNT(*) AS count FROM review_evidence WHERE content_id IN ('crocodile-reel-001','crocodile-shared-002')").get().count, 0);
+assert.equal(database.prepare("SELECT COUNT(*) AS count FROM media_evidence WHERE media_sha256 = ?").get(mediaHash).count, 0);
+assert.equal(database.prepare("SELECT status FROM content_items WHERE id = ?").get("crocodile-reel-001").status, "held");
+assert.equal(database.prepare("SELECT status FROM content_items WHERE id = ?").get("crocodile-shared-002").status, "held");
+
+// Re-establish provenance and human review after the rights change.
+const provenanceRestored = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
+  media_sha256: mediaHash, media_origin: "original_camera_recording", stock_footage_used: false,
+  synthetic_visuals: false, ai_generated_video: false, source_recording_id: "NF-CAMERA-001",
+  original_camera_file_sha256: mediaHash, original_recording_retained: true,
+  provenance_review_passed: true, provenance_reviewer: "provenance-reviewer",
+  provenance_reviewed_at: "2026-11-21T05:15:00.000Z"
+});
+assert.equal(provenanceRestored.status, 200);
+const reviewAfterRightsChange = await call("/api/content/crocodile-reel-001/review-evidence", "PUT", reviewBody);
+assert.equal(reviewAfterRightsChange.status, 200);
+assert.equal((await call("/api/content/crocodile-reel-001/submit-review", "POST", {})).status, 200);
+const approvalAfterRightsChange = await call("/api/content/crocodile-reel-001/approval", "POST", {
+  decision: "approved", content_sha256: mediaHash, educational_story_sha256: educationalStorySha256
+});
+assert.equal(approvalAfterRightsChange.status, 200);
+
+// A provenance evidence change must also invalidate the approval and review.
+const provenanceRevision = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
+  media_sha256: mediaHash, media_origin: "original_camera_recording", stock_footage_used: false,
+  synthetic_visuals: false, ai_generated_video: false, source_recording_id: "NF-CAMERA-002",
+  original_camera_file_sha256: mediaHash, original_recording_retained: true,
+  provenance_review_passed: true, provenance_reviewer: "provenance-reviewer",
+  provenance_reviewed_at: "2026-11-21T05:20:00.000Z"
+});
+assert.equal(provenanceRevision.status, 200);
+assert.equal(database.prepare("SELECT COUNT(*) AS count FROM approvals WHERE content_id = ?").get("crocodile-reel-001").count, 0);
+assert.equal(database.prepare("SELECT COUNT(*) AS count FROM review_evidence WHERE content_id = ?").get("crocodile-reel-001").count, 0);
+assert.equal(database.prepare("SELECT status FROM content_items WHERE id = ?").get("crocodile-reel-001").status, "held");
+const reviewAfterProvenanceChange = await call("/api/content/crocodile-reel-001/review-evidence", "PUT", reviewBody);
+assert.equal(reviewAfterProvenanceChange.status, 200);
+assert.equal((await call("/api/content/crocodile-reel-001/submit-review", "POST", {})).status, 200);
+const approvalAfterProvenanceChange = await call("/api/content/crocodile-reel-001/approval", "POST", {
+  decision: "approved", content_sha256: mediaHash, educational_story_sha256: educationalStorySha256
+});
+assert.equal(approvalAfterProvenanceChange.status, 200);
+
 const disabledReservation = await call("/api/publication-reservations", "POST", {
   content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
   idempotency_key: "reservation-disabled-001", media_sha256: mediaHash
@@ -353,6 +415,17 @@ const publishedJson = await published.json();
 assert.equal(publishedJson.item.status, "published");
 assert.equal(publishedJson.targets[0].status, "published");
 assert.equal(publishedJson.targets[0].platform_media_id, "meta-media-123");
+const publishedRightsMutation = await call("/api/content/crocodile-reel-001/rights", "PUT", {
+  media_sha256: mediaHash, rights_status: "owned", rights_holder: "Original camera operator",
+  source_url: "https://creator.example.org/original-recording", license_reference: "Post-publication mutation must be locked"
+});
+assert.equal(publishedRightsMutation.status, 409);
+const publishedProvenanceMutation = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
+  media_sha256: mediaHash, media_origin: "original_camera_recording", stock_footage_used: false,
+  synthetic_visuals: false, ai_generated_video: false, source_recording_id: "NF-CAMERA-003",
+  original_camera_file_sha256: mediaHash, original_recording_retained: true, provenance_review_passed: true
+});
+assert.equal(publishedProvenanceMutation.status, 409);
 const publishedStoryEdit = await call("/api/content/crocodile-reel-001/educational-story", "PUT", { educational_story: educationalStory });
 assert.equal(publishedStoryEdit.status, 409);
 
