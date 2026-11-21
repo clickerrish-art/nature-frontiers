@@ -1,3 +1,4 @@
+import { validateStory } from "../../shared/nature-frontiers-story.mjs";
 const MEDIA_PATH = /^\/media\/instagram\/media-([a-f0-9]{64})\.(jpg|jpeg|mp4)$/i;
 const ALLOWED_TYPES = new Set(["image/jpeg", "video/mp4"]);
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
@@ -114,28 +115,6 @@ async function educationalStoryHash(story) {
   return sha256Hex(bytes.buffer);
 }
 
-function validateEducationalStory(story) {
-  const errors = [];
-  const nonEmpty = (value) => typeof value === "string" && value.trim().length > 0;
-  if (!story || typeof story !== "object" || Array.isArray(story)) return ["story must be an object"];
-  if (!nonEmpty(story.title) || !nonEmpty(story.learning_objective) || !nonEmpty(story.audience_takeaway)) errors.push("story title, learning objective and audience takeaway are required");
-  if (!Array.isArray(story.claims) || !story.claims.length) errors.push("at least one sourced factual claim is required");
-  else for (const claim of story.claims) {
-    if (!nonEmpty(claim?.text) || !Array.isArray(claim?.sources) || !claim.sources.length ||
-        claim.sources.some((source) => !nonEmpty(source) || !/^https:\/\//i.test(source)) ||
-        !nonEmpty(claim?.visual_evidence)) errors.push("each claim needs text, HTTPS source URLs and matching visual evidence");
-  }
-  const beats = ["hook_question", "evidence", "explanation", "takeaway"];
-  if (!Array.isArray(story.story_beats) || beats.some((type) => !story.story_beats.some((beat) => beat?.type === type && nonEmpty(beat.description)))) errors.push("all four educational story beats are required");
-  if (story.media_kind === "image" && !nonEmpty(story.image_teaching_point)) errors.push("image teaching point is required");
-  if (story.media_kind === "video" && !nonEmpty(story.visual_claim_alignment)) errors.push("video visual-claim alignment is required");
-  if (!["image", "video"].includes(story.media_kind)) errors.push("media_kind must be image or video");
-  if (!nonEmpty(story.species_identification_basis)) errors.push("species identification basis is required");
-  if (story.brand_logo !== "lion_face" || story.original_camera_provenance !== true || story.rights_verified !== true || story.human_editorial_review !== true) errors.push("lion-face branding, original-camera provenance, verified rights and human editorial review are required");
-  if (story.accessibility?.captions !== true || story.accessibility?.sound_off_comprehensible !== true || !nonEmpty(story.accessibility?.alt_text_or_visual_description)) errors.push("captions, sound-off comprehension and descriptive alt text are required");
-  if (story.ai_generated_wildlife_visuals !== false || story.generic_stock_footage !== false) errors.push("AI-generated wildlife visuals and generic stock footage are prohibited");
-  return errors;
-}
 
 
 function safePublicHttps(value) {
@@ -240,7 +219,7 @@ async function handlePublisherApi(request, env) {
     if (parts.length === 2 && parts[1] === "content" && method === "POST") {
       const id = typeof body.id === "string" ? body.id : crypto.randomUUID();
       const mediaHash = typeof body.media_sha256 === "string" ? body.media_sha256.toLowerCase() : "";
-      const storyErrors = validateEducationalStory(body.educational_story);
+      const storyErrors = validateStory(body.educational_story);
       if (!API_ID.test(id) || !["feed_post", "reel"].includes(body.content_type) ||
           typeof body.caption !== "string" || !body.caption.trim() || body.caption.length > 10000 ||
           !safePublicHttps(body.media_url) || !API_HASH.test(mediaHash) || storyErrors.length) {
@@ -275,7 +254,7 @@ async function handlePublisherApi(request, env) {
       const item = await apiFirst(env, "SELECT id, educational_story_sha256, status FROM content_items WHERE id = ?", [parts[2]]);
       if (!item) return json({ ok: false, error: "content_not_found" }, 404);
       if (["publishing", "published"].includes(item.status)) return json({ ok: false, error: "educational_story_locked_after_publication_starts" }, 409);
-      const storyErrors = validateEducationalStory(body.educational_story);
+      const storyErrors = validateStory(body.educational_story);
       if (storyErrors.length) return json({ ok: false, error: "invalid_educational_story", story_errors: storyErrors }, 400);
       const storyJson = canonicalJson(body.educational_story);
       const storyHash = await educationalStoryHash(body.educational_story);
@@ -394,7 +373,7 @@ async function handlePublisherApi(request, env) {
       try { educationalStory = JSON.parse(item.educational_story_json || "null"); } catch { educationalStory = null; }
       const currentStoryHash = educationalStory ? await educationalStoryHash(educationalStory) : "";
       if (!item.educational_story_sha256 || currentStoryHash !== item.educational_story_sha256 ||
-          validateEducationalStory(educationalStory).length || reviewEvidence?.educational_story_sha256 !== item.educational_story_sha256 ||
+          validateStory(educationalStory).length || reviewEvidence?.educational_story_sha256 !== item.educational_story_sha256 ||
           !validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
           !validReviewEvidence(reviewEvidence, item.id, item.media_sha256)) {
         return json({ ok: false, error: "verified_rights_media_evidence_and_human_review_required" }, 409);
@@ -425,7 +404,7 @@ async function handlePublisherApi(request, env) {
         let educationalStory;
         try { educationalStory = JSON.parse(item.educational_story_json || "null"); } catch { educationalStory = null; }
         if (!educationalStory || await educationalStoryHash(educationalStory) !== item.educational_story_sha256 ||
-            validateEducationalStory(educationalStory).length || reviewEvidence?.educational_story_sha256 !== item.educational_story_sha256 ||
+            validateStory(educationalStory).length || reviewEvidence?.educational_story_sha256 !== item.educational_story_sha256 ||
             !validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
             !validReviewEvidence(reviewEvidence, item.id, item.media_sha256)) {
           return json({ ok: false, error: "verified_rights_media_evidence_and_human_review_required" }, 409);
@@ -482,7 +461,7 @@ async function handlePublisherApi(request, env) {
       try { educationalStory = JSON.parse(item.educational_story_json || "null"); } catch { educationalStory = null; }
       const recomputedStoryHash = educationalStory ? await educationalStoryHash(educationalStory) : "";
       if (!educationalStory || recomputedStoryHash !== item.educational_story_sha256 ||
-          validateEducationalStory(educationalStory).length ||
+          validateStory(educationalStory).length ||
           !validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
           !validReviewEvidence(reviewEvidence, item.id, item.media_sha256) || approval?.decision !== "approved" ||
           !item.educational_story_sha256 || approval?.educational_story_sha256 !== item.educational_story_sha256 ||
