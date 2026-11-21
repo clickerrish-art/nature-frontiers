@@ -3,8 +3,22 @@ name: Nature Frontiers publishing (gated)
 on:
   workflow_dispatch:
     inputs:
+      target_operation:
+        description: "Select exactly one platform operation; checks_only never publishes."
+        required: true
+        type: choice
+        options:
+          - checks_only
+          - facebook_video
+          - facebook_reel
+          - instagram_reel
+        default: checks_only
+      campaign_id:
+        description: "Exact approved campaign ID for the selected one-shot operation."
+        required: false
+        type: string
       live_publish_authorized:
-        description: "Explicitly authorize one live publishing run after all launch checks (leave false for checks/dry runs)."
+        description: "Explicitly authorize the selected exact campaign operation after all launch checks."
         required: true
         type: boolean
         default: false
@@ -13,6 +27,29 @@ on:
       - "codex/facebook-reels-publisher"
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/meta-webhook.mjs"
+      - "scripts/test-meta-webhook.mjs"
+      - "scripts/check-meta-token-health.mjs"
+      - "scripts/test-meta-token-health.mjs"
+      - "scripts/meta-error-policy.mjs"
+      - "scripts/meta-ops-state.mjs"
+      - "scripts/test-meta-ops-state.mjs"
+      - "data/meta-circuit-breaker.json"
+      - "data/meta-api-audit.json"
+      - "scripts/test-meta-error-policy.mjs"
+      - "scripts/check-meta-api-version.mjs"
+      - ".github/workflows/meta-token-health.yml"
+      - ".github/workflows/meta-api-version-monitor.yml"
+      - "scripts/prepublish-gate.mjs"
+      - "scripts/test-prepublish-gate.mjs"
+      - "data/prepublish-policy.json"
+      - "scripts/instagram-reel-guards.mjs"
+      - "scripts/instagram-reel-api.mjs"
+      - "scripts/publish-instagram-reel.mjs"
+      - "scripts/test-instagram-reel-guards.mjs"
+      - "scripts/test-instagram-reel-api.mjs"
+      - "scripts/meta-page-identity.mjs"
+      - "scripts/test-meta-page-identity.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
@@ -21,12 +58,15 @@ on:
       - "scripts/publish-facebook-video.mjs"
       - "scripts/facebook-video-guards.mjs"
       - "scripts/video-description.mjs"
+      - "scripts/test-video-description.mjs"
       - "data/video-series.json"
       - "scripts/facebook-video-media.mjs"
       - "scripts/test-facebook-video-guards.mjs"
       - "scripts/test-facebook-video-media.mjs"
       - "scripts/test-series-scripts.mjs"
       - "content/series/**"
+      - "content/campaigns/**"
+      - "scripts/test-content-buffer.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "scripts/publishing-cadence.mjs"
       - "scripts/test-publishing-cadence.mjs"
@@ -39,6 +79,29 @@ on:
   pull_request:
     paths:
       - "scripts/check-meta-readiness.mjs"
+      - "scripts/meta-webhook.mjs"
+      - "scripts/test-meta-webhook.mjs"
+      - "scripts/check-meta-token-health.mjs"
+      - "scripts/test-meta-token-health.mjs"
+      - "scripts/meta-error-policy.mjs"
+      - "scripts/meta-ops-state.mjs"
+      - "scripts/test-meta-ops-state.mjs"
+      - "data/meta-circuit-breaker.json"
+      - "data/meta-api-audit.json"
+      - "scripts/test-meta-error-policy.mjs"
+      - "scripts/check-meta-api-version.mjs"
+      - ".github/workflows/meta-token-health.yml"
+      - ".github/workflows/meta-api-version-monitor.yml"
+      - "scripts/prepublish-gate.mjs"
+      - "scripts/test-prepublish-gate.mjs"
+      - "data/prepublish-policy.json"
+      - "scripts/instagram-reel-guards.mjs"
+      - "scripts/instagram-reel-api.mjs"
+      - "scripts/publish-instagram-reel.mjs"
+      - "scripts/test-instagram-reel-guards.mjs"
+      - "scripts/test-instagram-reel-api.mjs"
+      - "scripts/meta-page-identity.mjs"
+      - "scripts/test-meta-page-identity.mjs"
       - "scripts/publish-facebook-reel.mjs"
       - "scripts/facebook-reel-guards.mjs"
       - "scripts/facebook-reel-media.mjs"
@@ -47,6 +110,7 @@ on:
       - "scripts/publish-facebook-video.mjs"
       - "scripts/facebook-video-guards.mjs"
       - "scripts/video-description.mjs"
+      - "scripts/test-video-description.mjs"
       - "data/video-series.json"
       - "scripts/facebook-video-media.mjs"
       - "scripts/test-facebook-video-guards.mjs"
@@ -87,20 +151,43 @@ jobs:
           node-version: "24"
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
+      - name: Validate the 42-piece editorial buffer remains draft-only and source-backed
+        run: npm run test:content-buffer
       - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
+      - name: Test configured Meta Page and Instagram identity matching
+        run: npm run test:meta-readiness
+      - name: Test Meta webhook signature and durable-acknowledgement handler
+        run: node --test scripts/test-meta-webhook.mjs
+      - name: Test Meta token permissions and expiry assessment
+        run: node scripts/test-meta-token-health.mjs
+      - name: Test Meta API error and circuit-breaker classification
+        run: node scripts/test-meta-error-policy.mjs
+      - name: Test durable Meta circuit breaker and API audit wrapper
+        run: npm run test:meta-ops
+      - name: Check Meta API version monitor syntax
+        run: node --check scripts/check-meta-api-version.mjs
+      - name: Test Instagram Reel guards and container API flow
+        run: npm run test:instagram-reels
+      - name: Test cross-platform prepublish evidence gate
+        run: npm run test:prepublish
       - name: Verify MediaInfo is available for video media verification
         run: mediainfo --Version
-      - name: Check Facebook publishing script syntax
-        run: node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs
+      - name: Check Facebook and Instagram publishing script syntax
+        run: node --check scripts/publish-facebook.mjs && node --check scripts/publish-facebook-video.mjs && node --check scripts/publish-facebook-reel.mjs && node --check scripts/publish-instagram-reel.mjs
       - name: Test Facebook Reel release guards and media integrity
         run: node --test scripts/test-facebook-reel-guards.mjs scripts/test-facebook-reel-media.mjs
       - name: Test long-form video guards and media integrity
-        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs scripts/test-series-scripts.mjs
+        run: node --test scripts/test-facebook-video-guards.mjs scripts/test-facebook-video-media.mjs
+      - name: Test editorial-first video descriptions
+        run: npm run test:video-descriptions
       - name: Test Johannesburg daily publishing limits
         run: node --test scripts/test-publishing-cadence.mjs
 
   meta-readiness:
+    # PRs run deterministic safety tests without requiring live Meta credentials or account variables.
+    # Read-only account readiness remains a gate for non-PR dispatches and scheduled checks.
+    if: github.event_name != 'pull_request'
     timeout-minutes: 5
     runs-on: ubuntu-24.04
     steps:
@@ -112,9 +199,12 @@ jobs:
           node-version: "24"
       - name: Check Meta Page access without publishing
         env:
-          META_PAGE_ID: "1003575786161492"
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
+          META_INSTAGRAM_USER_ID: ${{ vars.META_INSTAGRAM_USER_ID }}
+          META_EXPECTED_INSTAGRAM_USER_ID: ${{ vars.META_EXPECTED_INSTAGRAM_USER_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          META_GRAPH_API_VERSION: "v27.0"
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN }}
         run: node scripts/check-meta-readiness.mjs
@@ -122,7 +212,7 @@ jobs:
   facebook-publisher:
     # Publishing writes durable campaign state to the dispatch ref. Never permit
     # this job to write to main; use a dedicated non-main release branch.
-    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && inputs.target_operation != 'checks_only' && inputs.live_publish_authorized == true
     permissions:
       contents: write
     needs: [safety-tests, meta-readiness]
@@ -136,22 +226,44 @@ jobs:
         with:
           node-version: "24"
       - name: Run gated long-form Facebook Page video adapter
+        if: inputs.target_operation == 'facebook_video'
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
-          META_GRAPH_API_VERSION: "v27.0"
-          META_PAGE_ID: "1003575786161492"
+          PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook-video.mjs
-      - name: Run gated 30-second discovery Reel adapter (requires its published parent video)
+      - name: Run gated Instagram Reel adapter (requires verified linked Instagram account)
+        if: inputs.target_operation == 'instagram_reel'
         env:
           PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
           PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
-          META_GRAPH_API_VERSION: "v27.0"
-          META_PAGE_ID: "1003575786161492"
+          PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
+          META_INSTAGRAM_USER_ID: ${{ vars.META_INSTAGRAM_USER_ID }}
+          META_EXPECTED_INSTAGRAM_USER_ID: ${{ vars.META_EXPECTED_INSTAGRAM_USER_ID }}
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-instagram-reel.mjs
+      - name: Run gated Facebook Reel adapter
+        if: inputs.target_operation == 'facebook_reel'
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          PUBLISH_CAMPAIGN_ID: ${{ inputs.campaign_id }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_EXPECTED_PAGE_ID: ${{ vars.META_EXPECTED_PAGE_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}

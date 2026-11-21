@@ -1,5 +1,3 @@
-import { NATURE_FRONTIERS_YOUTUBE_URL, REQUIRED_PRODUCT_LINKS, APPROVED_AFFILIATE_LINKS, AFFILIATE_DISCLOSURE, PRODUCT_DISCLOSURE } from "./video-description.mjs";
-
 const MIN_SECONDS = 180;
 const MAX_SECONDS = 480;
 
@@ -35,41 +33,43 @@ export function validateLongFormVideoCampaign(campaign) {
   if (!Number.isFinite(campaign?.hook_duration_seconds) || campaign.hook_duration_seconds < 15 || campaign.hook_duration_seconds > 60) {
     errors.push("the opening hook must have a documented 15–60 second editorial window before any ad break.");
   }
-  if (typeof campaign?.series_id !== "string" || !campaign.series_id.trim() ||
-      typeof campaign?.series_title !== "string" || !campaign.series_title.trim() ||
-      typeof campaign?.series_arc !== "string" || !campaign.series_arc.trim() ||
-      !Number.isInteger(campaign?.episode_number) || campaign.episode_number < 1) {
-    errors.push("every long-form video must belong to a named series with a positive episode number and a documented series arc.");
+  const hasSeriesMetadata = Boolean(campaign?.series_id || campaign?.series_title || campaign?.series_arc || campaign?.episode_number || campaign?.episode_title);
+  if (campaign?.series_requires_parent === true || hasSeriesMetadata) {
+    if (typeof campaign?.series_id !== "string" || !campaign.series_id.trim() ||
+        typeof campaign?.series_title !== "string" || !campaign.series_title.trim() ||
+        typeof campaign?.series_arc !== "string" || !campaign.series_arc.trim() ||
+        !Number.isInteger(campaign?.episode_number) || campaign.episode_number < 1) {
+      errors.push("series-linked long-form videos require a named series, positive episode number and documented series arc.");
+    }
+    if (typeof campaign?.episode_title !== "string" || !campaign.episode_title.trim() ||
+        typeof campaign?.next_episode_teaser !== "string" || !campaign.next_episode_teaser.trim() ||
+        typeof campaign?.next_episode_cta !== "string" || !campaign.next_episode_cta.trim()) {
+      errors.push("series-linked long-form videos require an episode title, next-episode teaser and series CTA.");
+    }
   }
-  if (typeof campaign?.episode_title !== "string" || !campaign.episode_title.trim() ||
-      typeof campaign?.next_episode_teaser !== "string" || !campaign.next_episode_teaser.trim()) {
-    errors.push("every series episode needs its own episode title and a teaser for the next episode.");
+  const productLinks = Array.isArray(campaign?.product_links) ? campaign.product_links : [];
+  if (productLinks.length > 0) {
+    if (campaign?.product_links_verified !== true || typeof campaign?.product_verification_note !== "string" || !campaign.product_verification_note.trim()) {
+      errors.push("optional product links must be human-verified and accompanied by a verification note.");
+    }
+    if (productLinks.some((link) => typeof link !== "string" || !isHttpsPublicCandidate(link) || !caption.includes(link))) {
+      errors.push("every supplied product link must be a valid HTTPS URL and appear verbatim in the description.");
+    }
+    if (typeof campaign?.product_disclosure !== "string" || !campaign.product_disclosure.trim() || !caption.includes(campaign.product_disclosure)) {
+      errors.push("product links require their matching paid-product disclosure in the description.");
+    }
   }
-  if (typeof campaign?.caption !== "string" || !caption.includes(NATURE_FRONTIERS_YOUTUBE_URL)) {
-    errors.push("every video description must include the Nature Frontiers YouTube channel link: " + NATURE_FRONTIERS_YOUTUBE_URL);
-  }
-  if (!Array.isArray(campaign?.product_links) ||
-      REQUIRED_PRODUCT_LINKS.some((item) => !campaign.product_links.includes(item.url)) ||
-      REQUIRED_PRODUCT_LINKS.some((item) => !caption.includes(item.url))) {
-    errors.push("every video description must include all six owner-catalogued Selar product URLs verbatim.");
-  }
-  if (!Array.isArray(campaign?.affiliate_links) ||
-      APPROVED_AFFILIATE_LINKS.some((link) => !campaign.affiliate_links.includes(link)) ||
-      APPROVED_AFFILIATE_LINKS.some((link) => !caption.includes(link)) ||
-      campaign.affiliate_links.some((link) => typeof link !== "string" || !isHttpsPublicCandidate(link))) {
-    errors.push("every video description must include all five owner-approved Safari.com affiliate URLs verbatim, preserving the a=GM26 tracking parameter.");
-  }
-  if (campaign?.affiliate_links_verified !== true ||
-      typeof campaign?.affiliate_verification_note !== "string" || !campaign.affiliate_verification_note.trim()) {
-    errors.push("affiliate tracking links must be human-verified and accompanied by a verification note before release.");
-  }
-  if (campaign?.affiliate_disclosure !== AFFILIATE_DISCLOSURE ||
-      !caption.includes(AFFILIATE_DISCLOSURE)) {
-    errors.push("every video description must include the standard explicit affiliate disclosure verbatim.");
-  }
-  if (campaign?.product_disclosure !== PRODUCT_DISCLOSURE ||
-      !caption.includes(PRODUCT_DISCLOSURE)) {
-    errors.push("every video description must include the standard paid-product disclosure verbatim.");
+  const affiliateLinks = Array.isArray(campaign?.affiliate_links) ? campaign.affiliate_links : [];
+  if (affiliateLinks.length > 0) {
+    if (campaign?.affiliate_links_verified !== true || typeof campaign?.affiliate_verification_note !== "string" || !campaign.affiliate_verification_note.trim()) {
+      errors.push("optional affiliate links must be human-verified and accompanied by a verification note.");
+    }
+    if (affiliateLinks.some((link) => typeof link !== "string" || !isHttpsPublicCandidate(link) || !caption.includes(link))) {
+      errors.push("every supplied affiliate link must be a valid HTTPS URL and appear verbatim in the description.");
+    }
+    if (typeof campaign?.affiliate_disclosure !== "string" || !campaign.affiliate_disclosure.trim() || !caption.includes(campaign.affiliate_disclosure)) {
+      errors.push("affiliate links require their explicit affiliate disclosure in the description.");
+    }
   }
   if (typeof campaign?.script_text !== "string") errors.push("campaign needs its complete original narration script.");
   else {
@@ -93,30 +93,52 @@ export function validateLongFormVideoCampaign(campaign) {
     ["script_originality_confirmed", "the complete script must pass human originality review."],
     ["voiceover_originality_confirmed", "voiceover must be original or appropriately licensed."],
     ["media_rights_confirmed", "all video footage must have human-confirmed commercial rights."],
-    ["media_originality_confirmed", "visuals must pass human originality review."],
-    ["audio_rights_confirmed", "all music and sound effects must be cleared for commercial use."],
+    ["media_integrity_review_passed", "all visuals must pass human media-integrity review."],
     ["policy_review_passed", "the exact video, thumbnail and caption must pass human Meta policy review."],
     ["content_accuracy_confirmed", "species identification and factual claims must be human-verified."],
     ["wildlife_welfare_confirmed", "footage must confirm no baiting, harassment, handling, staging or disturbance of animals."],
     ["non_graphic_review_passed", "the finished video must pass a human non-graphic imagery review."],
     ["thumbnail_accuracy_confirmed", "the thumbnail must accurately represent the actual episode."],
     ["media_technical_review_passed", "the final export must pass human technical review."],
+    ["watermark_scan_passed", "the final export must pass a clean watermark scan."],
     ["human_review_confirmed", "the exact final export must receive human approval."]
   ];
   for (const [field, message] of requiredReviews) if (campaign?.[field] !== true) errors.push(message);
+  if (campaign?.audio_present !== true && campaign?.audio_present !== false) errors.push("media must explicitly declare whether audio is present.");
+  if (campaign?.audio_present === true && (campaign?.audio_rights_confirmed !== true || campaign?.audio_license_status !== "licensed" || !campaign?.audio_license_ref)) errors.push("media audio requires verified commercial rights and licence evidence.");
 
-  // Nature Frontiers accepts only genuine original wildlife camera recordings.
-  // Disclosure never makes synthetic or stock wildlife footage eligible.
   if (campaign?.synthetic_visuals !== false) errors.push("AI-generated or synthetic wildlife visuals are prohibited; synthetic_visuals must be false.");
   if (campaign?.ai_generated_video !== false) errors.push("AI-generated video must be explicitly false.");
-  if (campaign?.stock_footage_used !== false) errors.push("stock footage and stock-clip compilations are prohibited; stock_footage_used must be false.");
-  if (campaign?.media_origin !== "original_camera_recording") errors.push("media_origin must be original_camera_recording.");
-  if (typeof campaign?.source_recording_id !== "string" || !campaign.source_recording_id.trim()) errors.push("an identifiable original camera source recording is required.");
-  if (typeof campaign?.original_camera_file_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(campaign.original_camera_file_sha256)) errors.push("the retained original camera file must have a verified SHA-256 hash.");
-  if (campaign?.original_recording_retained !== true) errors.push("the unedited original camera recording must be retained.");
-  if (campaign?.provenance_review_passed !== true) errors.push("original camera provenance must pass human review before release.");
-  if (typeof campaign?.provenance_reviewer !== "string" || !campaign.provenance_reviewer.trim()) errors.push("a named provenance reviewer is required.");
-  if (typeof campaign?.provenance_reviewed_at !== "string" || !Number.isFinite(Date.parse(campaign.provenance_reviewed_at))) errors.push("a valid provenance review timestamp is required.");
+  if (campaign?.media_origin === "licensed_stock") {
+    if (campaign?.wildlife_media_policy !== "licensed_stock_allowed") errors.push("licensed stock requires the owner-approved licensed_stock_allowed wildlife media policy.");
+    if (campaign?.stock_footage_used !== true) errors.push("licensed_stock media_origin requires stock_footage_used=true.");
+    if (typeof campaign?.source_url !== "string" || !campaign.source_url.trim() || !isHttpsPublicCandidate(campaign.source_url)) errors.push("licensed stock requires its original public HTTPS source-page URL.");
+    if (typeof campaign?.source_creator !== "string" || !campaign.source_creator.trim()) errors.push("licensed stock requires the credited creator.");
+    if (typeof campaign?.license_name !== "string" || !campaign.license_name.trim()) errors.push("licensed stock requires the exact licence name.");
+    if (typeof campaign?.license_evidence_url !== "string" || !isHttpsPublicCandidate(campaign.license_evidence_url)) errors.push("licensed stock requires a public HTTPS licence evidence URL.");
+    if (campaign?.provenance_review_passed !== true) errors.push("stock provenance and licence must pass human review.");
+    if (typeof campaign?.provenance_reviewer !== "string" || !campaign.provenance_reviewer.trim()) errors.push("a named provenance reviewer is required.");
+    if (typeof campaign?.provenance_reviewed_at !== "string" || !Number.isFinite(Date.parse(campaign.provenance_reviewed_at))) errors.push("a valid provenance review timestamp is required.");
+    if (campaign?.on_screen_disclosure_confirmed !== true) errors.push("licensed stock requires a confirmed on-screen disclosure against the final media hash.");
+    if (typeof campaign?.on_screen_disclosure_media_sha256 !== "string" ||
+        !/^[a-f0-9]{64}$/i.test(campaign.on_screen_disclosure_media_sha256) ||
+        campaign.on_screen_disclosure_media_sha256.toLowerCase() !== campaign.media_sha256.toLowerCase()) {
+      errors.push("on-screen stock disclosure confirmation must be bound to the exact final media SHA-256.");
+    }
+    if (typeof campaign?.on_screen_disclosure_text !== "string" || !/licensed stock footage/i.test(campaign.on_screen_disclosure_text)) errors.push("on-screen disclosure must clearly identify licensed stock footage.");
+    if (typeof campaign?.caption_attribution !== "string" || !campaign.caption_attribution.trim() || !caption.includes(campaign.caption_attribution)) errors.push("licensed stock requires exact creator/source attribution in the caption or rendered credits.");
+  } else if (campaign?.media_origin === "original_camera_recording") {
+    if (campaign?.stock_footage_used !== false) errors.push("original camera recordings must explicitly set stock_footage_used=false.");
+    if (campaign?.media_originality_confirmed !== true) errors.push("original camera visuals must pass human originality review.");
+    if (typeof campaign?.source_recording_id !== "string" || !campaign.source_recording_id.trim()) errors.push("an identifiable original camera source recording is required.");
+    if (typeof campaign?.original_camera_file_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(campaign.original_camera_file_sha256)) errors.push("the retained original camera file must have a verified SHA-256 hash.");
+    if (campaign?.original_recording_retained !== true) errors.push("the unedited original camera recording must be retained.");
+    if (campaign?.provenance_review_passed !== true) errors.push("original camera provenance must pass human review before release.");
+    if (typeof campaign?.provenance_reviewer !== "string" || !campaign.provenance_reviewer.trim()) errors.push("a named provenance reviewer is required.");
+    if (typeof campaign?.provenance_reviewed_at !== "string" || !Number.isFinite(Date.parse(campaign.provenance_reviewed_at))) errors.push("a valid provenance review timestamp is required.");
+  } else {
+    errors.push("media_origin must be licensed_stock or original_camera_recording.");
+  }
 
   if (!Array.isArray(campaign?.fact_check_sources) || campaign.fact_check_sources.length === 0 ||
       campaign.fact_check_sources.some((source) => typeof source !== "string" || !isHttpsPublicCandidate(source))) {
@@ -127,22 +149,28 @@ export function validateLongFormVideoCampaign(campaign) {
       campaign.retention_beats_seconds.some((value, index, values) => index > 0 && (value <= values[index - 1] || value - values[index - 1] > 75))) {
     errors.push("curiosity beats must be timestamped in ascending order, at least three, with no gap over 75 seconds.");
   }
-  if (typeof campaign?.next_episode_cta !== "string" || !campaign.next_episode_cta.trim()) {
-    errors.push("the ending must direct viewers to a relevant next episode or series playlist.");
+  if (campaign?.series_requires_parent === true && (typeof campaign?.next_episode_cta !== "string" || !campaign.next_episode_cta.trim())) {
+    errors.push("series-linked episodes must direct viewers to a relevant next episode or series playlist.");
   }
 
   const breaks = campaign?.editorial_ad_breaks_seconds;
-  const expectedCount = Number.isFinite(campaign?.duration_seconds) && campaign.duration_seconds >= 420 ? 2 : 1;
-  if (!Array.isArray(breaks) || breaks.length !== expectedCount ||
+  const expectedCount = campaign?.monetization_enabled === true
+    ? (Number.isFinite(campaign?.duration_seconds) && campaign.duration_seconds >= 420 ? 2 : 1)
+    : 0;
+  if (expectedCount > 0 && (!Array.isArray(breaks) || breaks.length !== expectedCount ||
       breaks.some((value) => !Number.isFinite(value) || value < 90 || value > campaign.duration_seconds - 45) ||
       breaks.some((value, index, values) => index > 0 && (value <= values[index - 1] || value - values[index - 1] < 120)) ||
-      (Array.isArray(breaks) && breaks.length > 0 && (!Number.isFinite(campaign?.hook_duration_seconds) || breaks[0] < campaign.hook_duration_seconds + 60 || breaks[0] < 90))) {
-    errors.push("editorial ad-break markers must be one for 3–6:59 videos or two for 7–8 minute videos, placed at natural transitions after the opening hook and at least 120 seconds apart.");
+      (breaks.length > 0 && (!Number.isFinite(campaign?.hook_duration_seconds) || breaks[0] < campaign.hook_duration_seconds + 60 || breaks[0] < 90)))) {
+    errors.push("monetized long-form videos require valid natural-transition ad-break markers after the opening hook.");
   }
-  if (!Array.isArray(campaign?.editorial_ad_break_notes) ||
+  if (expectedCount > 0 && (!Array.isArray(campaign?.editorial_ad_break_notes) ||
       campaign.editorial_ad_break_notes.length !== expectedCount ||
-      campaign.editorial_ad_break_notes.some((note) => typeof note !== "string" || !note.trim())) {
-    errors.push("each proposed ad-break marker needs an editorial transition note.");
+      campaign.editorial_ad_break_notes.some((note) => typeof note !== "string" || !note.trim()))) {
+    errors.push("each monetized ad-break marker needs an editorial transition note.");
+  }
+  if (expectedCount === 0 && ((Array.isArray(breaks) && breaks.length > 0) ||
+      (Array.isArray(campaign?.editorial_ad_break_notes) && campaign.editorial_ad_break_notes.length > 0))) {
+    errors.push("ad-break markers must not be supplied unless monetization_enabled is explicitly true.");
   }
 
   return errors;
@@ -153,6 +181,7 @@ export function validateLongFormVideoCampaign(campaign) {
  * These are explicit requested offsets, not a guarantee Meta will serve ads.
  */
 export function toMetaAdBreakOffsetsMilliseconds(campaign) {
+  if (campaign?.monetization_enabled !== true) return [];
   if (!Array.isArray(campaign?.editorial_ad_breaks_seconds) ||
       campaign.editorial_ad_breaks_seconds.length === 0 ||
       campaign.editorial_ad_breaks_seconds.some((value) => !Number.isFinite(value) || value <= 0)) {

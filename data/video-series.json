@@ -1,14 +1,14 @@
 {
   "series_id": "wild-encounters-crocodile-behaviour",
   "series_title": "Wild Encounters: Crocodile Behaviour",
-  "format": "Original landscape wildlife documentary episodes",
+  "format": "Rights-cleared landscape wildlife documentary episodes",
   "target_duration_seconds": {
     "min": 180,
     "max": 480
   },
   "timezone": "Africa/Johannesburg",
-  "episode_policy": "Each episode is a self-contained story and advances the series arc. Research and fact-check every factual claim before scripting. Film only genuine original camera recordings with retained source files and verified rights. Never substitute stock footage, AI-generated video, staged encounters or animation.",
-  "production_status": "PLANNED — no episode is production-ready until genuine original camera footage, rights, factual review and final human approval are recorded.",
+  "episode_policy": "Each episode is a self-contained story and advances the series arc. Research and fact-check every factual claim before scripting. Use genuine original camera recordings or properly licensed stock footage with retained source URLs, creator, licence evidence, named provenance review, exact media SHA-256, clean watermark and audio-rights review, and visible on-screen stock disclosure. Never use AI-generated or synthetic wildlife footage, staged encounters, or animation presented as documentary evidence.",
+  "production_status": "PLANNED — no episode is production-ready until original-camera or licensed-stock media, rights, provenance, animal-welfare, factual review, final human review and exact-hash approval are recorded.",
   "episodes": [
     {
       "episode_number": 1,
@@ -24,13 +24,7 @@
       ],
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
-      "editorial_ad_breaks_seconds": [
-        120
-      ],
-      "next_episode_teaser": "Next: how a crocodile detects and responds to a world beneath the water.",
-      "editorial_ad_break_notes": [
-        "After the first complete explanation of the animal's stillness and positioning, before the environmental context."
-      ]
+      "next_episode_teaser": "Next: how a crocodile detects and responds to a world beneath the water."
     },
     {
       "episode_number": 2,
@@ -46,13 +40,7 @@
       ],
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
-      "editorial_ad_breaks_seconds": [
-        120
-      ],
-      "next_episode_teaser": "Next: the mechanics of the strike — and why the waiting matters.",
-      "editorial_ad_break_notes": [
-        "After the sensory adaptation has been explained with verified research, before the behaviour example."
-      ]
+      "next_episode_teaser": "Next: the mechanics of the strike — and why the waiting matters."
     },
     {
       "episode_number": 3,
@@ -68,13 +56,7 @@
       ],
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
-      "editorial_ad_breaks_seconds": [
-        120
-      ],
-      "next_episode_teaser": "Next: the hidden story of nests, hatchlings and early survival.",
-      "editorial_ad_break_notes": [
-        "After the hunting sequence is explained, before the ecological context."
-      ]
+      "next_episode_teaser": "Next: the hidden story of nests, hatchlings and early survival."
     },
     {
       "episode_number": 4,
@@ -90,13 +72,7 @@
       ],
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
-      "editorial_ad_breaks_seconds": [
-        120
-      ],
-      "next_episode_teaser": "Next: what happens when changing water levels reshape a crocodile's habitat.",
-      "editorial_ad_break_notes": [
-        "After the nesting and hatchling context, before the conservation pressures."
-      ]
+      "next_episode_teaser": "Next: what happens when changing water levels reshape a crocodile's habitat."
     },
     {
       "episode_number": 5,
@@ -112,13 +88,7 @@
       ],
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
-      "editorial_ad_breaks_seconds": [
-        120
-      ],
-      "next_episode_teaser": "Final episode: what crocodiles reveal about the health of the river ecosystem.",
-      "editorial_ad_break_notes": [
-        "After the habitat change sequence, before the ecological implications."
-      ]
+      "next_episode_teaser": "Final episode: what crocodiles reveal about the health of the river ecosystem."
     },
     {
       "episode_number": 6,
@@ -134,13 +104,14 @@
       ],
       "target_duration_seconds": 240,
       "hook_duration_seconds": 30,
-      "editorial_ad_breaks_seconds": [
-        120
-      ],
-      "next_episode_teaser": "The next Wild Encounters series follows another species through its real habitat and behaviour.",
-      "editorial_ad_break_notes": [
-        "After the species-level ecological context, before the final conservation and series conclusion."
-      ]
+      "next_episode_teaser": "The next Wild Encounters series follows another species through its real habitat and behaviour."
     }
-  ]
+  ],
+  "wildlife_media_policy": {
+    "licensed_stock_allowed": true,
+    "original_camera_recording_allowed": true,
+    "synthetic_wildlife_media_allowed": false,
+    "stock_disclosure": "Licensed stock footage — illustrative; not a Nature Frontiers field recording.",
+    "monetization_enabled": false
+  }
 }

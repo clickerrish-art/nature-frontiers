@@ -11,6 +11,14 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+function parseBitRate(value) {
+  const raw = String(value ?? "");
+  const numeric = Number.parseFloat(raw.replace(/,/g, ""));
+  if (!Number.isFinite(numeric)) return NaN;
+  if (/m(?:bit|b)\/s|mbps/i.test(raw)) return numeric * 1000000;
+  if (/k(?:bit|b)\/s|kbps/i.test(raw)) return numeric * 1000;
+  return numeric;
+}
 const MAX_MEDIA_BYTES = 4 * 1024 * 1024 * 1024;
 
 function isPublicIPv4(address) {
@@ -102,7 +110,7 @@ async function fetchPublicMediaResponse(initialUrl, fetchImpl, lookupImpl) {
   throw new Error("Reel media redirect validation failed.");
 }
 
-async function inspectReelVideo(filePath, probeImpl) {
+async function inspectReelVideo(filePath, probeImpl, durationProfile = {}) {
   let result;
   try {
     result = await probeImpl("mediainfo", ["--Output=JSON", filePath], {
@@ -124,22 +132,46 @@ async function inspectReelVideo(filePath, probeImpl) {
   const duration = Number(stream?.Duration ?? general?.Duration);
   const frameRate = Number(stream?.FrameRate);
   const formatName = String(general?.Format ?? "");
+  const videoCodec = String(stream?.Format ?? stream?.CodecID ?? "");
+  const audioStream = Array.isArray(tracks) ? tracks.find((track) => track?.["@type"] === "Audio") : null;
+  const audioFormat = String(audioStream?.Format ?? "");
+  const audioRateText = String(audioStream?.SamplingRate ?? "");
+  const audioSampleRateHz = /khz/i.test(audioRateText)
+    ? Number.parseFloat(audioRateText) * 1000
+    : Number.parseFloat(audioRateText.replace(/[^0-9.]/g, ""));
+  const audioBitRate = parseBitRate(audioStream?.BitRate);
+  const videoBitRate = parseBitRate(stream?.BitRate);
   if (!stream || !Number.isFinite(width) || !Number.isFinite(height)) {
     throw new Error("Reel media must contain a readable video stream.");
   }
   if (width < 540 || height < 960 || Math.abs(width / height - 9 / 16) > 0.005) {
     throw new Error("Facebook Reel must be portrait 9:16 and at least 540x960 pixels.");
   }
-  if (!Number.isFinite(duration) || duration < 25 || duration > 35) {
-    throw new Error("Nature Frontiers discovery Reels must be between 25 and 35 seconds (approximately 30 seconds).");
+  const minDuration = Number.isFinite(durationProfile.minSeconds) ? durationProfile.minSeconds : 25;
+  const maxDuration = Number.isFinite(durationProfile.maxSeconds) ? durationProfile.maxSeconds : 35;
+  if (!Number.isFinite(duration) || duration < minDuration || duration > maxDuration) {
+    throw new Error("Reel duration must be between " + minDuration + " and " + maxDuration + " seconds for the selected campaign profile.");
   }
   if (!Number.isFinite(frameRate) || frameRate < 23) {
     throw new Error("Facebook Reel frame rate must be at least 23 fps.");
   }
   if (!/(mpeg-4|quicktime)/i.test(formatName)) {
-    throw new Error("Facebook Reel must use a supported MP4/MOV video container.");
+    throw new Error("Reel must use a supported MP4/MOV video container.");
   }
-  return { width, height, duration, frameRate, formatName };
+  if (durationProfile.requireInstagramProfile === true) {
+    if (width > 1920 || height > 1920) throw new Error("Instagram Reel dimensions must not exceed 1920 pixels on either axis.");
+    if (frameRate > 60) throw new Error("Instagram Reel frame rate must not exceed 60 fps.");
+    if (Number.isFinite(videoBitRate) && videoBitRate > 25000000) throw new Error("Instagram Reel video bitrate must not exceed 25 Mbps.");
+    if (!/(avc|h.?264|hevc)/i.test(videoCodec)) throw new Error("Instagram Reels require an H.264 or HEVC video stream.");
+    if (!audioStream || !/^AAC$/i.test(audioFormat) || Math.round(audioSampleRateHz) !== 48000) {
+      throw new Error("Instagram Reels require an AAC audio stream sampled at 48 kHz.");
+    }
+    if (Number.isFinite(audioBitRate) && audioBitRate > 128000) {
+      throw new Error("Instagram Reel audio bitrate must not exceed 128 kbps.");
+    }
+  }
+  const audioMetadata = audioStream ? { format: audioFormat, sampleRateHz: audioSampleRateHz, bitRate: Number.isFinite(audioBitRate) ? audioBitRate : null } : null;
+  return { width, height, duration, frameRate, formatName, ...(audioMetadata ? { audioMetadata } : {}), ...(videoCodec ? { videoCodec } : {}) };
 }
 
 export async function verifyRemoteMedia(
@@ -148,7 +180,8 @@ export async function verifyRemoteMedia(
   fetchImpl = fetch,
   lookupImpl = lookup,
   maxBytes = MAX_MEDIA_BYTES,
-  probeImpl = execFileAsync
+  probeImpl = execFileAsync,
+  durationProfile = {}
 ) {
   if (!/^[a-f0-9]{64}$/i.test(expectedSha256 ?? "")) {
     throw new Error("A verified SHA-256 digest is required before media transfer.");
@@ -189,7 +222,7 @@ export async function verifyRemoteMedia(
     if (actual.toLowerCase() !== expectedSha256.toLowerCase()) {
       throw new Error("Reel media SHA-256 does not match the approved campaign manifest.");
     }
-    const videoMetadata = await inspectReelVideo(filePath, probeImpl);
+    const videoMetadata = await inspectReelVideo(filePath, probeImpl, durationProfile);
     return {
       bytes,
       sha256: actual,

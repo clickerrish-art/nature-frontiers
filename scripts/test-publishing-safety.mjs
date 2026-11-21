@@ -1,7 +1,11 @@
 import { spawnSync } from "node:child_process";
 
 const sharedEnv = {
-  META_PAGE_ID: "1003575786161492",
+  PUBLISH_CAMPAIGN_ID: "test-no-approved-campaign",
+  META_PAGE_ID: "1431329126735709",
+  META_EXPECTED_PAGE_ID: "1431329126735709",
+  META_INSTAGRAM_USER_ID: "17841400000000000",
+  META_EXPECTED_INSTAGRAM_USER_ID: "17841400000000000",
   META_PAGE_ACCESS_TOKEN: "not-a-real-token-used-only-for-safe-stop-tests",
   META_GRAPH_API_VERSION: "v27.0",
   GITHUB_REPOSITORY: "clickerrish-art/nature-frontiers",
@@ -17,10 +21,17 @@ const cases = [
     expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
   },
   {
+    name: "legacy feed publisher rejects a mismatched Meta Page identity before any API request",
+    script: "scripts/publish-facebook.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.",
+    expectedStatus: 1
+  },
+  {
     name: "legacy feed publisher has no approved campaigns",
     script: "scripts/publish-facebook.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved Facebook feed campaigns exist."
+    expected: "No explicitly approved Facebook feed campaign matches PUBLISH_CAMPAIGN_ID."
   },
   {
     name: "long-form publisher is disabled by default",
@@ -35,10 +46,42 @@ const cases = [
     expected: "PUBLISH_DRY_RUN is not false; no public publishing is permitted."
   },
   {
+    name: "long-form publisher rejects a mismatched Meta Page identity before any API request",
+    script: "scripts/publish-facebook-video.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.",
+    expectedStatus: 1
+  },
+  {
     name: "long-form publisher finds no approved video campaigns and makes no Meta request",
     script: "scripts/publish-facebook-video.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved long-form Facebook video campaigns exist."
+    expected: "No explicitly approved long-form Facebook video campaign matches PUBLISH_CAMPAIGN_ID."
+  },
+  {
+    name: "Instagram Reel publisher is disabled by default",
+    script: "scripts/publish-instagram-reel.mjs",
+    env: { PUBLISH_ENABLED: "false", PUBLISH_DRY_RUN: "true" },
+    expected: "PUBLISH_ENABLED is not true; public publishing is disabled."
+  },
+  {
+    name: "Instagram Reel publisher makes no request in dry-run mode",
+    script: "scripts/publish-instagram-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "true" },
+    expected: "PUBLISH_DRY_RUN is not false; no public publishing is permitted."
+  },
+  {
+    name: "Instagram Reel publisher rejects mismatched Instagram identity before any API request",
+    script: "scripts/publish-instagram-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_INSTAGRAM_USER_ID: "17841400000000001" },
+    expected: "Configured Instagram professional account ID must match the independently configured expected Nature Frontiers Instagram ID.",
+    expectedStatus: 1
+  },
+  {
+    name: "Instagram Reel publisher finds no approved campaigns and makes no Meta request",
+    script: "scripts/publish-instagram-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
+    expected: "No explicitly approved Instagram Reel campaign matches PUBLISH_CAMPAIGN_ID."
   },
   {
     name: "discovery Reel publisher is disabled by default",
@@ -53,10 +96,17 @@ const cases = [
     expected: "PUBLISH_DRY_RUN is not false; no public publishing is permitted."
   },
   {
+    name: "discovery Reel publisher rejects a mismatched Meta Page identity before any API request",
+    script: "scripts/publish-facebook-reel.mjs",
+    env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false", META_EXPECTED_PAGE_ID: "1003575786161492" },
+    expected: "Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.",
+    expectedStatus: 1
+  },
+  {
     name: "discovery Reel publisher finds no approved funnel clips and makes no Meta request",
     script: "scripts/publish-facebook-reel.mjs",
     env: { PUBLISH_ENABLED: "true", PUBLISH_DRY_RUN: "false" },
-    expected: "No explicitly approved Facebook Reel campaigns exist."
+    expected: "No explicitly approved Facebook Reel campaign matches PUBLISH_CAMPAIGN_ID."
   }
 ];
 
@@ -67,7 +117,8 @@ for (const scenario of cases) {
     env: { ...process.env, ...sharedEnv, ...scenario.env }
   });
   const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
-  if (result.status !== 0 || !output.includes(scenario.expected)) {
+  const expectedStatus = scenario.expectedStatus ?? 0;
+  if (result.status !== expectedStatus || !output.includes(scenario.expected)) {
     failed++;
     console.error(`FAIL: ${scenario.name}`);
     console.error(output);

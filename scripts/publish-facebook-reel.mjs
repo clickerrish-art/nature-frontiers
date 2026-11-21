@@ -1,8 +1,11 @@
+import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
 import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateReelCampaign, isReelPublished } from "./facebook-reel-guards.mjs";
 import { verifyRemoteMedia } from "./facebook-reel-media.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
+import { createGitHubMetaStateStore, createMetaAuditedFetch } from "./meta-ops-state.mjs";
 
 function stop(message) {
   console.log("SAFE STOP: " + message);
@@ -16,6 +19,8 @@ if (dryRun) stop("PUBLISH_DRY_RUN is not false; no public publishing is permitte
 
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
+const selectedCampaignId = process.env.PUBLISH_CAMPAIGN_ID ?? "";
+const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 const repo = process.env.GITHUB_REPOSITORY;
 const ref = process.env.GITHUB_REF_NAME;
@@ -24,16 +29,25 @@ const versionParts = typeof graphVersion === "string" ? graphVersion.replace("v"
 if (typeof graphVersion !== "string" || !graphVersion.startsWith("v") || versionParts.length !== 2 || versionParts.some((part) => part.length === 0 || [...part].some((ch) => ch < "0" || ch > "9"))) {
   throw new Error("META_GRAPH_API_VERSION must be a supported version.");
 }
-if (!pageId || !accessToken) throw new Error("Meta Page ID and Page access token are required.");
+if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
+if (!accessToken) throw new Error("Meta Page access token is required.");
+if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
-
 const campaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
-const approved = campaigns.filter((item) => item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
-if (approved.length === 0) stop("No explicitly approved Facebook Reel campaigns exist.");
+const approved = campaigns.filter((item) => item?.id === selectedCampaignId && item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "REEL");
+if (approved.length === 0) stop("No explicitly approved Facebook Reel campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved Reel is allowed per manual run.");
 const campaign = approved[0];
+const policy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
+const prepublish = validatePrepublishCampaign(campaign, campaigns, policy);
+if (!prepublish.ok) throw new Error("Prepublish gate failed: " + prepublish.issues.map((item) => item.code + ": " + item.message).join(" "));
 const validation = validateReelCampaign(campaign);
 if (validation.length) throw new Error("Reel campaign failed release checks: " + validation.join(" "));
+const metaStateStore = createGitHubMetaStateStore({ repository: repo, branch: ref, githubToken });
+const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
+const circuitState = await metaStateStore.readCircuitState();
+if (circuitState.state === "open" || circuitState.open === true) stop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
+
 assertApprovedPostingWindow();
 
 const stateUrl = "https://api.github.com/repos/" + repo + "/contents/data/campaigns.json";
@@ -44,7 +58,7 @@ const ghHeaders = {
 };
 
 async function getState() {
-  const response = await fetch(stateUrl + "?ref=" + encodeURIComponent(ref), { headers: ghHeaders });
+  const response = await metaFetch(stateUrl + "?ref=" + encodeURIComponent(ref), { headers: ghHeaders });
   if (!response.ok) throw new Error("Could not read durable campaign state (HTTP " + response.status + ").");
   const data = await response.json();
   const content = Buffer.from(data.content.replaceAll("\n", "").replaceAll("\r", ""), "base64").toString("utf8");
@@ -53,7 +67,7 @@ async function getState() {
 
 async function saveState(sha, items, message) {
   const content = Buffer.from(JSON.stringify(items, null, 2) + String.fromCharCode(10)).toString("base64");
-  const response = await fetch(stateUrl, {
+  const response = await metaFetch(stateUrl, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ message, content, sha, branch: ref })
@@ -64,7 +78,21 @@ async function saveState(sha, items, message) {
 
 // Verify the actual remote bytes and digest before reserving campaign state or
 // contacting Meta. A missing, changed, or non-video asset must fail before any upload.
-const mediaCheck = await verifyRemoteMedia(campaign.media_url, campaign.media_sha256);
+const mediaCheck = await verifyRemoteMedia(
+  campaign.media_url,
+  campaign.media_sha256,
+  fetch,
+  undefined,
+  undefined,
+  undefined,
+  {
+    minSeconds: campaign.media_duration_min_seconds ?? 25,
+    maxSeconds: campaign.media_duration_max_seconds ?? 35
+  }
+);
+if (Math.abs(mediaCheck.videoMetadata.duration - campaign.duration_seconds) > 1.5) {
+  throw new Error("Measured Facebook Reel duration does not match the approved campaign manifest.");
+}
 console.log("Reel media preflight passed: " + mediaCheck.bytes + " bytes; " + mediaCheck.contentType + "; SHA-256 verified; " +
   mediaCheck.videoMetadata.width + "x" + mediaCheck.videoMetadata.height + "; " +
   mediaCheck.videoMetadata.duration + "s; " + mediaCheck.videoMetadata.frameRate + "fps.");
@@ -84,14 +112,16 @@ const dailyCapacity = assertDailyReleaseCapacity(before.campaigns, "REEL");
 console.log("Johannesburg daily release capacity: " + dailyCapacity.longForm + "/2 long-form videos, " +
   dailyCapacity.reels + "/1 Reel, " + dailyCapacity.total + "/3 total releases used.");
 
-const linkedVideo = before.campaigns.find((item) =>
-  item.id === campaign.related_longform_campaign_id &&
-  item.facebook_type === "VIDEO" &&
-  item.status === "published" &&
-  item.platform_video_url === campaign.full_video_url &&
-  typeof item.platform_video_id === "string"
-);
-if (!linkedVideo) throw new Error("SAFE STOP: the linked long-form episode is not yet confirmed published at the exact URL in this Reel; refusing to publish a disconnected funnel clip.");
+if (campaign.series_requires_parent === true) {
+  const linkedVideo = before.campaigns.find((item) =>
+    item.id === campaign.related_longform_campaign_id &&
+    item.facebook_type === "VIDEO" &&
+    item.status === "published" &&
+    item.platform_video_url === campaign.full_video_url &&
+    typeof item.platform_video_id === "string"
+  );
+  if (!linkedVideo) throw new Error("SAFE STOP: the explicitly required series parent is not confirmed published at the exact URL; refusing to publish a disconnected series clip.");
+}
 const reserved = before.campaigns.map((item) => item.id === campaign.id
   ? { ...item, status: "publishing", publishing_started_at: new Date().toISOString() }
   : item);
@@ -100,7 +130,7 @@ await saveState(before.sha, reserved, "Reserve Facebook Reel campaign " + campai
 const graph = "https://graph.facebook.com/" + graphVersion;
 const startUrl = new URL(graph + "/" + encodeURIComponent(pageId) + "/video_reels");
 startUrl.searchParams.set("upload_phase", "start");
-const started = await fetch(startUrl, {
+const started = await metaFetch(startUrl, {
   method: "POST",
   headers: { Authorization: "Bearer " + accessToken }
 });
@@ -113,7 +143,7 @@ if (uploadUrl.protocol !== "https:" || uploadUrl.hostname !== "rupload.facebook.
   throw new Error("Meta returned an unexpected upload host; refusing to send media.");
 }
 
-const uploaded = await fetch(uploadUrl, {
+const uploaded = await metaFetch(uploadUrl, {
   method: "POST",
   headers: {
     Authorization: "OAuth " + accessToken,
@@ -135,7 +165,7 @@ finishUrl.searchParams.set("upload_phase", "finish");
 finishUrl.searchParams.set("video_state", "PUBLISHED");
 finishUrl.searchParams.set("description", campaign.caption);
 finishUrl.searchParams.set("title", campaign.title);
-const finished = await fetch(finishUrl, {
+const finished = await metaFetch(finishUrl, {
   method: "POST",
   headers: { Authorization: "Bearer " + accessToken }
 });
@@ -148,7 +178,7 @@ let confirmed = false;
 for (let attempt = 0; attempt < 12; attempt++) {
   const statusUrl = new URL(graph + "/" + encodeURIComponent(startPayload.video_id));
   statusUrl.searchParams.set("fields", "status");
-  const statusResponse = await fetch(statusUrl, {
+  const statusResponse = await metaFetch(statusUrl, {
     headers: { Authorization: "Bearer " + accessToken }
   });
   const statusPayload = await statusResponse.json().catch(() => ({}));

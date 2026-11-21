@@ -1,7 +1,10 @@
+import { isVerifiedMetaPageIdentity } from "./meta-page-identity.mjs";
 import { readFile } from "node:fs/promises";
 import { assertApprovedPostingWindow, assertDailyReleaseCapacity } from "./publishing-cadence.mjs";
 import { validateLongFormVideoCampaign, toMetaAdBreakOffsetsMilliseconds } from "./facebook-video-guards.mjs";
 import { verifyRemoteLongFormVideo } from "./facebook-video-media.mjs";
+import { validatePrepublishCampaign } from "./prepublish-gate.mjs";
+import { createGitHubMetaStateStore, createMetaAuditedFetch } from "./meta-ops-state.mjs";
 
 function safeStop(message) {
   console.log("SAFE STOP: " + message);
@@ -15,6 +18,8 @@ if (dryRun) safeStop("PUBLISH_DRY_RUN is not false; no public publishing is perm
 
 const graphVersion = process.env.META_GRAPH_API_VERSION;
 const pageId = process.env.META_PAGE_ID;
+const selectedCampaignId = process.env.PUBLISH_CAMPAIGN_ID ?? "";
+const expectedPageId = process.env.META_EXPECTED_PAGE_ID;
 const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
 const repo = process.env.GITHUB_REPOSITORY;
 const ref = process.env.GITHUB_REF_NAME;
@@ -24,17 +29,26 @@ if (typeof graphVersion !== "string" || !graphVersion.startsWith("v") || version
     versionParts.some((part) => part.length === 0 || [...part].some((ch) => ch < "0" || ch > "9"))) {
   throw new Error("META_GRAPH_API_VERSION must be configured as vNN.N.");
 }
-if (!pageId || !accessToken) throw new Error("Meta Page ID and Page access token are required.");
+if (!isVerifiedMetaPageIdentity(pageId, expectedPageId)) throw new Error("Configured Meta Page ID must match the independently configured expected Nature Frontiers Page ID.");
+if (!accessToken) throw new Error("Meta Page access token is required.");
+if (!selectedCampaignId) safeStop("PUBLISH_CAMPAIGN_ID must identify the exact approved campaign for this one-shot run.");
 if (!repo || !ref || !githubToken) throw new Error("Durable GitHub state is required; refusing to publish without it.");
-
 const localCampaigns = JSON.parse(await readFile(new URL("../data/campaigns.json", import.meta.url), "utf8"));
 const approved = localCampaigns.filter((item) =>
-  item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "VIDEO");
-if (approved.length === 0) safeStop("No explicitly approved long-form Facebook video campaigns exist.");
+  item?.id === selectedCampaignId && item?.network === "facebook" && item?.status === "approved" && item?.facebook_type === "VIDEO");
+if (approved.length === 0) safeStop("No explicitly approved long-form Facebook video campaign matches PUBLISH_CAMPAIGN_ID.");
 if (approved.length !== 1) throw new Error("Exactly one approved long-form video is allowed per manual run.");
 const campaign = approved[0];
+const policy = JSON.parse(await readFile(new URL("../data/prepublish-policy.json", import.meta.url), "utf8"));
+const prepublish = validatePrepublishCampaign(campaign, localCampaigns, policy);
+if (!prepublish.ok) throw new Error("Prepublish gate failed: " + prepublish.issues.map((item) => item.code + ": " + item.message).join(" "));
 const validation = validateLongFormVideoCampaign(campaign);
 if (validation.length) throw new Error("Long-form video failed release checks: " + validation.join(" "));
+const metaStateStore = createGitHubMetaStateStore({ repository: repo, branch: ref, githubToken });
+const metaFetch = createMetaAuditedFetch({ fetchImpl: fetch, readCircuitState: metaStateStore.readCircuitState, recordEvent: metaStateStore.recordEvent });
+const circuitState = await metaStateStore.readCircuitState();
+if (circuitState.state === "open" || circuitState.open === true) safeStop("Meta publishing circuit breaker is OPEN; reconcile and obtain owner approval before any mutation.");
+
 assertApprovedPostingWindow();
 
 const stateUrl = "https://api.github.com/repos/" + repo + "/contents/data/campaigns.json";
@@ -45,7 +59,7 @@ const ghHeaders = {
 };
 
 async function getState() {
-  const response = await fetch(stateUrl + "?ref=" + encodeURIComponent(ref), {
+  const response = await metaFetch(stateUrl + "?ref=" + encodeURIComponent(ref), {
     headers: ghHeaders,
     signal: AbortSignal.timeout(15000)
   });
@@ -57,7 +71,7 @@ async function getState() {
 
 async function saveState(sha, items, message) {
   const content = Buffer.from(JSON.stringify(items, null, 2) + String.fromCharCode(10)).toString("base64");
-  const response = await fetch(stateUrl, {
+  const response = await metaFetch(stateUrl, {
     method: "PUT",
     headers: { ...ghHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ message, content, sha, branch: ref }),
@@ -70,7 +84,7 @@ async function saveState(sha, items, message) {
 async function graphGetVideo(videoId) {
   const url = new URL("https://graph.facebook.com/" + graphVersion + "/" + encodeURIComponent(videoId));
   url.searchParams.set("fields", "id,published,permalink_url,status");
-  const response = await fetch(url, {
+  const response = await metaFetch(url, {
     headers: { Authorization: "Bearer " + accessToken },
     signal: AbortSignal.timeout(15000)
   });
@@ -93,14 +107,17 @@ try {
     mediaCheck.contentType + "; SHA-256 verified; " + mediaCheck.videoMetadata.width + "x" +
     mediaCheck.videoMetadata.height + "; " + actualDuration + " seconds; " +
     mediaCheck.videoMetadata.frameRate + " fps.");
-  console.log("Requested Meta ad-break offsets in milliseconds (ad serving still depends on eligibility and Meta delivery): " +
-    JSON.stringify(toMetaAdBreakOffsetsMilliseconds(campaign)) + ".");
-  console.log("Editorial ad-break markers and transition notes (for the edit): " +
-    campaign.editorial_ad_breaks_seconds.map((seconds) => {
-      const minutes = Math.floor(seconds / 60);
-      const remainder = String(seconds % 60).padStart(2, "0");
-      return minutes + ":" + remainder;
-    }).join(", ") + ".");
+  const adBreakOffsets = toMetaAdBreakOffsetsMilliseconds(campaign);
+  if (adBreakOffsets.length > 0) {
+    console.log("Requested Meta ad-break offsets in milliseconds (ad serving still depends on eligibility and Meta delivery): " +
+      JSON.stringify(adBreakOffsets) + ".");
+    console.log("Editorial ad-break markers and transition notes (for the edit): " +
+      campaign.editorial_ad_breaks_seconds.map((seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainder = String(seconds % 60).padStart(2, "0");
+        return minutes + ":" + remainder;
+      }).join(", ") + ".");
+  }
 
   const before = await getState();
   const live = before.campaigns.find((item) => item.id === campaign.id);
@@ -125,10 +142,10 @@ try {
     file_url: mediaCheck.finalUrl,
     title: campaign.title,
     description: campaign.caption,
-    published: "true",
-    ad_breaks: JSON.stringify(toMetaAdBreakOffsetsMilliseconds(campaign))
+    published: "true"
   });
-  const response = await fetch(endpoint, {
+  if (adBreakOffsets.length > 0) body.set("ad_breaks", JSON.stringify(adBreakOffsets));
+  const response = await metaFetch(endpoint, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + accessToken,

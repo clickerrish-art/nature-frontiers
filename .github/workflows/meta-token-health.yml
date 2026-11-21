@@ -1,0 +1,36 @@
+name: Meta token health monitor
+
+on:
+  schedule:
+    - cron: "45 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: meta-token-health
+  cancel-in-progress: true
+
+jobs:
+  token-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Assess token locally with Meta debug_token
+        env:
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+          META_APP_ID: ${{ secrets.META_APP_ID }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/check-meta-token-health.mjs
+      - name: Test token assessment logic
+        if: always()
+        run: node scripts/test-meta-token-health.mjs
