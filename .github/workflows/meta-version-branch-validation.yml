@@ -1,0 +1,40 @@
+name: Meta API version monitor branch validation
+
+on:
+  push:
+    branches:
+      - codex/fix-meta-version-monitor
+    paths:
+      - "scripts/check-meta-api-version.mjs"
+      - "scripts/test-meta-api-version.mjs"
+      - "package.json"
+      - ".github/workflows/meta-version-branch-validation.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/check-meta-api-version.mjs"
+      - "scripts/test-meta-api-version.mjs"
+      - "package.json"
+      - ".github/workflows/meta-version-branch-validation.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meta-version-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  meta-version-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Check monitor syntax
+        run: node --check scripts/check-meta-api-version.mjs
+      - name: Test version parsing, mismatch issue creation and HTTP error reporting with mocked fetch
+        run: npm run test:meta-version
