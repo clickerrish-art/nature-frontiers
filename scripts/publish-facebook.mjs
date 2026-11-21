@@ -24,6 +24,7 @@ function stop(message) {
 if (!Array.isArray(products) || !Array.isArray(campaigns)) {
   throw new Error("Products and campaigns must be JSON arrays.");
 }
+if (process.env.GITHUB_REF_NAME !== "main") stop("Live Facebook publishing is restricted to the production main branch; feature branches cannot publish.");
 if (circuitState.open === true) stop(`Meta API circuit breaker is OPEN${circuitState.reason ? `: ${circuitState.reason}` : "."} Human review and explicit reset are required.`);
 if (emergencyStop) stop("PUBLISH_EMERGENCY_STOP is active; publishing is blocked.");
 if (!facebookPublishEnabled) stop("FACEBOOK_PUBLISH_ENABLED is not YES; Facebook publishing is disabled.");

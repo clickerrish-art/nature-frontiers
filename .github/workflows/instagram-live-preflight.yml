@@ -1,0 +1,43 @@
+name: Instagram read-only live SUAT preflight
+
+on:
+  push:
+    branches:
+      - codex/instagram-unified-login-setup
+    paths:
+      - "scripts/check-instagram-live-readiness.mjs"
+  workflow_dispatch:
+  schedule:
+    - cron: "15 6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instagram-live-read-only-preflight
+  cancel-in-progress: false
+
+jobs:
+  live-preflight:
+    name: live-preflight-${{ matrix.api_version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        api_version:
+          - v26.0
+          - v27.0
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Verify actual Instagram SUAT using read-only Meta GET requests
+        env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
+          META_GRAPH_API_VERSION: ${{ matrix.api_version }}
+        run: |
+          echo "Testing Meta Graph API ${META_GRAPH_API_VERSION} with read-only GET requests only"
+          node scripts/check-instagram-live-readiness.mjs

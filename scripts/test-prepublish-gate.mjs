@@ -19,7 +19,9 @@ const tests = [
   ["unlicensed audio blocked", () => { const c=validCampaign(); c.media_assets[0].audio={present:true,license_status:"unknown"}; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="AUDIO_NOT_CLEARED")); }],
   ["missing written rights blocked", () => { const c=validCampaign(); c.media_assets[0].rights.status="pending"; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="RIGHTS_NOT_CLEARED")); }],
   ["watermark not clean blocked", () => { const c=validCampaign(); c.media_assets[0].watermark_scan.status="detected"; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="WATERMARK_NOT_CLEARED")); }],
-  ["AI media without native disclosure blocked", () => { const c=validCampaign(); c.media_assets[0].ai_generated=true; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="AI_DISCLOSURE_MISSING")); }],
+  ["AI-generated media is prohibited even with native disclosure", () => { const c=validCampaign(); c.media_assets[0].ai_generated=true; c.media_assets[0].ai_disclosure={required:true,native_control_verified:true}; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="AI_GENERATED_MEDIA_PROHIBITED")); }],
+  ["AI-generated media without disclosure is also blocked", () => { const c=validCampaign(); c.media_assets[0].ai_generated=true; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="AI_GENERATED_MEDIA_PROHIBITED")); }],
+  ["undeclared media origin is blocked", () => { const c=validCampaign(); delete c.media_assets[0].ai_generated; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="MEDIA_ORIGIN_UNDECLARED")); }],
   ["approval hash mismatch blocked", () => { const c=validCampaign(); c.human_approval.caption_sha256="0".repeat(64); assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="HUMAN_APPROVAL_NOT_BOUND")); }]
 ];
 let failures=0;

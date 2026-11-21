@@ -5,11 +5,16 @@
   "scripts": {
     "validate": "node scripts/validate-campaign.mjs",
     "test:publishing": "node scripts/test-publishing-safety.mjs",
+    "test:readiness": "node scripts/test-check-publishing-readiness.mjs",
     "publish:facebook": "node scripts/publish-facebook.mjs",
     "test:meta-policy": "node scripts/test-meta-error-policy.mjs",
     "test:meta-version": "node scripts/test-meta-api-version.mjs",
     "test:prepublish": "node scripts/test-prepublish-gate.mjs",
     "test:meta-webhook": "node scripts/test-meta-webhook.mjs",
-    "test:meta-token": "node scripts/test-meta-token-health.mjs"
+    "test:meta-token": "node scripts/test-meta-token-health.mjs",
+    "test:instagram-api": "node scripts/test-instagram-api.mjs",
+    "test:instagram-campaign": "node scripts/test-instagram-campaign.mjs",
+    "test:instagram-media": "node scripts/test-check-instagram-media.mjs",
+    "test:instagram-live-readiness": "node scripts/test-check-instagram-live-readiness.mjs"
   }
 }

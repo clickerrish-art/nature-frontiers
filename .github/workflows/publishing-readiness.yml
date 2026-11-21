@@ -11,6 +11,26 @@ on:
   pull_request:
     paths:
       - "scripts/publish-facebook.mjs"
+      - "scripts/instagram-api.mjs"
+      - "scripts/instagram-runtime-api.mjs"
+      - "scripts/instagram-campaign-gate.mjs"
+      - "scripts/instagram-media-host.mjs"
+      - "scripts/instagram-state-store.mjs"
+      - "scripts/instagram-publisher.mjs"
+      - "scripts/publish-instagram.mjs"
+      - "scripts/test-instagram-campaign.mjs"
+      - "scripts/check-instagram-media.mjs"
+      - "scripts/test-check-instagram-media.mjs"
+      - "scripts/check-instagram-live-readiness.mjs"
+      - "scripts/test-check-instagram-live-readiness.mjs"
+      - "scripts/check-publishing-readiness.mjs"
+      - "scripts/test-check-publishing-readiness.mjs"
+      - "data/instagram-campaigns.json"
+      - "data/media-rights-review.json"
+      - "scripts/test-media-rights-review.mjs"
+      - "data/instagram-publishing-state.json"
+      - "media/instagram/**"
+      - "scripts/test-instagram-api.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "data/campaigns.json"
       - "data/products.json"
@@ -27,9 +47,11 @@ on:
       - ".github/workflows/meta-token-health.yml"
       - "scripts/meta-webhook.mjs"
       - "scripts/test-meta-webhook.mjs"
+      - "workers/nature-frontiers-publisher/**"
       - "data/meta-circuit-breaker.json"
       - ".github/workflows/meta-api-version-monitor.yml"
       - "docs/META_PROACTIVE_OPERATIONS.md"
+      - "docs/PUBLISHING-SETUP.md"
       - ".github/workflows/publishing-readiness.yml"
   schedule:
     - cron: "30 7 * * *"
@@ -56,11 +78,37 @@ jobs:
           node --check scripts/check-meta-api-version.mjs
           node --check scripts/meta-error-policy.mjs
           node --check scripts/publish-facebook.mjs
+          node --check scripts/instagram-api.mjs
+          node --check scripts/instagram-campaign-gate.mjs
+          node --check scripts/instagram-media-host.mjs
+          node --check scripts/instagram-state-store.mjs
+          node --check scripts/instagram-publisher.mjs
+          node --check scripts/publish-instagram.mjs
+          node --check scripts/instagram-runtime-api.mjs
+          node --check scripts/check-instagram-media.mjs
+          node --check scripts/test-check-instagram-media.mjs
+          node --check scripts/check-instagram-live-readiness.mjs
+          node --check scripts/test-check-instagram-live-readiness.mjs
+          node --check scripts/check-publishing-readiness.mjs
+          node --check scripts/test-check-publishing-readiness.mjs
           node --check scripts/prepublish-gate.mjs
           node --check scripts/meta-webhook.mjs
+          node --check workers/nature-frontiers-publisher/worker.js
+          node --check workers/nature-frontiers-publisher/worker.test.mjs
           node --check scripts/check-meta-token-health.mjs
           node -e "JSON.parse(require('node:fs').readFileSync('data/meta-api-audit.json', 'utf8'))"
           node -e "JSON.parse(require('node:fs').readFileSync('data/meta-circuit-breaker.json', 'utf8'))"
+          node -e "JSON.parse(require('node:fs').readFileSync('data/media-rights-review.json', 'utf8'))"
+      - name: Test Instagram API client (mocked; no platform calls)
+        run: node scripts/test-instagram-api.mjs
+      - name: Test Instagram campaign approvals, durable state and recovery (mocked)
+        run: node scripts/test-instagram-campaign.mjs
+      - name: Test Instagram media technical preflight (mocked ffprobe)
+        run: node scripts/test-check-instagram-media.mjs
+      - name: Test Instagram live readiness (mocked Meta GET calls)
+        run: node scripts/test-check-instagram-live-readiness.mjs
+      - name: Test publishing readiness variable mapping
+        run: npm run test:readiness
       - name: Test Meta circuit-breaker policy
         run: node scripts/test-meta-error-policy.mjs
       - name: Validate product catalogue
@@ -69,13 +117,17 @@ jobs:
         run: node scripts/test-meta-token-health.mjs
       - name: Test Meta webhook verification
         run: node scripts/test-meta-webhook.mjs
+      - name: Test Cloudflare publisher Worker media and Meta webhook routes
+        run: node workers/nature-frontiers-publisher/worker.test.mjs
+      - name: Test Pexels source-rights registry and publication holds
+        run: node scripts/test-media-rights-review.mjs
       - name: Test pre-publish content and rights gate
         run: node scripts/test-prepublish-gate.mjs
       - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
 
   facebook-publisher:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
     needs: safety-tests
@@ -100,3 +152,51 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/publish-facebook.mjs
+
+  instagram-preflight:
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+    needs: safety-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Verify Unified Login SUAT using read-only Meta GET requests
+        env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION || 'v27.0' }}
+        run: node scripts/check-instagram-live-readiness.mjs
+
+  instagram-publisher:
+    if: github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    needs: [safety-tests, instagram-preflight]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Run fail-closed Instagram campaign publisher
+        env:
+          PUBLISH_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.live_publish_authorized == true && vars.PUBLISH_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISH_EMERGENCY_STOP: ${{ vars.PUBLISH_EMERGENCY_STOP || 'true' }}
+          PUBLISH_DRY_RUN: ${{ vars.PUBLISH_DRY_RUN || 'true' }}
+          INSTAGRAM_PUBLISH_ENABLED: ${{ vars.INSTAGRAM_PUBLISH_ENABLED || 'NO' }}
+          INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID || '17841413164146618' }}
+          INSTAGRAM_MEDIA_BASE_URL: ${{ format('https://raw.githubusercontent.com/{0}/{1}/media/instagram/', github.repository, github.sha) }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION || 'v27.0' }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/publish-instagram.mjs
