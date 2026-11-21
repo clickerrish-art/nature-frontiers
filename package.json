@@ -15,6 +15,7 @@
     "test:instagram-campaign": "node scripts/test-instagram-campaign.mjs",
     "test:instagram-media": "node scripts/test-check-instagram-media.mjs",
     "test:instagram-live-readiness": "node scripts/test-check-instagram-live-readiness.mjs",
-    "test:nature-frontiers-story": "node scripts/test-nature-frontiers-story.mjs"
+    "test:nature-frontiers-story": "node scripts/test-nature-frontiers-story.mjs",
+    "test:cloudflare-access-auth": "node workers/nature-frontiers-publisher/cloudflare-access-auth.test.mjs"
   }
 }
