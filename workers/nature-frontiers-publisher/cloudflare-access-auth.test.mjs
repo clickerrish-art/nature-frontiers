@@ -55,8 +55,11 @@ try {
   assert.equal((await verifyCloudflareAccessIdentity(requestFor(token({ nbf: now + 10 })), config, now)).status, 401);
   assert.equal((await verifyCloudflareAccessIdentity(requestFor(token({ iss: "https://attacker.cloudflareaccess.com" })), config, now)).status, 401);
   assert.equal((await verifyCloudflareAccessIdentity(requestFor(token({ aud: ["wrong-audience"] })), config, now)).status, 401);
-  assert.equal((await verifyCloudflareAccessIdentity(requestFor(token(), { alg: "none" })), config, now)).status, 401);
-  const tampered = token().replace(/.$/, "A");
+  assert.equal((await verifyCloudflareAccessIdentity(requestFor(token({}, { alg: "none" })), config, now)).status, 401);
+  const validToken = token();
+  const tokenParts = validToken.split(".");
+  tokenParts[2] = (tokenParts[2][0] === "A" ? "B" : "A") + tokenParts[2].slice(1);
+  const tampered = tokenParts.join(".");
   assert.equal((await verifyCloudflareAccessIdentity(requestFor(tampered), config, now)).status, 401);
   assert.equal((await verifyCloudflareAccessIdentity(requestFor(token({ email: "unknown@example.org" })), config, now)).status, 403);
   const rights = await verifyCloudflareAccessIdentity(requestFor(token({ email: "rights@example.org" })), config, now);
