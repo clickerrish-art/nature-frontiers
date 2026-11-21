@@ -32,7 +32,7 @@
       "format": "reel",
       "title": "The river's hidden sensors",
       "hook": "A crocodile's skin is doing more than protecting it.",
-      "narration": "Small structures called integumentary sensory organs sit in crocodilian skin. In Nile crocodiles they are especially noticeable around the jaws and are also distributed across the body. Research shows these receptors respond to mechanical stimulation. That helps explain how crocodilians detect movement and contact in water. A clip alone cannot tell us exactly what one animal sensed.",
+      "narration": "Small structures called integumentary sensory organs sit in crocodilian skin. In Nile crocodiles they are especially noticeable around the jaws and are also distributed across the body. Research shows these receptors respond to mechanical stimulation. That helps explain how crocodilians detect movement and contact in water. A clip alone cannot tell us exactly what one animal sensed. The useful takeaway is not that a crocodile detects every event in the river. It is that researchers have identified specialised receptors and tested how they respond. That distinction keeps the explanation accurate and stops a close-up from becoming an unsupported claim about a single animal. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A crocodile's skin is doing more than protecting it. Small structures called integumentary sensory organs sit in crocodilian skin. In Nile crocodiles they are especially noticeable around the jaws and are also distributed across the body. Research shows these receptors respond to mechanical stimulation. That helps explain how crocodilians detect movement and contact in water. A clip alone cannot tell us exactly what one animal sensed.",
       "carousel_outline": null,
       "source_episode": "ep1",
@@ -72,14 +72,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R02",
       "format": "reel",
       "title": "Look closely at the jaw",
       "hook": "Those tiny dots around a crocodile's jaw are not just markings.",
-      "narration": "Researchers have studied the small sensory structures around crocodilian jaws. They contain receptors that respond to mechanical stimulation, including movement and vibration. The science helps explain how crocodiles gather information from their surroundings. It does not prove that a particular head turn in a video was caused by a specific ripple. Separate what the camera shows from what research explains.",
+      "narration": "Researchers have studied the small sensory structures around crocodilian jaws. They contain receptors that respond to mechanical stimulation, including movement and vibration. The science helps explain how crocodiles gather information from their surroundings. It does not prove that a particular head turn in a video was caused by a specific ripple. Separate what the camera shows from what research explains. These structures are part of the animal's sensory system, not decoration added by the camera. Scientists examine their anatomy and response properties to understand what information may be available to a crocodile. The footage remains an illustration unless the source and the filmed behaviour can be verified. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "Those tiny dots around a crocodile's jaw are not just markings. Researchers have studied the small sensory structures around crocodilian jaws. They contain receptors that respond to mechanical stimulation, including movement and vibration. The science helps explain how crocodiles gather information from their surroundings. It does not prove that a particular head turn in a video was caused by a specific ripple. Separate what the camera shows from what research explains.",
       "carousel_outline": null,
       "source_episode": "ep1",
@@ -119,14 +124,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R03",
       "format": "reel",
       "title": "What a ripple can tell us",
       "hook": "A ripple is evidence of movement—not a window into an animal's thoughts.",
-      "narration": "Crocodilian sensory research shows that specialised receptors can respond to mechanical stimulation. That gives scientists a way to study how these animals detect movement around them. But when we watch a crocodile in the wild, we must be careful. A camera may show a turn, a ripple or a change in posture. It cannot, by itself, reveal exactly what the animal detected.",
+      "narration": "Crocodilian sensory research shows that specialised receptors can respond to mechanical stimulation. That gives scientists a way to study how these animals detect movement around them. But when we watch a crocodile in the wild, we must be careful. A camera may show a turn, a ripple or a change in posture. It cannot, by itself, reveal exactly what the animal detected. When a clip shows ripples, we can describe the water moving. When research explains how receptors respond to mechanical stimulation, we can share that science too. What we cannot do is claim that the animal reacted to a particular ripple unless the recording and evidence support that conclusion. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A ripple is evidence of movement—not a window into an animal's thoughts. Crocodilian sensory research shows that specialised receptors can respond to mechanical stimulation. That gives scientists a way to study how these animals detect movement around them. But when we watch a crocodile in the wild, we must be careful. A camera may show a turn, a ripple or a change in posture. It cannot, by itself, reveal exactly what the animal detected.",
       "carousel_outline": null,
       "source_episode": "ep1",
@@ -166,14 +176,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R04",
       "format": "reel",
       "title": "Research is not the same as footage",
       "hook": "A laboratory finding and a wildlife clip answer different questions.",
-      "narration": "Scientists can test how crocodilian sensory receptors respond under controlled conditions. A wildlife camera records an animal in its natural setting. Both are valuable, but they are not interchangeable. We can use research to explain what a crocodile may be capable of sensing without claiming that a specific filmed movement proves the animal detected a particular event.",
+      "narration": "Scientists can test how crocodilian sensory receptors respond under controlled conditions. A wildlife camera records an animal in its natural setting. Both are valuable, but they are not interchangeable. We can use research to explain what a crocodile may be capable of sensing without claiming that a specific filmed movement proves the animal detected a particular event. Controlled research helps isolate a question; field footage shows behaviour in a complex environment. Neither replaces the other. A clear label, a reliable source and careful narration let viewers understand which part is observed and which part comes from published research. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A laboratory finding and a wildlife clip answer different questions. Scientists can test how crocodilian sensory receptors respond under controlled conditions. A wildlife camera records an animal in its natural setting. Both are valuable, but they are not interchangeable. We can use research to explain what a crocodile may be capable of sensing without claiming that a specific filmed movement proves the animal detected a particular event.",
       "carousel_outline": null,
       "source_episode": "ep1",
@@ -213,14 +228,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R05",
       "format": "reel",
       "title": "Stillness is not proof of a hunt",
       "hook": "A crocodile resting near the surface is not automatically hunting.",
-      "narration": "A crocodile may rest, regulate its body temperature, move between places or wait for an opportunity. The camera records posture and movement; it does not reveal intent. Good wildlife storytelling avoids turning every quiet moment into a dramatic hunt. Describe what is visible, then use research carefully to explain behaviour without pretending the footage proves more than it does.",
+      "narration": "A crocodile may rest, regulate its body temperature, move between places or wait for an opportunity. The camera records posture and movement; it does not reveal intent. Good wildlife storytelling avoids turning every quiet moment into a dramatic hunt. Describe what is visible, then use research carefully to explain behaviour without pretending the footage proves more than it does. Look for the full context: the animal's position, the movement of the water and what happens before and after the shot. Avoid adding a sound effect or fast cut that turns ordinary movement into a false attack sequence. The best wildlife edit earns its drama honestly. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A crocodile resting near the surface is not automatically hunting. A crocodile may rest, regulate its body temperature, move between places or wait for an opportunity. The camera records posture and movement; it does not reveal intent. Good wildlife storytelling avoids turning every quiet moment into a dramatic hunt. Describe what is visible, then use research carefully to explain behaviour without pretending the footage proves more than it does.",
       "carousel_outline": null,
       "source_episode": "ep1",
@@ -260,14 +280,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R06",
       "format": "reel",
       "title": "Skin that senses",
       "hook": "A crocodile's scales are part of a much bigger sensory story.",
-      "narration": "Crocodilian skin contains specialised sensory structures known as integumentary sensory organs. Studies describe different receptor types and responses to mechanical stimulation. These findings help explain why a crocodile's skin is more than protective armour. The distribution and structure can differ among crocodilian groups, so we should avoid assuming every species has exactly the same pattern.",
+      "narration": "Crocodilian skin contains specialised sensory structures known as integumentary sensory organs. Studies describe different receptor types and responses to mechanical stimulation. These findings help explain why a crocodile's skin is more than protective armour. The distribution and structure can differ among crocodilian groups, so we should avoid assuming every species has exactly the same pattern. These findings are useful because they describe a sensory system, but they should be applied with care. Different crocodilian groups can have different patterns of sensory structures. Species identification and source quality matter before a narration moves from crocodilians in general to the Nile crocodile in particular. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A crocodile's scales are part of a much bigger sensory story. Crocodilian skin contains specialised sensory structures known as integumentary sensory organs. Studies describe different receptor types and responses to mechanical stimulation. These findings help explain why a crocodile's skin is more than protective armour. The distribution and structure can differ among crocodilian groups, so we should avoid assuming every species has exactly the same pattern.",
       "carousel_outline": null,
       "source_episode": "ep2",
@@ -307,14 +332,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R07",
       "format": "reel",
       "title": "Why scientists study the jaw",
       "hook": "The jaw is one of the easiest places to spot crocodilian sensory organs.",
-      "narration": "Small sensory structures are especially noticeable around crocodilian jaws. Research has examined their structure and how receptors respond to mechanical stimulation. Those studies help build a careful picture of how crocodiles interact with water and nearby movement. The lesson is not that every ripple triggers a visible reaction; it is that the animal has specialised ways of receiving information.",
+      "narration": "Small sensory structures are especially noticeable around crocodilian jaws. Research has examined their structure and how receptors respond to mechanical stimulation. Those studies help build a careful picture of how crocodiles interact with water and nearby movement. The lesson is not that every ripple triggers a visible reaction; it is that the animal has specialised ways of receiving information. A close-up should help viewers see a real feature, not encourage them to believe a diagram is a photograph. If an educational graphic is needed, label it clearly. If a source image is licensed stock, keep its creator and licence record and make the disclosure visible in the finished edit. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "The jaw is one of the easiest places to spot crocodilian sensory organs. Small sensory structures are especially noticeable around crocodilian jaws. Research has examined their structure and how receptors respond to mechanical stimulation. Those studies help build a careful picture of how crocodiles interact with water and nearby movement. The lesson is not that every ripple triggers a visible reaction; it is that the animal has specialised ways of receiving information.",
       "carousel_outline": null,
       "source_episode": "ep2",
@@ -354,14 +384,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R08",
       "format": "reel",
       "title": "Not every crocodilian is identical",
       "hook": "A crocodile fact needs a species—and sometimes a population—attached.",
-      "narration": "Research on crocodilian sensory structures shows that their distribution can differ among groups. That is why careful wildlife education names the species being discussed and avoids turning one study into a rule for every crocodilian. When a source clip cannot be identified confidently, describe only what is visible and keep species-specific claims out of the narration.",
+      "narration": "Research on crocodilian sensory structures shows that their distribution can differ among groups. That is why careful wildlife education names the species being discussed and avoids turning one study into a rule for every crocodilian. When a source clip cannot be identified confidently, describe only what is visible and keep species-specific claims out of the narration. Species names are not interchangeable labels. A clip that shows a crocodilian may not support a claim about a Nile crocodile unless the source record confirms it. Keep the source location and creator details, and leave a species claim out when the evidence is incomplete. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A crocodile fact needs a species—and sometimes a population—attached. Research on crocodilian sensory structures shows that their distribution can differ among groups. That is why careful wildlife education names the species being discussed and avoids turning one study into a rule for every crocodilian. When a source clip cannot be identified confidently, describe only what is visible and keep species-specific claims out of the narration.",
       "carousel_outline": null,
       "source_episode": "ep2",
@@ -401,14 +436,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R09",
       "format": "reel",
       "title": "Never stage a water disturbance",
       "hook": "A wildlife explanation should never put an animal at risk for a better shot.",
-      "narration": "Researchers can study crocodilian sensory responses without a filmmaker provoking a wild animal. Nature Frontiers' footage standards prohibit baiting, staged prey events and artificial water disturbances. A responsible edit can combine genuine behaviour with clearly labelled research explanations. The animal's welfare matters more than a dramatic demonstration.",
+      "narration": "Researchers can study crocodilian sensory responses without a filmmaker provoking a wild animal. Nature Frontiers' footage standards prohibit baiting, staged prey events and artificial water disturbances. A responsible edit can combine genuine behaviour with clearly labelled research explanations. The animal's welfare matters more than a dramatic demonstration. Wildlife should never be provoked to create a demonstration. A staged ripple or baited approach can misrepresent behaviour and put people or animals at risk. Published research provides a safer way to explain sensory biology while the footage remains a truthful record of what was actually filmed. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A wildlife explanation should never put an animal at risk for a better shot. Researchers can study crocodilian sensory responses without a filmmaker provoking a wild animal. Nature Frontiers' footage standards prohibit baiting, staged prey events and artificial water disturbances. A responsible edit can combine genuine behaviour with clearly labelled research explanations. The animal's welfare matters more than a dramatic demonstration.",
       "carousel_outline": null,
       "source_episode": "ep2",
@@ -448,14 +488,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R10",
       "format": "reel",
       "title": "A camera records movement—not thoughts",
       "hook": "The most honest wildlife narration sometimes says: we do not know.",
-      "narration": "A crocodile may turn its head or shift position while water moves nearby. Those are visible actions. The exact reason may not be visible. Research on sensory organs helps explain what crocodilians can detect, but it cannot tell us what a particular animal perceived in a particular moment. Good documentary storytelling keeps observation and interpretation separate.",
+      "narration": "A crocodile may turn its head or shift position while water moves nearby. Those are visible actions. The exact reason may not be visible. Research on sensory organs helps explain what crocodilians can detect, but it cannot tell us what a particular animal perceived in a particular moment. Good documentary storytelling keeps observation and interpretation separate. That is why we use cautious language such as 'research helps explain' rather than 'this crocodile sensed'. The difference may sound small, but it protects the viewer from being misled and respects the limits of a wildlife recording. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "The most honest wildlife narration sometimes says: we do not know. A crocodile may turn its head or shift position while water moves nearby. Those are visible actions. The exact reason may not be visible. Research on sensory organs helps explain what crocodilians can detect, but it cannot tell us what a particular animal perceived in a particular moment. Good documentary storytelling keeps observation and interpretation separate.",
       "carousel_outline": null,
       "source_episode": "ep2",
@@ -495,14 +540,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R11",
       "format": "reel",
       "title": "The tail does the heavy work",
       "hook": "When a crocodile swims, its tail provides the main forward thrust.",
-      "narration": "A Nile crocodile moves through water with powerful waves travelling along its body and tail. The tail supplies the main forward thrust, while the legs can be held close to the body. That streamlined movement helps explain how a large reptile can travel through water with controlled, efficient motion. Watch the whole sequence rather than relying on a single dramatic frame.",
+      "narration": "A Nile crocodile moves through water with powerful waves travelling along its body and tail. The tail supplies the main forward thrust, while the legs can be held close to the body. That streamlined movement helps explain how a large reptile can travel through water with controlled, efficient motion. Watch the whole sequence rather than relying on a single dramatic frame. Watch the tail and body together. A single still image cannot show how the wave travels through the animal, and unrelated clips should not be cut together as if they are one continuous swim. The source sequence is part of the evidence behind the story. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "When a crocodile swims, its tail provides the main forward thrust. A Nile crocodile moves through water with powerful waves travelling along its body and tail. The tail supplies the main forward thrust, while the legs can be held close to the body. That streamlined movement helps explain how a large reptile can travel through water with controlled, efficient motion. Watch the whole sequence rather than relying on a single dramatic frame.",
       "carousel_outline": null,
       "source_episode": "ep3",
@@ -542,14 +592,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R12",
       "format": "reel",
       "title": "The waiting is part of the hunt",
       "hook": "The strike may be brief. The patience can last much longer.",
-      "narration": "Crocodile hunting is not simply a chase. An animal may remain still near the water or shoreline and wait for an opportunity. But a resting crocodile is not automatically hunting. We should not label a scene as an ambush unless the source footage actually supports that interpretation. Context is part of the story.",
+      "narration": "Crocodile hunting is not simply a chase. An animal may remain still near the water or shoreline and wait for an opportunity. But a resting crocodile is not automatically hunting. We should not label a scene as an ambush unless the source footage actually supports that interpretation. Context is part of the story. Ambush hunting is a strategy, not a label to attach to every crocodile near the bank. A responsible edit avoids invented prey, fabricated chase sounds and misleading cuts. When the footage does not show a hunt, the narration should explain the behaviour more generally. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "The strike may be brief. The patience can last much longer. Crocodile hunting is not simply a chase. An animal may remain still near the water or shoreline and wait for an opportunity. But a resting crocodile is not automatically hunting. We should not label a scene as an ambush unless the source footage actually supports that interpretation. Context is part of the story.",
       "carousel_outline": null,
       "source_episode": "ep3",
@@ -589,14 +644,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R13",
       "format": "reel",
       "title": "Resting or hunting?",
       "hook": "A crocodile at the waterline can be doing more than one thing.",
-      "narration": "A crocodile near the surface may be resting, regulating its temperature, moving or waiting. The same posture can be interpreted too confidently when a video is edited for drama. Responsible wildlife storytelling describes the visible behaviour first and only adds a hunting explanation when the evidence supports it.",
+      "narration": "A crocodile near the surface may be resting, regulating its temperature, moving or waiting. The same posture can be interpreted too confidently when a video is edited for drama. Responsible wildlife storytelling describes the visible behaviour first and only adds a hunting explanation when the evidence supports it. Resting, thermoregulation and movement can look similar in a short clip. That is why a caption should not state an animal's intent unless the evidence supports it. Good wildlife education gives viewers the science without pretending to know what cannot be observed. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A crocodile at the waterline can be doing more than one thing. A crocodile near the surface may be resting, regulating its temperature, moving or waiting. The same posture can be interpreted too confidently when a video is edited for drama. Responsible wildlife storytelling describes the visible behaviour first and only adds a hunting explanation when the evidence supports it.",
       "carousel_outline": null,
       "source_episode": "ep3",
@@ -636,14 +696,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R14",
       "format": "reel",
       "title": "Eyes and nostrils near the surface",
       "hook": "A crocodile can keep much of its body underwater while observing its surroundings.",
-      "narration": "Nile crocodiles can position their eyes and nostrils close to the water surface while much of the body remains submerged. This can make them difficult to notice from the bank. It is an adaptation worth understanding—but it is never a reason to approach the water. Keep a safe distance from crocodile-inhabited rivers.",
+      "narration": "Nile crocodiles can position their eyes and nostrils close to the water surface while much of the body remains submerged. This can make them difficult to notice from the bank. It is an adaptation worth understanding—but it is never a reason to approach the water. Keep a safe distance from crocodile-inhabited rivers. Never use a close-up to invite viewers closer to a dangerous riverbank. Crocodiles are powerful wild animals and should be observed from a safe distance. Follow local warnings and never enter crocodile-inhabited water for a photograph or video. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A crocodile can keep much of its body underwater while observing its surroundings. Nile crocodiles can position their eyes and nostrils close to the water surface while much of the body remains submerged. This can make them difficult to notice from the bank. It is an adaptation worth understanding—but it is never a reason to approach the water. Keep a safe distance from crocodile-inhabited rivers.",
       "carousel_outline": null,
       "source_episode": "ep3",
@@ -683,14 +748,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R15",
       "format": "reel",
       "title": "The edit can change the story",
       "hook": "A real shot can still become misleading when it is taken out of context.",
-      "narration": "A dramatic wildlife clip may be genuine, but an edit can make it appear to show a hunt, a location or a sequence that the source does not support. Keep the original source file, preserve context and label illustrative footage. Nature Frontiers should never imply that stock footage was filmed by our team or that separate clips show one event.",
+      "narration": "A dramatic wildlife clip may be genuine, but an edit can make it appear to show a hunt, a location or a sequence that the source does not support. Keep the original source file, preserve context and label illustrative footage. Nature Frontiers should never imply that stock footage was filmed by our team or that separate clips show one event. Keep the creator's source file and the final edit separate in the asset register. A new crop, caption overlay or export changes the final file hash. Recheck the edit, its context and any stock disclosure after every change before asking for approval. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A real shot can still become misleading when it is taken out of context. A dramatic wildlife clip may be genuine, but an edit can make it appear to show a hunt, a location or a sequence that the source does not support. Keep the original source file, preserve context and label illustrative footage. Nature Frontiers should never imply that stock footage was filmed by our team or that separate clips show one event.",
       "carousel_outline": null,
       "source_episode": "ep3",
@@ -730,14 +800,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R16",
       "format": "reel",
       "title": "A nest is not a film set",
       "hook": "A crocodile nest should never be disturbed for a close-up.",
-      "narration": "Research can teach us about crocodile nesting without putting a nest at risk. Do not approach, handle, move or illuminate a nest to create footage. If no ethically recorded nest footage is available, use clearly disclosed habitat imagery and explain the research without pretending that the scene shows the studied nest.",
+      "narration": "Research can teach us about crocodile nesting without putting a nest at risk. Do not approach, handle, move or illuminate a nest to create footage. If no ethically recorded nest footage is available, use clearly disclosed habitat imagery and explain the research without pretending that the scene shows the studied nest. The camera-trap study is interesting because it followed nests over time without requiring a crew to approach them for a close-up. The location and sample size belong in the narration so viewers understand exactly what was observed and where the evidence came from. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A crocodile nest should never be disturbed for a close-up. Research can teach us about crocodile nesting without putting a nest at risk. Do not approach, handle, move or illuminate a nest to create footage. If no ethically recorded nest footage is available, use clearly disclosed habitat imagery and explain the research without pretending that the scene shows the studied nest.",
       "carousel_outline": null,
       "source_episode": "ep4",
@@ -777,14 +852,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R17",
       "format": "reel",
       "title": "What researchers saw at Lake St Lucia",
       "hook": "One South African study followed nineteen Nile crocodile nests.",
-      "narration": "Researchers used camera traps over four years to study nesting behaviour at Lake St Lucia. They monitored nineteen nests and recorded raids by animals including water monitors and marsh mongooses. The study also documented females returning after raids and defending nest sites. These findings describe the population studied; they should not be presented as a universal rule for every crocodile.",
+      "narration": "Researchers used camera traps over four years to study nesting behaviour at Lake St Lucia. They monitored nineteen nests and recorded raids by animals including water monitors and marsh mongooses. The study also documented females returning after raids and defending nest sites. These findings describe the population studied; they should not be presented as a universal rule for every crocodile. The study documents behaviour in a particular setting. It should not be used to promise that every female will respond in the same way, or that every nest has the same risks. Good science communication preserves the limits of the research as carefully as the headline finding. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "One South African study followed nineteen Nile crocodile nests. Researchers used camera traps over four years to study nesting behaviour at Lake St Lucia. They monitored nineteen nests and recorded raids by animals including water monitors and marsh mongooses. The study also documented females returning after raids and defending nest sites. These findings describe the population studied; they should not be presented as a universal rule for every crocodile.",
       "carousel_outline": null,
       "source_episode": "ep4",
@@ -824,14 +904,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R18",
       "format": "reel",
       "title": "A mother's return",
       "hook": "The story of a crocodile nest does not end when the eggs are laid.",
-      "narration": "In a Lake St Lucia camera-trap study, researchers recorded female Nile crocodiles returning to nest sites after raids and defending them against intruders. It is a fascinating example of behaviour documented in a particular population. We should preserve that context rather than claiming that every female crocodile behaves identically in every habitat.",
+      "narration": "In a Lake St Lucia camera-trap study, researchers recorded female Nile crocodiles returning to nest sites after raids and defending them against intruders. It is a fascinating example of behaviour documented in a particular population. We should preserve that context rather than claiming that every female crocodile behaves identically in every habitat. Do not publish precise nest coordinates, distinctive landmarks or details that could make a vulnerable site easy to locate. If the footage is licensed stock, check that the source context is ethical and that the licence permits the intended use. The disclosure must remain visible. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "The story of a crocodile nest does not end when the eggs are laid. In a Lake St Lucia camera-trap study, researchers recorded female Nile crocodiles returning to nest sites after raids and defending them against intruders. It is a fascinating example of behaviour documented in a particular population. We should preserve that context rather than claiming that every female crocodile behaves identically in every habitat.",
       "carousel_outline": null,
       "source_episode": "ep4",
@@ -871,14 +956,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R19",
       "format": "reel",
       "title": "Why nest locations stay private",
       "hook": "A good wildlife story protects the animal after the camera stops.",
-      "narration": "Nest sites can be vulnerable to disturbance. Nature Frontiers' production standard avoids revealing precise nest locations and prohibits approaching or handling nests for footage. Research findings can be explained with safe habitat visuals when ethically recorded nest footage is unavailable. Protecting wildlife is more important than revealing where a sensitive scene was filmed.",
+      "narration": "Nest sites can be vulnerable to disturbance. Nature Frontiers' production standard avoids revealing precise nest locations and prohibits approaching or handling nests for footage. Research findings can be explained with safe habitat visuals when ethically recorded nest footage is unavailable. Protecting wildlife is more important than revealing where a sensitive scene was filmed. Research is strongest when its scope is clear. A sample of nineteen nests is not the same as a survey of every Nile crocodile population. State the study area, name the method and avoid generalising beyond what the researchers actually recorded. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A good wildlife story protects the animal after the camera stops. Nest sites can be vulnerable to disturbance. Nature Frontiers' production standard avoids revealing precise nest locations and prohibits approaching or handling nests for footage. Research findings can be explained with safe habitat visuals when ethically recorded nest footage is unavailable. Protecting wildlife is more important than revealing where a sensitive scene was filmed.",
       "carousel_outline": null,
       "source_episode": "ep4",
@@ -918,14 +1008,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R20",
       "format": "reel",
       "title": "One study is not every crocodile",
       "hook": "Scientific accuracy means keeping the study's limits in the story.",
-      "narration": "The Lake St Lucia nesting research monitored nineteen nests over four years. Its observations are valuable, but they describe a specific study area and sample. We should not turn those findings into a claim about every Nile crocodile population. Naming the location and study helps viewers understand what the evidence does—and does not—show.",
+      "narration": "The Lake St Lucia nesting research monitored nineteen nests over four years. Its observations are valuable, but they describe a specific study area and sample. We should not turn those findings into a claim about every Nile crocodile population. Naming the location and study helps viewers understand what the evidence does—and does not—show. Use repeated views only when the date, location and camera position are known. If the edit combines different rivers, make that clear. A licensed stock landscape can set a scene, but it cannot stand in as proof of a local change that it did not record. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "Scientific accuracy means keeping the study's limits in the story. The Lake St Lucia nesting research monitored nineteen nests over four years. Its observations are valuable, but they describe a specific study area and sample. We should not turn those findings into a claim about every Nile crocodile population. Naming the location and study helps viewers understand what the evidence does—and does not—show.",
       "carousel_outline": null,
       "source_episode": "ep4",
@@ -965,14 +1060,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R21",
       "format": "reel",
       "title": "A river is never a fixed backdrop",
       "hook": "Water levels, channels and vegetation can change the habitat around a crocodile.",
-      "narration": "A river changes through seasons and over longer periods. Water levels rise and fall, channels shift and vegetation changes the shoreline. Crocodiles use aquatic and nearby terrestrial habitats, so the landscape around them matters. Avoid claiming that a single clip proves a seasonal trend; comparisons need dates and a verified location.",
+      "narration": "A river changes through seasons and over longer periods. Water levels rise and fall, channels shift and vegetation changes the shoreline. Crocodiles use aquatic and nearby terrestrial habitats, so the landscape around them matters. Avoid claiming that a single clip proves a seasonal trend; comparisons need dates and a verified location. Size class is one factor researchers examine when they study habitat use. It does not, by itself, explain every movement. Keep the Lake Albert delta study attached to its findings and do not extend those observations to other rivers without separate evidence. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "Water levels, channels and vegetation can change the habitat around a crocodile. A river changes through seasons and over longer periods. Water levels rise and fall, channels shift and vegetation changes the shoreline. Crocodiles use aquatic and nearby terrestrial habitats, so the landscape around them matters. Avoid claiming that a single clip proves a seasonal trend; comparisons need dates and a verified location.",
       "carousel_outline": null,
       "source_episode": "ep5",
@@ -1011,14 +1111,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R22",
       "format": "reel",
       "title": "Size can shape habitat use",
       "hook": "Young and large crocodiles may use different parts of a habitat.",
-      "narration": "A study in the Lake Albert delta examined Nile crocodile habitat use across different size classes and seasonal activity patterns. The researchers reported differences in habitat use, while noting that the reasons can be complex. Food, competition and risk may all matter. Do not turn this study into a claim about migration or drought without evidence.",
+      "narration": "A study in the Lake Albert delta examined Nile crocodile habitat use across different size classes and seasonal activity patterns. The researchers reported differences in habitat use, while noting that the reasons can be complex. Food, competition and risk may all matter. Do not turn this study into a claim about migration or drought without evidence. Seasonal activity is not automatically migration. A change in sightings may have several possible explanations, and the study itself discusses complexity. Use the published result, name the study area and resist adding a dramatic cause that has not been demonstrated. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "Young and large crocodiles may use different parts of a habitat. A study in the Lake Albert delta examined Nile crocodile habitat use across different size classes and seasonal activity patterns. The researchers reported differences in habitat use, while noting that the reasons can be complex. Food, competition and risk may all matter. Do not turn this study into a claim about migration or drought without evidence.",
       "carousel_outline": null,
       "source_episode": "ep5",
@@ -1057,14 +1162,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R23",
       "format": "reel",
       "title": "Seasonal patterns need context",
       "hook": "A change in sightings does not automatically mean migration.",
-      "narration": "Researchers studying Nile crocodiles in the Lake Albert delta examined seasonal activity and habitat use. Their findings show why timing and habitat matter, but an observed change should not automatically be labelled migration or blamed on drought. Those explanations require their own evidence. In wildlife storytelling, the careful answer is often more interesting than the dramatic guess.",
+      "narration": "Researchers studying Nile crocodiles in the Lake Albert delta examined seasonal activity and habitat use. Their findings show why timing and habitat matter, but an observed change should not automatically be labelled migration or blamed on drought. Those explanations require their own evidence. In wildlife storytelling, the careful answer is often more interesting than the dramatic guess. A fair comparison needs more than two attractive river shots. It needs reliable dates, a known location and a consistent viewpoint. If those details are missing, describe the footage as illustrative habitat rather than evidence of a change at a particular site. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A change in sightings does not automatically mean migration. Researchers studying Nile crocodiles in the Lake Albert delta examined seasonal activity and habitat use. Their findings show why timing and habitat matter, but an observed change should not automatically be labelled migration or blamed on drought. Those explanations require their own evidence. In wildlife storytelling, the careful answer is often more interesting than the dramatic guess.",
       "carousel_outline": null,
       "source_episode": "ep5",
@@ -1103,14 +1213,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R24",
       "format": "reel",
       "title": "The same viewpoint matters",
       "hook": "A fair habitat comparison starts with the same place and a known date.",
-      "narration": "If we want to show a river changing, we need reliable comparisons. The location, date and camera position should be documented, and the views should be genuinely comparable. A generic stock river shot can illustrate habitat, but it cannot prove what happened at a specific study site. Label illustrative footage clearly and keep the evidence attached to the edit.",
+      "narration": "If we want to show a river changing, we need reliable comparisons. The location, date and camera position should be documented, and the views should be genuinely comparable. A generic stock river shot can illustrate habitat, but it cannot prove what happened at a specific study site. Label illustrative footage clearly and keep the evidence attached to the edit. Assessment labels make sense only when viewers know who assessed the species, when the assessment was made and what geographic area it covers. Put those details on screen or in the caption so a global category is not mistaken for a local guarantee. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A fair habitat comparison starts with the same place and a known date. If we want to show a river changing, we need reliable comparisons. The location, date and camera position should be documented, and the views should be genuinely comparable. A generic stock river shot can illustrate habitat, but it cannot prove what happened at a specific study site. Label illustrative footage clearly and keep the evidence attached to the edit.",
       "carousel_outline": null,
       "source_episode": "ep5",
@@ -1149,14 +1264,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R25",
       "format": "reel",
       "title": "Global status, local risk",
       "hook": "One conservation category cannot describe every river.",
-      "narration": "The IUCN Crocodile Specialist Group lists the Nile crocodile as Least Concern in its global summary, based on the 2017 assessment. South Africa's national biodiversity assessment listed the species as Vulnerable in 2017. These assessments operate at different geographic scales. A global category does not mean every local population is secure.",
+      "narration": "The IUCN Crocodile Specialist Group lists the Nile crocodile as Least Concern in its global summary, based on the 2017 assessment. South Africa's national biodiversity assessment listed the species as Vulnerable in 2017. These assessments operate at different geographic scales. A global category does not mean every local population is secure. Local conservation decisions depend on local evidence. A national assessment may identify pressures that are not visible in a global summary. The responsible message is not that one category is wrong; it is that each assessment answers a different question. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "One conservation category cannot describe every river. The IUCN Crocodile Specialist Group lists the Nile crocodile as Least Concern in its global summary, based on the 2017 assessment. South Africa's national biodiversity assessment listed the species as Vulnerable in 2017. These assessments operate at different geographic scales. A global category does not mean every local population is secure.",
       "carousel_outline": null,
       "source_episode": "ep6",
@@ -1197,14 +1317,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R26",
       "format": "reel",
       "title": "Why the map matters",
       "hook": "A species can be widespread and still face local pressures.",
-      "narration": "Conservation status depends on the scale of the assessment. A global assessment and a national assessment can reach different categories because they examine different populations, pressures and geographic areas. For the Nile crocodile, the global 2017 summary and South Africa's 2017 assessment illustrate why the location and date must accompany a conservation claim.",
+      "narration": "Conservation status depends on the scale of the assessment. A global assessment and a national assessment can reach different categories because they examine different populations, pressures and geographic areas. For the Nile crocodile, the global 2017 summary and South Africa's 2017 assessment illustrate why the location and date must accompany a conservation claim. Use the full assessment name and date rather than a cropped graphic with only the category. Viewers deserve to know whether a statement is global, national or local. That context is especially important when a short video compresses a complicated conservation issue. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A species can be widespread and still face local pressures. Conservation status depends on the scale of the assessment. A global assessment and a national assessment can reach different categories because they examine different populations, pressures and geographic areas. For the Nile crocodile, the global 2017 summary and South Africa's 2017 assessment illustrate why the location and date must accompany a conservation claim.",
       "carousel_outline": null,
       "source_episode": "ep6",
@@ -1245,14 +1370,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R27",
       "format": "reel",
       "title": "What a status label cannot tell you",
       "hook": "Least Concern does not mean every local population is safe.",
-      "narration": "The Nile crocodile's global status summary and South Africa's national assessment use different scales. That distinction matters. A category is a summary of evidence, not a promise that every river or wetland is free from risk. Responsible conservation communication names the assessment, the date and the geographic area it covers.",
+      "narration": "The Nile crocodile's global status summary and South Africa's national assessment use different scales. That distinction matters. A category is a summary of evidence, not a promise that every river or wetland is free from risk. Responsible conservation communication names the assessment, the date and the geographic area it covers. An honest wildlife story can still be compelling. It can show a remarkable animal, explain a research finding and admit what the footage cannot prove. Source records and clear disclosures do not weaken the story; they make it trustworthy. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "Least Concern does not mean every local population is safe. The Nile crocodile's global status summary and South Africa's national assessment use different scales. That distinction matters. A category is a summary of evidence, not a promise that every river or wetland is free from risk. Responsible conservation communication names the assessment, the date and the geographic area it covers.",
       "carousel_outline": null,
       "source_episode": "ep6",
@@ -1293,14 +1423,19 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-R28",
       "format": "reel",
       "title": "Evidence before drama",
       "hook": "A conservation claim needs a source, a date and a place.",
-      "narration": "Before a wildlife video says a population is declining, a habitat is threatened or a species is recovering, the claim needs evidence. The Nile crocodile assessments show why scale matters: global and national evaluations can differ. Nature Frontiers will identify the source and date rather than turn a dramatic stock montage into a claim about a real population.",
+      "narration": "Before a wildlife video says a population is declining, a habitat is threatened or a species is recovering, the claim needs evidence. The Nile crocodile assessments show why scale matters: global and national evaluations can differ. Nature Frontiers will identify the source and date rather than turn a dramatic stock montage into a claim about a real population. Before a short clip is approved, check that its hook, narration, footage and caption all tell the same truthful story. If a source does not support a detail, remove the detail rather than filling the gap with an assumption. Accuracy is part of the creative work. Follow Nature Frontiers on Facebook and Instagram for more evidence-led wildlife stories that respect the animals and the limits of the footage.",
       "caption": "A conservation claim needs a source, a date and a place. Before a wildlife video says a population is declining, a habitat is threatened or a species is recovering, the claim needs evidence. The Nile crocodile assessments show why scale matters: global and national evaluations can differ. Nature Frontiers will identify the source and date rather than turn a dramatic stock montage into a claim about a real population.",
       "carousel_outline": null,
       "source_episode": "ep6",
@@ -1341,7 +1476,12 @@
         "If stock is used, render visible stock disclosure and bind its review to the final media SHA-256",
         "Complete factual, wildlife-welfare, non-graphic, technical, accessibility and watermark reviews",
         "Record human approval against the exact final media SHA-256"
-      ]
+      ],
+      "target_duration_seconds": 55,
+      "narration_word_target": {
+        "min": 100,
+        "max": 140
+      }
     },
     {
       "id": "NF-WE-F01",
