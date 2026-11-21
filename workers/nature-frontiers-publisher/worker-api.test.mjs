@@ -279,6 +279,16 @@ const wrongAccount = await call("/api/publication-reservations", "POST", {
 });
 assert.equal(wrongAccount.status, 409);
 
+const ownedRights = database.prepare("SELECT source_url, license_reference FROM media_rights WHERE media_sha256 = ?").get(mediaHash);
+database.prepare("UPDATE media_rights SET source_url = NULL, license_reference = NULL WHERE media_sha256 = ?").run(mediaHash);
+const unsubstantiatedOwnedReservation = await call("/api/publication-reservations", "POST", {
+  content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
+  idempotency_key: "reservation-unsubstantiated-owned", media_sha256: mediaHash
+});
+assert.equal(unsubstantiatedOwnedReservation.status, 409);
+database.prepare("UPDATE media_rights SET source_url = ?, license_reference = ? WHERE media_sha256 = ?")
+  .run(ownedRights.source_url, ownedRights.license_reference, mediaHash);
+
 const reservationBody = {
   content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
   idempotency_key: "reservation-crocodile-001", media_sha256: mediaHash
