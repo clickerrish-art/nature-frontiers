@@ -8,7 +8,7 @@ const makeRequest = (path, method = "GET", init = {}) => new Request(`https://pu
 const env = {
   DB: { prepare: (sql) => ({ all: async () => {
     assert.match(sql, /meta_webhook_events/);
-    return { results: ["content_items", "approvals", "audit_events", "content_targets", "media_rights", "publication_attempts", "meta_webhook_events"].map((name) => ({ name })) };
+    return { results: ["content_items", "approvals", "audit_events", "content_targets", "media_rights", "media_evidence", "publication_attempts", "meta_webhook_events"].map((name) => ({ name })) };
   } }) },
   ASSETS: { fetch: async (request) => {
     assert.equal(request.method, "GET", "the Worker must fetch complete bytes to verify the hash, including for HEAD requests");
