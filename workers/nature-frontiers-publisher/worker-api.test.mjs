@@ -488,7 +488,7 @@ assert.equal(expiredRights.status, 400);
 const list = await call("/api/content", "GET");
 assert.equal(list.status, 200);
 const listJson = await list.json();
-assert.equal(listJson.items.length, 3);
+assert.equal(listJson.items.length, 4);
 
 const counts = database.prepare("SELECT event_type, COUNT(*) AS count FROM audit_events GROUP BY event_type ORDER BY event_type").all();
 assert.ok(counts.some((row) => row.event_type === "publication.confirmed" && row.count === 1));
