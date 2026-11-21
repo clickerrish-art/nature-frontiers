@@ -46,6 +46,8 @@ jobs:
         run: node workers/nature-frontiers-publisher/worker-api.test.mjs
       - name: Test Cloudflare Access JWT identity and role verification
         run: npm run test:cloudflare-access-auth
+      - name: Test Cloudflare Access publisher route enforcement and revocation
+        run: npm run test:cloudflare-access-integration
       - name: Test Meta webhook verifier
         run: npm run test:meta-webhook
       - name: Test Instagram API and campaign gates
