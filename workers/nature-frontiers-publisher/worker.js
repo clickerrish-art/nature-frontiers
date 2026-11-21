@@ -160,7 +160,7 @@ function validRightsRecord(record, now = Date.now()) {
   if (!record.verified_by || !record.verified_at || !Number.isFinite(Date.parse(record.verified_at))) return false;
   if (record.expires_at && (!Number.isFinite(Date.parse(record.expires_at)) || Date.parse(record.expires_at) <= now)) return false;
   if (record.rights_status === "licensed" && (!record.rights_holder || !record.source_url || !safePublicHttps(record.source_url) || !record.license_reference)) return false;
-  if (record.rights_status === "owned" && !record.rights_holder) return false;
+  if (record.rights_status === "owned" && (!record.rights_holder || !record.source_url || !safePublicHttps(record.source_url) || !record.license_reference)) return false;
   if (record.rights_status === "public_domain" && (!record.source_url || !safePublicHttps(record.source_url) || !record.license_reference)) return false;
   return true;
 }
