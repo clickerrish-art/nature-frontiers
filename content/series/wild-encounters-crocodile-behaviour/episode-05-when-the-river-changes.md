@@ -18,7 +18,7 @@ A study in the Lake Albert delta in East Africa examined habitat use across diff
 
 This is an important distinction. A pattern recorded in one river system does not automatically describe every crocodile population across Africa. The local habitat, climate, prey community and human pressures all matter.
 
-**[VISUAL REQUIREMENT: Use original footage with a documented location and date. If showing water-level change, the comparison must come from the same location and be accurately dated. Do not use unrelated river footage to imply a seasonal change at the filming site.]**
+**[VISUAL REQUIREMENT: For a same-location water-level comparison, use location- and date-verified original camera footage from that same viewpoint. Properly licensed stock may be used only as clearly disclosed illustrative habitat footage; never use unrelated stock to imply seasonal change at the study or filming site.]**
 
 For a wildlife filmmaker, this creates an opportunity to tell a more complete story. Instead of presenting a crocodile as an isolated animal, show the habitat around it. Record the waterline, banks, vegetation and other visible features. Return to the same viewpoint when possible. A repeated camera position can reveal change without needing exaggerated narration.
 
