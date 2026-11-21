@@ -195,16 +195,50 @@ async function apiBody(request) {
   } catch { return { error: "invalid_json", status: 400 }; }
 }
 
-async function handlePublisherApi(request, env) {
-  if (!env.PUBLISHER_API_TOKEN) return json({ ok: false, error: "publisher_api_not_configured" }, 503);
+const PUBLISHER_ROLE_CONFIG = Object.freeze({
+  editor: ["PUBLISHER_EDITOR_TOKEN", "PUBLISHER_EDITOR_ACTOR"],
+  rights_reviewer: ["PUBLISHER_RIGHTS_REVIEWER_TOKEN", "PUBLISHER_RIGHTS_REVIEWER_ACTOR"],
+  provenance_reviewer: ["PUBLISHER_PROVENANCE_REVIEWER_TOKEN", "PUBLISHER_PROVENANCE_REVIEWER_ACTOR"],
+  editorial_reviewer: ["PUBLISHER_EDITORIAL_REVIEWER_TOKEN", "PUBLISHER_EDITORIAL_REVIEWER_ACTOR"],
+  owner_approver: ["PUBLISHER_OWNER_APPROVER_TOKEN", "PUBLISHER_OWNER_APPROVER_ACTOR"],
+  publishing_operator: ["PUBLISHER_PUBLISHING_OPERATOR_TOKEN", "PUBLISHER_PUBLISHING_OPERATOR_ACTOR"]
+});
+function publisherRouteRole(parts, method) {
+  if (parts.length === 2 && parts[1] === "content" && method === "GET") return "read";
+  if (parts.length === 3 && parts[1] === "content" && method === "GET") return "read";
+  if (parts.length === 2 && parts[1] === "content" && method === "POST") return "editor";
+  if (parts.length === 4 && parts[1] === "content" && parts[3] === "educational-story" && method === "PUT") return "editor";
+  if (parts.length === 4 && parts[1] === "content" && parts[3] === "rights" && method === "PUT") return "rights_reviewer";
+  if (parts.length === 4 && parts[1] === "content" && parts[3] === "media-evidence" && method === "PUT") return "provenance_reviewer";
+  if (parts.length === 4 && parts[1] === "content" && parts[3] === "review-evidence" && method === "PUT") return "editorial_reviewer";
+  if (parts.length === 4 && parts[1] === "content" && parts[3] === "submit-review" && method === "POST") return "editor";
+  if (parts.length === 4 && parts[1] === "content" && parts[3] === "approval" && method === "POST") return "owner_approver";
+  if (parts.length === 2 && parts[1] === "publication-reservations" && method === "POST") return "publishing_operator";
+  if (parts.length === 4 && parts[1] === "publication-attempts" && parts[3] === "reconcile" && method === "POST") return "publishing_operator";
+  return null;
+}
+function authenticatePublisherRole(request, env, requiredRole) {
+  const configured = Object.entries(PUBLISHER_ROLE_CONFIG).map(([role, [tokenKey, actorKey]]) => ({ role, token: env[tokenKey], actor: env[actorKey] }));
+  if (configured.some((entry) => typeof entry.token !== "string" || entry.token.length < 32 || typeof entry.actor !== "string" || !entry.actor.trim()) ||
+      new Set(configured.map((entry) => entry.token)).size !== configured.length) return { error: "publisher_role_auth_not_configured", status: 503 };
   const authorization = request.headers.get("authorization") || "";
   const supplied = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  if (!constantTimeEqual(supplied, env.PUBLISHER_API_TOKEN)) return json({ ok: false, error: "unauthorized" }, 401);
+  const matches = configured.filter((entry) => constantTimeEqual(supplied, entry.token));
+  if (matches.length !== 1) return { error: "unauthorized", status: 401 };
+  const identity = matches[0];
+  if (requiredRole !== "read" && identity.role !== requiredRole) return { error: "forbidden", status: 403 };
+  return { identity: { role: identity.role, actor: identity.actor.trim() } };
+}
+async function handlePublisherApi(request, env) {
   if (!env.DB) return json({ ok: false, error: "database_unavailable" }, 503);
-
   const url = new URL(request.url);
   const parts = url.pathname.split("/").filter(Boolean);
   const method = request.method;
+  const requiredRole = publisherRouteRole(parts, method);
+  if (!requiredRole) return json({ ok: false, error: "route_not_authorized" }, 403);
+  const authentication = authenticatePublisherRole(request, env, requiredRole);
+  if (authentication.error) return json({ ok: false, error: authentication.error }, authentication.status);
+  const identity = authentication.identity;
   const timestamp = new Date().toISOString();
   const bodyResult = ["POST", "PUT"].includes(method) ? await apiBody(request) : null;
   if (bodyResult?.error) return json({ ok: false, error: bodyResult.error }, bodyResult.status);
@@ -289,8 +323,8 @@ async function handlePublisherApi(request, env) {
       }
       const record = {
         rights_status: status, rights_holder: body.rights_holder || null, source_url: body.source_url || null,
-        license_reference: body.license_reference || null, verified_by: body.verified_by || null,
-        verified_at: body.verified_at || null, expires_at: body.expires_at || null
+        license_reference: body.license_reference || null, verified_by: identity.actor,
+        verified_at: timestamp, expires_at: body.expires_at || null
       };
       if (["licensed", "owned", "public_domain"].includes(status) && !validRightsRecord(record)) {
         return json({ ok: false, error: "rights_evidence_incomplete_or_expired" }, 400);
@@ -302,7 +336,7 @@ async function handlePublisherApi(request, env) {
         apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
         apiStatement(env, "DELETE FROM media_evidence WHERE media_sha256 = ?", [mediaHash]),
         apiStatement(env, "DELETE FROM review_evidence WHERE content_id = ?", [item.id]),
-        auditStatement(env, "media.rights_updated", item.id, "publisher_api", { media_sha256: mediaHash, rights_status: status, verified_by: record.verified_by }, timestamp)
+        auditStatement(env, "media.rights_updated", item.id, identity.actor, { media_sha256: mediaHash, rights_status: status, verified_by: record.verified_by }, timestamp)
       ]);
       if (results.some((result) => result?.success !== true)) return json({ ok: false, error: "rights_persistence_failed" }, 503);
       return json({ ok: true, content_id: item.id, rights_status: status });
@@ -316,8 +350,7 @@ async function handlePublisherApi(request, env) {
       const origin = body.media_origin;
       const rights = await apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]);
       if (mediaHash !== item.media_sha256 || body.synthetic_visuals !== false || body.ai_generated_video !== false ||
-          body.provenance_review_passed !== true || typeof body.provenance_reviewer !== "string" || !body.provenance_reviewer.trim() ||
-          typeof body.provenance_reviewed_at !== "string" || !Number.isFinite(Date.parse(body.provenance_reviewed_at)) ||
+          body.provenance_review_passed !== true ||
           !validRightsRecord(rights)) {
         return json({ ok: false, error: "media_provenance_or_rights_evidence_invalid" }, 400);
       }
@@ -331,12 +364,12 @@ async function handlePublisherApi(request, env) {
       const results = await apiBatch(env, [
         apiStatement(env, "INSERT INTO media_evidence (media_sha256, media_origin, stock_footage_used, synthetic_visuals, ai_generated_video, source_creator, license_name, license_evidence_url, source_recording_id, original_camera_file_sha256, original_recording_retained, provenance_review_passed, provenance_reviewer, provenance_reviewed_at, on_screen_disclosure_text, on_screen_disclosure_media_sha256, caption_attribution, created_at) VALUES (?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?) ON CONFLICT(media_sha256) DO UPDATE SET media_origin=excluded.media_origin, stock_footage_used=excluded.stock_footage_used, synthetic_visuals=0, ai_generated_video=0, source_creator=excluded.source_creator, license_name=excluded.license_name, license_evidence_url=excluded.license_evidence_url, source_recording_id=excluded.source_recording_id, original_camera_file_sha256=excluded.original_camera_file_sha256, original_recording_retained=excluded.original_recording_retained, provenance_review_passed=1, provenance_reviewer=excluded.provenance_reviewer, provenance_reviewed_at=excluded.provenance_reviewed_at, on_screen_disclosure_text=excluded.on_screen_disclosure_text, on_screen_disclosure_media_sha256=excluded.on_screen_disclosure_media_sha256, caption_attribution=excluded.caption_attribution, created_at=excluded.created_at",
           [mediaHash, origin, 0, null, null, null,
-            body.source_recording_id || null, body.original_camera_file_sha256 || null, original ? 1 : null, body.provenance_reviewer.trim(),
-            body.provenance_reviewed_at, body.on_screen_disclosure_text || null, body.on_screen_disclosure_media_sha256 || null,
+            body.source_recording_id || null, body.original_camera_file_sha256 || null, original ? 1 : null, identity.actor,
+            timestamp, body.on_screen_disclosure_text || null, body.on_screen_disclosure_media_sha256 || null,
             body.caption_attribution || null, timestamp]),
         apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
         apiStatement(env, "DELETE FROM review_evidence WHERE content_id = ?", [item.id]),
-        auditStatement(env, "media.provenance_reviewed", item.id, body.provenance_reviewer.trim(), { media_sha256: mediaHash, media_origin: origin }, timestamp)
+        auditStatement(env, "media.provenance_reviewed", item.id, identity.actor, { media_sha256: mediaHash, media_origin: origin }, timestamp)
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "media_evidence_persistence_failed" }, 503);
       return json({ ok: true, content_id: item.id, media_origin: origin, media_sha256: mediaHash });
@@ -352,16 +385,15 @@ async function handlePublisherApi(request, env) {
         "non_graphic_review_passed", "media_integrity_review_passed", "media_technical_review_passed",
         "watermark_scan_passed", "media_accessibility_confirmed", "script_originality_confirmed",
         "voiceover_originality_confirmed"];
-      const reviewer = typeof body.reviewer === "string" ? body.reviewer.trim() : "";
+      const reviewer = identity.actor;
       if (mediaHash !== item.media_sha256 || !reviewer || reviewer.length > 200 ||
-          typeof body.reviewed_at !== "string" || !Number.isFinite(Date.parse(body.reviewed_at)) ||
           fields.some((field) => body[field] !== true)) {
         return json({ ok: false, error: "exact_hash_human_editorial_and_safety_review_required" }, 400);
       }
       const values = fields.map(() => 1);
       const results = await apiBatch(env, [
         apiStatement(env, "INSERT INTO review_evidence (content_id, content_sha256, educational_story_sha256, human_review_confirmed, content_accuracy_confirmed, wildlife_welfare_confirmed, non_graphic_review_passed, media_integrity_review_passed, media_technical_review_passed, watermark_scan_passed, media_accessibility_confirmed, script_originality_confirmed, voiceover_originality_confirmed, reviewer, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(content_id, content_sha256) DO UPDATE SET educational_story_sha256=excluded.educational_story_sha256, human_review_confirmed=excluded.human_review_confirmed, content_accuracy_confirmed=excluded.content_accuracy_confirmed, wildlife_welfare_confirmed=excluded.wildlife_welfare_confirmed, non_graphic_review_passed=excluded.non_graphic_review_passed, media_integrity_review_passed=excluded.media_integrity_review_passed, media_technical_review_passed=excluded.media_technical_review_passed, watermark_scan_passed=excluded.watermark_scan_passed, media_accessibility_confirmed=excluded.media_accessibility_confirmed, script_originality_confirmed=excluded.script_originality_confirmed, voiceover_originality_confirmed=excluded.voiceover_originality_confirmed, reviewer=excluded.reviewer, reviewed_at=excluded.reviewed_at",
-          [item.id, mediaHash, item.educational_story_sha256, ...values, reviewer, body.reviewed_at]),
+          [item.id, mediaHash, item.educational_story_sha256, ...values, reviewer, timestamp]),
         apiStatement(env, "UPDATE content_items SET status = 'held', updated_at = ? WHERE id = ? AND status IN ('needs_review','approved','scheduled')", [timestamp, item.id]),
         auditStatement(env, "content.review_evidence_recorded", item.id, reviewer, { content_sha256: mediaHash, review_checks: fields.length }, timestamp)
       ]);
@@ -386,7 +418,7 @@ async function handlePublisherApi(request, env) {
       }
       const results = await apiBatch(env, [
         apiStatement(env, "UPDATE content_items SET status = 'needs_review', updated_at = ? WHERE id = ? AND status IN ('draft','held','failed')", [timestamp, item.id]),
-        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'content.submitted_for_review', ?, 'publisher_api', ?, ? WHERE EXISTS (SELECT 1 FROM content_items WHERE id = ? AND status = 'needs_review')",
+        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'content.submitted_for_review', ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM content_items WHERE id = ? AND status = 'needs_review')",
           [crypto.randomUUID(), item.id, JSON.stringify({ media_sha256: item.media_sha256 }), timestamp, item.id])
       ]);
       if (results[0]?.meta?.changes !== 1) return json({ ok: false, error: "content_not_in_submittable_state" }, 409);
@@ -485,7 +517,7 @@ async function handlePublisherApi(request, env) {
           [contentId, platform, accountId, reservationId]),
         apiStatement(env, "UPDATE content_items SET status = 'publishing', updated_at = ? WHERE id = ? AND status = 'approved' AND EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved')",
           [timestamp, contentId, reservationId]),
-        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'publication.reserved', ?, 'publisher_api', ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved')",
+        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'publication.reserved', ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved')",
           [crypto.randomUUID(), contentId, JSON.stringify({ platform, account_id: accountId, media_sha256: item.media_sha256, educational_story_sha256: item.educational_story_sha256, reservation_id: reservationId }), timestamp, reservationId])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1 || results[2]?.meta?.changes !== 1) {
@@ -522,7 +554,7 @@ async function handlePublisherApi(request, env) {
           [targetStatus, remoteId, body.outcome === "confirmed" ? timestamp : null, attempt.content_id, attempt.platform, attemptId, body.outcome]),
         apiStatement(env, "UPDATE content_items SET status = ?, updated_at = ? WHERE id = ? AND status IN ('publishing','held') AND EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = ?)",
           [contentStatus, timestamp, attempt.content_id, attemptId, body.outcome]),
-        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, ?, ?, 'publisher_api', ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = ?)",
+        apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = ?)",
           [crypto.randomUUID(), "publication." + body.outcome, attempt.content_id, JSON.stringify({ reservation_id: attemptId, platform: attempt.platform, platform_post_id: remoteId, error_code: body.error_code || null }), timestamp, attemptId, body.outcome])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1 || results[2]?.meta?.changes !== 1) {
