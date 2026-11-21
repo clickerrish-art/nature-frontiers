@@ -1,4 +1,5 @@
 name: Nature Frontiers publishing (gated)
+# PR validation includes the owner-bound Meta destination identity guards and read-only preflights.
 
 on:
   workflow_dispatch:
@@ -11,6 +12,9 @@ on:
   pull_request:
     paths:
       - "scripts/publish-facebook.mjs"
+      - "scripts/platform-identity.mjs"
+      - "scripts/check-facebook-live-readiness.mjs"
+      - "scripts/test-check-facebook-live-readiness.mjs"
       - "scripts/instagram-api.mjs"
       - "scripts/instagram-runtime-api.mjs"
       - "scripts/instagram-campaign-gate.mjs"
@@ -115,6 +119,8 @@ jobs:
         run: node scripts/validate-campaign.mjs
       - name: Test Meta token health assessment
         run: node scripts/test-meta-token-health.mjs
+      - name: Test read-only Facebook Page identity verification
+        run: npm run test:facebook-live-readiness
       - name: Test Meta webhook verification
         run: node scripts/test-meta-webhook.mjs
       - name: Test Cloudflare publisher Worker media and Meta webhook routes

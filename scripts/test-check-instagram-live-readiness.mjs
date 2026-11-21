@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { checkInstagramLiveReadiness } from "./check-instagram-live-readiness.mjs";
 
-const base = { apiVersion: "v27.0", instagramUserId: "17841413164146618", accessToken: "fake-token" };
+const base = { apiVersion: "v27.0", instagramUserId: "17841413164146618", expectedInstagramUserId: "17841413164146618", accessToken: "fake-token" };
 function fakeFetch(responses, calls) {
   return async (url, options) => {
     calls.push({ url, options });
@@ -36,8 +36,16 @@ const tests = [
       { body: { data: [{ permission: "instagram_basic", status: "granted" }, { permission: "instagram_content_publish", status: "granted" }] } },
       { body: { id: "17841400000000000" } }
     ], calls);
-    await assert.rejects(() => checkInstagramLiveReadiness({ ...base, fetchImpl }), /different Instagram account ID/);
+    await assert.rejects(() => checkInstagramLiveReadiness({ ...base, fetchImpl }), /different from the owner-approved expected ID/);
     assert.equal(calls.length, 2);
+  }],
+  ["wrong configured Instagram destination is blocked before network calls", async () => {
+    let called = false;
+    await assert.rejects(() => checkInstagramLiveReadiness({
+      ...base, expectedInstagramUserId: "17841400000000000",
+      fetchImpl: async () => { called = true; }
+    }), /does not match the owner-approved expected ID/);
+    assert.equal(called, false);
   }],
   ["missing token is blocked without network request", async () => {
     let called = false;

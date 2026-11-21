@@ -1,0 +1,67 @@
+name: Nature Frontiers durable publisher Worker validation
+# PR validation includes the owner-bound Meta destination identity guards and read-only preflights.
+
+on:
+  push:
+    branches:
+      - codex/nf-durable-publisher-api
+    paths:
+      - "workers/nature-frontiers-publisher/**"
+      - "scripts/**"
+      - "package.json"
+      - ".github/workflows/publisher-worker-validation.yml"
+  pull_request:
+    branches:
+      - codex/instagram-unified-login-setup
+    paths:
+      - "workers/nature-frontiers-publisher/**"
+      - "scripts/**"
+      - "package.json"
+      - ".github/workflows/publisher-worker-validation.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nature-frontiers-worker-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  worker-and-platform-safety:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Validate catalogue
+        run: node scripts/validate-campaign.mjs
+      - name: Test Nature Frontiers educational story gate
+        run: npm run test:nature-frontiers-story
+      - name: Check Worker syntax
+        run: node --check workers/nature-frontiers-publisher/worker.js
+      - name: Test health, media and signed Meta webhook routes
+        run: node workers/nature-frontiers-publisher/worker.test.mjs
+      - name: Test SQLite-backed content, rights, approvals and durable reservation API
+        run: node workers/nature-frontiers-publisher/worker-api.test.mjs
+      - name: Test Cloudflare Access JWT identity and role verification
+        run: npm run test:cloudflare-access-auth
+      - name: Test Cloudflare Access publisher route enforcement and revocation
+        run: npm run test:cloudflare-access-integration
+      - name: Test Meta webhook verifier
+        run: npm run test:meta-webhook
+      - name: Test Instagram API and campaign gates
+        run: npm run test:instagram-api && npm run test:instagram-campaign
+      - name: Test Instagram media and read-only readiness contracts
+        run: npm run test:instagram-media && npm run test:instagram-live-readiness
+      - name: Test cross-platform prepublish gate
+        run: npm run test:prepublish
+      - name: Test fail-closed publishing controls
+        run: npm run test:publishing
+      - name: Ensure no live credentials are exposed to CI
+        run: |
+          test -z "${PUBLISHER_API_TOKEN:-}"
+          test -z "${META_PAGE_ACCESS_TOKEN:-}"
+          test -z "${INSTAGRAM_ACCESS_TOKEN:-}"
+          echo "No publisher or Meta credentials are exposed to this test job."

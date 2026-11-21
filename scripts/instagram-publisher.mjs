@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { validateInstagramCampaign } from "./instagram-campaign-gate.mjs";
 
 const fingerprint = (campaign, gate) => createHash("sha256")
-  .update(JSON.stringify({ destination: campaign.destination, caption_sha256: gate.caption_sha256, media_sha256: gate.media_sha256 }))
+  .update(JSON.stringify({ destination: campaign.destination, caption_sha256: gate.caption_sha256, educational_story_sha256: gate.educational_story_sha256, media_sha256: gate.media_sha256 }))
   .digest("hex");
 
 function fail(code, message) { return { ok: false, code, message }; }

@@ -5,6 +5,21 @@ const repo = process.env.GITHUB_REPOSITORY ?? "";
 const githubToken = process.env.GITHUB_TOKEN ?? "";
 const alertTitle = "Meta token health requires owner action";
 
+export function classifyMetaDebugTokenFailure(status, payload = {}) {
+  if (status === 429 || status >= 500) {
+    return {
+      code: "META_PROVIDER_UNAVAILABLE",
+      message: "Meta debug_token is temporarily unavailable (HTTP " + status + "). Token validity was not determined."
+    };
+  }
+  const code = payload?.error?.code ?? "unknown";
+  const subcode = payload?.error?.error_subcode ?? "unknown";
+  return {
+    code: "META_TOKEN_DEBUG_REJECTED",
+    message: "Meta debug_token rejected the request (HTTP " + status + ", error code " + code + ", subcode " + subcode + ")."
+  };
+}
+
 export function assessTokenDebugInfo(debug, expectedAppId, nowSeconds = Math.floor(Date.now() / 1000), requiredScopes = ["pages_manage_posts", "pages_read_engagement"], label = "Page access token") {
   const issues = [];
   if (!debug || debug.is_valid !== true) issues.push("The " + label + " is invalid or revoked.");
@@ -47,11 +62,17 @@ async function inspectToken({ token, label, requiredScopes }) {
   endpoint.searchParams.set("access_token", process.env.META_APP_ID + "|" + process.env.META_APP_SECRET);
   let response;
   try { response = await fetch(endpoint, { signal: AbortSignal.timeout(15000) }); }
-  catch { throw new Error(label + " debug_token request failed at the network layer. Credential values were not logged."); }
+  catch {
+    const error = new Error(label + " debug_token request failed at the network layer. Token validity was not determined; credential values were not logged.");
+    error.code = "META_PROVIDER_UNAVAILABLE";
+    throw error;
+  }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload.error) {
-    const code = payload?.error?.code ?? "unknown", subcode = payload?.error?.error_subcode ?? "unknown";
-    throw new Error(label + " debug_token returned HTTP " + response.status + ", error code " + code + ", subcode " + subcode + ". Owner re-authorisation or app configuration review may be required.");
+    const failure = classifyMetaDebugTokenFailure(response.status, payload);
+    const error = new Error(label + " health check could not complete: " + failure.message);
+    error.code = failure.code;
+    throw error;
   }
   return assessTokenDebugInfo(payload.data, process.env.META_APP_ID, Math.floor(Date.now() / 1000), requiredScopes, label);
 }
@@ -67,7 +88,16 @@ async function main() {
   for (const check of checks) {
     let assessment;
     try { assessment = await inspectToken(check); }
-    catch (error) { const message = check.label + " health check could not complete: " + error.message; await createOrFindAlert(message); throw new Error("Meta token health failed closed: " + message); }
+    catch (error) {
+      if (error?.code === "META_PROVIDER_UNAVAILABLE") {
+        console.error("META TOKEN HEALTH: NOT_TESTED — " + error.message + " No re-authentication alert was created because this is not evidence that the token is invalid.");
+        process.exitCode = 1;
+        return;
+      }
+      const message = check.label + " health check could not complete: " + error.message;
+      await createOrFindAlert(message);
+      throw new Error("Meta token health failed closed: " + message);
+    }
     results.push({ label: check.label, assessment });
     if (!assessment.ok) {
       const message = check.label + " health failed: " + assessment.issues.join(" ");

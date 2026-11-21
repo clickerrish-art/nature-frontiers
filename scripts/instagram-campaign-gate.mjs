@@ -1,12 +1,22 @@
 import { createHash } from "node:crypto";
+import { validateStory } from "./validate-nature-frontiers-story.mjs";
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+const canonicalJson = (value) => value === null || typeof value !== "object" ? JSON.stringify(value)
+  : Array.isArray(value) ? "[" + value.map(canonicalJson).join(",") + "]"
+  : "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonicalJson(value[key])).join(",") + "}";
+
 const normalize = (value) => String(value ?? "").normalize("NFKC").toLowerCase().replace(/https?:\/\/\S+/g, " ").replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
 
 export function validateInstagramCampaign(campaign, history = [], policy = {}, now = new Date()) {
   const issues = [];
   const add = (code, message) => issues.push({ code, message });
   const caption = typeof campaign?.caption === "string" ? campaign.caption.trim() : "";
+  const storyIssues = validateStory(campaign?.educational_story);
+  for (const message of storyIssues) add("EDUCATIONAL_STORY_GATE", message);
+  const educationalStorySha256 = campaign?.educational_story && typeof campaign.educational_story === "object"
+    ? sha256(canonicalJson(campaign.educational_story)) : "";
+
   if (!caption) add("CAPTION_MISSING", "Caption is required.");
   if (caption.length > 2200) add("CAPTION_TOO_LONG", "Instagram caption exceeds 2,200 characters.");
   if (campaign?.network !== "instagram" || campaign?.destination !== "instagram:nature-frontiers") {
@@ -81,6 +91,7 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
   const captionHash = sha256(caption);
   if (!approval?.reviewer || approval?.destination !== "instagram:nature-frontiers" ||
       approval?.caption_sha256 !== captionHash ||
+      !educationalStorySha256 || approval?.educational_story_sha256 !== educationalStorySha256 ||
       !Array.isArray(approval?.media_sha256) ||
       [...approval.media_sha256].map((x) => String(x).toLowerCase()).sort().join(",") !== [...mediaHashes].sort().join(",") ||
       !Number.isFinite(approvalAge) || approvalAge < 0 ||
@@ -106,5 +117,5 @@ export function validateInstagramCampaign(campaign, history = [], policy = {}, n
       } catch { add("LINK_FINAL_URL_MISSING", "Link check must include a valid final URL."); }
     }
   }
-  return { ok: issues.length === 0, issues, caption_sha256: captionHash, media_sha256: mediaHashes };
+  return { ok: issues.length === 0, issues, caption_sha256: captionHash, educational_story_sha256: educationalStorySha256, media_sha256: mediaHashes };
 }

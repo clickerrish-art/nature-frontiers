@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { assessTokenDebugInfo } from "./check-meta-token-health.mjs";
+import { assessTokenDebugInfo, classifyMetaDebugTokenFailure } from "./check-meta-token-health.mjs";
 const now = 1794556800;
 const good = { is_valid: true, app_id: "123", expires_at: now + 60*86400, data_access_expires_at: now + 60*86400, scopes: ["pages_manage_posts", "pages_read_engagement"] };
 assert.equal(assessTokenDebugInfo(good,"123",now).ok,true);
@@ -20,4 +20,9 @@ assert.equal(assessTokenDebugInfo({...instagramGood,is_valid:false},"123",now,["
 assert.equal(assessTokenDebugInfo({...instagramGood,scopes:["instagram_basic"]},"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,false);
 assert.equal(assessTokenDebugInfo({...instagramGood,expires_at:now+3*86400},"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,false);
 assert.equal(assessTokenDebugInfo({...instagramGood,app_id:"999"},"123",now,["instagram_basic","instagram_content_publish"],"Instagram publishing token").ok,false);
-console.log("Meta token health assessment tests: 16/16 passed.");
+assert.equal(classifyMetaDebugTokenFailure(500).code, "META_PROVIDER_UNAVAILABLE");
+assert.equal(classifyMetaDebugTokenFailure(503).code, "META_PROVIDER_UNAVAILABLE");
+assert.equal(classifyMetaDebugTokenFailure(429).code, "META_PROVIDER_UNAVAILABLE");
+assert.equal(classifyMetaDebugTokenFailure(401, { error: { code: 190, error_subcode: 463 } }).code, "META_TOKEN_DEBUG_REJECTED");
+assert.equal(classifyMetaDebugTokenFailure(400, { error: { code: 100 } }).code, "META_TOKEN_DEBUG_REJECTED");
+console.log("Meta token health assessment tests: 21/21 passed.");

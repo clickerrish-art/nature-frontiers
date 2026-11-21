@@ -2,7 +2,7 @@
   "schema_version": 1,
   "brand": "Nature Frontiers",
   "reviewed_at": "2026-11-17",
-  "review_scope": "Pexels source-page, license-summary and Terms of Service review only; this is not clearance of third-party rights visible in footage, the exact edited export, its audio, or a campaign.",
+  "review_scope": "Historical review of Pexels licence terms only. Every listed Pexels asset is third-party stock footage and is excluded from Nature Frontiers wildlife production under the original-camera-only owner requirement. This record does not establish original-camera provenance or publication clearance.",
   "license_source": "https://www.pexels.com/license/",
   "license_findings": {
     "source_pages_listed_free": true,
@@ -37,12 +37,13 @@
         "duration_seconds": 27,
         "fps": 59.94
       },
-      "source_review": "passed",
+      "source_review": "license_reference_only_not_original_camera_provenance",
       "final_export_sha256": null,
       "final_audio_review": "pending",
       "final_visual_review": "pending",
       "owner_approval": "pending",
-      "publication_status": "held"
+      "publication_status": "excluded",
+      "production_eligibility": "excluded_stock_not_original_camera"
     },
     {
       "pexels_id": "6423036",
@@ -58,12 +59,13 @@
         "duration_seconds": 8,
         "fps": 25
       },
-      "source_review": "passed",
+      "source_review": "license_reference_only_not_original_camera_provenance",
       "final_export_sha256": null,
       "final_audio_review": "pending",
       "final_visual_review": "pending",
       "owner_approval": "pending",
-      "publication_status": "held"
+      "publication_status": "excluded",
+      "production_eligibility": "excluded_stock_not_original_camera"
     },
     {
       "pexels_id": "4996609",
@@ -79,12 +81,13 @@
         "duration_seconds": 16,
         "fps": 29.97
       },
-      "source_review": "passed",
+      "source_review": "license_reference_only_not_original_camera_provenance",
       "final_export_sha256": null,
       "final_audio_review": "pending",
       "final_visual_review": "pending",
       "owner_approval": "pending",
-      "publication_status": "held"
+      "publication_status": "excluded",
+      "production_eligibility": "excluded_stock_not_original_camera"
     },
     {
       "pexels_id": "20443910",
@@ -100,12 +103,13 @@
         "duration_seconds": 13,
         "fps": 25
       },
-      "source_review": "passed",
+      "source_review": "license_reference_only_not_original_camera_provenance",
       "final_export_sha256": null,
       "final_audio_review": "pending",
       "final_visual_review": "pending",
       "owner_approval": "pending",
-      "publication_status": "held"
+      "publication_status": "excluded",
+      "production_eligibility": "excluded_stock_not_original_camera"
     },
     {
       "pexels_id": "40627960",
@@ -121,19 +125,20 @@
         "duration_seconds": 15,
         "fps": 60
       },
-      "source_review": "passed",
+      "source_review": "license_reference_only_not_original_camera_provenance",
       "final_export_sha256": null,
       "final_audio_review": "pending",
       "final_visual_review": "pending",
       "owner_approval": "pending",
-      "publication_status": "held"
+      "publication_status": "excluded",
+      "production_eligibility": "excluded_stock_not_original_camera"
     }
   ],
   "excluded_assets": [
     {
       "pexels_id": "35076399",
       "source_page": "https://www.pexels.com/video/crocodiles-feeding-frenzy-in-wild-habitat-35076399/",
-      "reason": "Excluded from this edit until full visual review confirms it contains no graphic feeding, injury or distress."
+      "reason": "Excluded: third-party stock footage is not eligible under the original-camera-only production requirement; separate graphic-content review is also pending."
     }
   ],
   "release_gate": {
@@ -148,5 +153,13 @@
     "emergency_stop": true
   },
   "license_terms_source": "https://www.pexels.com/terms-of-service/",
-  "license_terms_last_updated": "2026-10-20"
+  "license_terms_last_updated": "2026-10-20",
+  "production_policy": {
+    "wildlife_media_standard": "original_camera_only",
+    "generic_stock_permitted": false,
+    "ai_generated_wildlife_permitted": false,
+    "source_recording_required": true,
+    "original_camera_file_sha256_required": true,
+    "written_rights_evidence_required": true
+  }
 }

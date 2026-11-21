@@ -12,6 +12,9 @@ assert.match(review.license_findings.territorial_scope, /worldwide, non-exclusiv
 assert.match(review.license_findings.territorial_scope, /additional third-party/i);
 assert.ok(review.license_terms_source.endsWith("/terms-of-service/"));
 assert.equal(review.license_terms_last_updated, "2026-10-20");
+assert.equal(review.production_policy.wildlife_media_standard, "original_camera_only");
+assert.equal(review.production_policy.generic_stock_permitted, false);
+assert.equal(review.production_policy.ai_generated_wildlife_permitted, false);
 assert.equal(review.assets.length, 5);
 const ids = new Set();
 for (const asset of review.assets) {
@@ -19,12 +22,13 @@ for (const asset of review.assets) {
   assert.ok(asset.source_file_url.startsWith("https://videos.pexels.com/video-files/"));
   assert.ok(asset.canva_asset_id);
   assert.equal(asset.source_license_label, "Free");
-  assert.equal(asset.source_review, "passed");
+  assert.equal(asset.source_review, "license_reference_only_not_original_camera_provenance");
+  assert.equal(asset.production_eligibility, "excluded_stock_not_original_camera");
   assert.equal(asset.final_export_sha256, null);
   assert.equal(asset.final_audio_review, "pending");
   assert.equal(asset.final_visual_review, "pending");
   assert.equal(asset.owner_approval, "pending");
-  assert.equal(asset.publication_status, "held");
+  assert.equal(asset.publication_status, "excluded");
   assert.ok(!ids.has(asset.pexels_id), "Pexels source IDs must be unique");
   ids.add(asset.pexels_id);
 }
@@ -32,4 +36,4 @@ assert.ok(review.excluded_assets.some((asset) => asset.pexels_id === "35076399")
 assert.equal(review.release_gate.publishing_enabled, false);
 assert.equal(review.release_gate.dry_run, true);
 assert.equal(review.release_gate.emergency_stop, true);
-console.log("Pexels source-rights registry tests: 5 assets held; release gates intact.");
+console.log("Pexels licence records retained; all five stock assets excluded under original-camera-only policy.");

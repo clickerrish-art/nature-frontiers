@@ -1,12 +1,16 @@
+import { platformIdentityError } from "./platform-identity.mjs";
+
 const groups = [
   {
     platform: "Meta (Facebook Page)",
-    required: ["META_PAGE_ID", "META_PAGE_ACCESS_TOKEN", "META_GRAPH_API_VERSION"],
+    required: ["META_PAGE_ID", "META_EXPECTED_PAGE_ID", "META_PAGE_ACCESS_TOKEN", "META_GRAPH_API_VERSION"],
+    identity: { actual: "META_PAGE_ID", expected: "META_EXPECTED_PAGE_ID", label: "Nature Frontiers Facebook Page" },
     note: "Presence only; Page token validity, Page tasks, app access level, and publishing eligibility are not verified."
   },
   {
     platform: "Instagram",
-    required: ["INSTAGRAM_ACCESS_TOKEN", "INSTAGRAM_USER_ID", "META_GRAPH_API_VERSION"],
+    required: ["INSTAGRAM_ACCESS_TOKEN", "INSTAGRAM_USER_ID", "META_EXPECTED_INSTAGRAM_USER_ID", "META_GRAPH_API_VERSION"],
+    identity: { actual: "INSTAGRAM_USER_ID", expected: "META_EXPECTED_INSTAGRAM_USER_ID", label: "Nature Frontiers Instagram account" },
     note: "Presence only; the token must match the selected Instagram API login path. Token validity, scopes, account ownership, App Review status, and publishing eligibility are not verified. Do not substitute the Facebook Page token."
   },
   {
@@ -28,13 +32,16 @@ console.log("It never prints credential values and never contacts or publishes t
 
 for (const group of groups) {
   const missing = group.required.filter((name) => !process.env[name]?.trim());
-  const status = missing.length === 0 ? "CREDENTIALS PRESENT — authorization still needs verification" : "NOT READY";
+  const identityError = group.identity ? platformIdentityError(process.env[group.identity.actual], process.env[group.identity.expected], group.identity.label) : null;
+  const status = missing.length ? "NOT READY" : identityError ? "IDENTITY MISMATCH — NOT READY" : "CREDENTIALS PRESENT — authorization still needs verification";
   console.log(`${group.platform}: ${status}`);
   if (missing.length) {
     missingTotal += missing.length;
     console.log(`  Missing: ${missing.join(", ")}`);
+  } else if (identityError) {
+    console.log("  Identity check: " + identityError);
   } else {
-    console.log("  Required environment-variable names are present; token validity and platform permissions are not verified.");
+    console.log("  Required environment-variable names are present and destination IDs match; token validity and platform permissions are not verified.");
   }
   console.log(`  Note: ${group.note}`);
 }

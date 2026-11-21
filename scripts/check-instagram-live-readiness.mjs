@@ -1,3 +1,4 @@
+import { platformIdentityError } from "./platform-identity.mjs";
 // Live SUAT preflight is intentionally GET-only; the workflow tests each supported Graph API version.
 import { pathToFileURL } from "node:url";
 const GRAPH_HOST = "https://graph.facebook.com";
@@ -7,9 +8,12 @@ function required(value, label) {
   return value.trim();
 }
 
-export async function checkInstagramLiveReadiness({ apiVersion, instagramUserId, accessToken, fetchImpl = fetch }) {
+export async function checkInstagramLiveReadiness({ apiVersion, instagramUserId, expectedInstagramUserId, accessToken, fetchImpl = fetch }) {
   required(accessToken, "INSTAGRAM_ACCESS_TOKEN");
   required(instagramUserId, "INSTAGRAM_USER_ID");
+  required(expectedInstagramUserId, "META_EXPECTED_INSTAGRAM_USER_ID");
+  const identityError = platformIdentityError(instagramUserId, expectedInstagramUserId, "Nature Frontiers Instagram account");
+  if (identityError) throw new Error(identityError);
   if (!/^v\d+\.\d+$/.test(apiVersion ?? "")) throw new Error("META_GRAPH_API_VERSION must be a version such as v27.0.");
   if (!/^\d+$/.test(instagramUserId)) throw new Error("INSTAGRAM_USER_ID must be numeric.");
 
@@ -40,7 +44,7 @@ export async function checkInstagramLiveReadiness({ apiVersion, instagramUserId,
   if (missing.length) throw new Error(`SUAT is missing required Unified Login permissions: ${missing.join(", ")}.`);
 
   const account = await get(`${encodeURIComponent(instagramUserId)}?fields=id`);
-  if (account.id !== instagramUserId) throw new Error("Meta returned a different Instagram account ID.");
+  if (account.id !== expectedInstagramUserId) throw new Error("Meta returned an Instagram account ID different from the owner-approved expected ID.");
 
   const quota = await get(`${encodeURIComponent(instagramUserId)}/content_publishing_limit?fields=quota_usage,config`);
   if (!Array.isArray(quota.data) || !quota.data.length) throw new Error("Meta publishing-limit response did not contain data.");
@@ -70,7 +74,8 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   try {
     const result = await checkInstagramLiveReadiness({
       apiVersion: process.env.META_GRAPH_API_VERSION,
-      instagramUserId: process.env.INSTAGRAM_USER_ID || "17841413164146618",
+      instagramUserId: process.env.INSTAGRAM_USER_ID,
+      expectedInstagramUserId: process.env.META_EXPECTED_INSTAGRAM_USER_ID,
       accessToken: process.env.INSTAGRAM_ACCESS_TOKEN
     });
     console.log(JSON.stringify(result, null, 2));

@@ -9,10 +9,37 @@ const now = new Date("2026-11-16T12:00:00.000Z");
 const sha = "a".repeat(64);
 const caption = "Wildlife stories matter.";
 const hash = (s) => createHash("sha256").update(s).digest("hex");
+const educationalStory = {
+  title: "How elephants use their trunks",
+  learning_objective: "Explain how an elephant uses its trunk to gather food and water",
+  audience_takeaway: "The trunk is a versatile muscular organ used for feeding and drinking",
+  claims: [{ text: "Elephants use their trunks to gather food and draw water", sources: ["https://www.nationalgeographic.com/animals/mammals/facts/african-elephant"], visual_evidence: "Original footage visibly shows an elephant using its trunk to gather food or water" }],
+  story_beats: [
+    { type: "hook_question", description: "What can an elephant do with its trunk?" },
+    { type: "evidence", description: "Show the elephant using its trunk to gather food or water" },
+    { type: "explanation", description: "Explain the trunk's role in feeding and drinking" },
+    { type: "takeaway", description: "Summarize how the trunk helps the elephant meet daily needs" }
+  ],
+  media_kind: "image",
+  image_teaching_point: "The image clearly shows the trunk grasping food",
+  species_identification_basis: "Species identification confirmed by a qualified reviewer",
+  brand_logo: "lion_face",
+  original_camera_provenance: true,
+  rights_verified: true,
+  human_editorial_review: true,
+  accessibility: { captions: true, sound_off_comprehensible: true, alt_text_or_visual_description: "An elephant uses its trunk to gather food" },
+  ai_generated_wildlife_visuals: false,
+  generic_stock_footage: false
+};
+const canonicalJson = (value) => value === null || typeof value !== "object" ? JSON.stringify(value)
+  : Array.isArray(value) ? "[" + value.map(canonicalJson).join(",") + "]"
+  : "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonicalJson(value[key])).join(",") + "}";
+const educationalStorySha256 = hash(canonicalJson(educationalStory));
+
 function validCampaign() {
   const campaign = {
     id: "ig-campaign-1", network: "instagram", destination: "instagram:nature-frontiers",
-    status: "approved", caption, commercial: false, disclosureRequired: false,
+    status: "approved", caption, educational_story: structuredClone(educationalStory), commercial: false, disclosureRequired: false,
     media_assets: [{
       kind: "image", media_path: "nature-frontiers/ig/post-1.jpg", sha256: sha,
       technical_check: { status: "passed", tool: "ffprobe", kind: "image", sha256: sha, checked_at: "2026-11-16T11:00:00.000Z", file_size: 100, format: "jpeg_pipe", width: 1080, height: 1350, aspect_ratio: 0.8 },
@@ -23,7 +50,7 @@ function validCampaign() {
   };
   campaign.human_approval = {
     reviewer: "owner-reviewer", approved_at: "2026-11-16T11:00:00.000Z",
-    destination: campaign.destination, caption_sha256: hash(caption), media_sha256: [sha]
+    destination: campaign.destination, caption_sha256: hash(caption), educational_story_sha256: educationalStorySha256, media_sha256: [sha]
   };
   return campaign;
 }
@@ -44,6 +71,9 @@ function makeApi(overrides = {}) {
 }
 const mediaHost = { async resolveAndVerify() { return { url: "https://media.example.test/nature-frontiers/ig/post-1.jpg", contentType: "image/jpeg", contentLength: 100, sha256: sha }; } };
 const tests = [
+  ["educational story is required", () => { const c=validCampaign(); delete c.educational_story; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="EDUCATIONAL_STORY_GATE")); }],
+  ["educational story approval hash must match", () => { const c=validCampaign(); c.human_approval.educational_story_sha256="0".repeat(64); assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="HUMAN_APPROVAL_NOT_BOUND")); }],
+  ["unsourced educational claims are blocked", () => { const c=validCampaign(); c.educational_story.claims[0].sources=[]; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="EDUCATIONAL_STORY_GATE")); }],
   ["missing technical media preflight is blocked", () => { const c=validCampaign(); delete c.media_assets[0].technical_check; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="MEDIA_TECHNICAL_CHECK_MISSING")); }],
   ["Reel without explicit feed-sharing preference is blocked", () => { const c=validCampaign(); c.media_assets[0].kind="reel"; c.media_assets[0].share_to_feed=undefined; c.media_assets[0].technical_check={status:"passed",tool:"ffprobe",kind:"reel",sha256:sha,checked_at:"2026-11-16T11:00:00.000Z",file_size:100,format:"mp4",width:1080,height:1920,aspect_ratio:0.5625,video:{codec:"h264",fps:30,duration_seconds:60,bitrate_bps:10000000}}; c.human_approval.media_sha256=[sha]; assert.ok(validateInstagramCampaign(c,[],policy,now).issues.some(x=>x.code==="REEL_FEED_SETTING_MISSING")); }],
   ["complete Instagram approval and rights evidence passes", () => assert.equal(validateInstagramCampaign(validCampaign(), [], policy, now).ok, true)],
