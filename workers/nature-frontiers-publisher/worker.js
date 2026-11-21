@@ -264,7 +264,7 @@ async function handlePublisherApi(request, env) {
         apiFirst(env, "SELECT * FROM media_rights WHERE media_sha256 = ?", [item.media_sha256]),
         apiFirst(env, "SELECT * FROM media_evidence WHERE media_sha256 = ?", [item.media_sha256]),
         apiFirst(env, "SELECT * FROM review_evidence WHERE content_id = ? AND content_sha256 = ?", [item.id, item.media_sha256]),
-        apiAll(env, "SELECT id, reviewer, decision, content_sha256, created_at FROM approvals WHERE content_id = ? ORDER BY created_at DESC", [item.id]),
+        apiAll(env, "SELECT id, reviewer, decision, content_sha256, educational_story_sha256, created_at FROM approvals WHERE content_id = ? ORDER BY created_at DESC", [item.id]),
         apiAll(env, "SELECT platform, account_id, platform_media_id, published_at, status FROM content_targets WHERE content_id = ?", [item.id]),
         apiAll(env, "SELECT id, platform, idempotency_key, state, platform_post_id, started_at, finished_at, error_code FROM publication_attempts WHERE content_id = ? ORDER BY started_at DESC", [item.id])
       ]);
@@ -416,7 +416,7 @@ async function handlePublisherApi(request, env) {
         apiStatement(env, "UPDATE content_items SET status = ?, updated_at = ? WHERE id = ? AND status = 'needs_review' AND EXISTS (SELECT 1 FROM approvals WHERE id = ?)",
           [decision === "approved" ? "approved" : "held", timestamp, item.id, approvalId]),
         apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'content.approval_recorded', ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM approvals WHERE id = ?)",
-          [crypto.randomUUID(), item.id, reviewer, JSON.stringify({ decision, media_sha256: mediaHash, approval_id: approvalId }), timestamp, approvalId])
+          [crypto.randomUUID(), item.id, reviewer, JSON.stringify({ decision, media_sha256: mediaHash, educational_story_sha256: item.educational_story_sha256, approval_id: approvalId }), timestamp, approvalId])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1) return json({ ok: false, error: "approval_state_or_hash_conflict" }, 409);
       return json({ ok: true, content_id: item.id, decision, status: decision === "approved" ? "approved" : "held", approval_id: approvalId });
@@ -479,7 +479,7 @@ async function handlePublisherApi(request, env) {
         apiStatement(env, "UPDATE content_items SET status = 'publishing', updated_at = ? WHERE id = ? AND status = 'approved' AND EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved')",
           [timestamp, contentId, reservationId]),
         apiStatement(env, "INSERT INTO audit_events (id, event_type, content_id, actor, details_json, created_at) SELECT ?, 'publication.reserved', ?, 'publisher_api', ?, ? WHERE EXISTS (SELECT 1 FROM publication_attempts WHERE id = ? AND state = 'reserved')",
-          [crypto.randomUUID(), contentId, JSON.stringify({ platform, account_id: accountId, media_sha256: item.media_sha256, reservation_id: reservationId }), timestamp, reservationId])
+          [crypto.randomUUID(), contentId, JSON.stringify({ platform, account_id: accountId, media_sha256: item.media_sha256, educational_story_sha256: item.educational_story_sha256, reservation_id: reservationId }), timestamp, reservationId])
       ]);
       if (results[0]?.meta?.changes !== 1 || results[1]?.meta?.changes !== 1 || results[2]?.meta?.changes !== 1) {
         return json({ ok: false, error: "reservation_state_or_concurrency_conflict" }, 409);
