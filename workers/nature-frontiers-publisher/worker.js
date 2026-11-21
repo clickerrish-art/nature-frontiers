@@ -220,7 +220,8 @@ function publisherRouteRole(parts, method) {
 function authenticatePublisherRole(request, env, requiredRole) {
   const configured = Object.entries(PUBLISHER_ROLE_CONFIG).map(([role, [tokenKey, actorKey]]) => ({ role, token: env[tokenKey], actor: env[actorKey] }));
   if (configured.some((entry) => typeof entry.token !== "string" || entry.token.length < 32 || typeof entry.actor !== "string" || !entry.actor.trim()) ||
-      new Set(configured.map((entry) => entry.token)).size !== configured.length) return { error: "publisher_role_auth_not_configured", status: 503 };
+      new Set(configured.map((entry) => entry.token)).size !== configured.length ||
+      new Set(configured.map((entry) => entry.actor.trim().toLowerCase())).size !== configured.length) return { error: "publisher_role_auth_not_configured", status: 503 };
   const authorization = request.headers.get("authorization") || "";
   const supplied = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   const matches = configured.filter((entry) => constantTimeEqual(supplied, entry.token));
