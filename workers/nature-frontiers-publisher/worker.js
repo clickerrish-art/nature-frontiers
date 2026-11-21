@@ -456,7 +456,12 @@ async function handlePublisherApi(request, env) {
       const evidence = await apiFirst(env, "SELECT * FROM media_evidence WHERE media_sha256 = ?", [item.media_sha256]);
       const reviewEvidence = await apiFirst(env, "SELECT * FROM review_evidence WHERE content_id = ? AND content_sha256 = ?", [item.id, item.media_sha256]);
       const approval = await apiFirst(env, "SELECT id, decision, educational_story_sha256 FROM approvals WHERE content_id = ? AND content_sha256 = ? ORDER BY created_at DESC, rowid DESC LIMIT 1", [contentId, item.media_sha256]);
-      if (!validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
+      let educationalStory;
+      try { educationalStory = JSON.parse(item.educational_story_json || "null"); } catch { educationalStory = null; }
+      const recomputedStoryHash = educationalStory ? await educationalStoryHash(educationalStory) : "";
+      if (!educationalStory || recomputedStoryHash !== item.educational_story_sha256 ||
+          validateEducationalStory(educationalStory).length ||
+          !validRightsRecord(rights) || !validMediaEvidence(evidence, item.caption, item.media_sha256) ||
           !validReviewEvidence(reviewEvidence, item.id, item.media_sha256) || approval?.decision !== "approved" ||
           !item.educational_story_sha256 || approval?.educational_story_sha256 !== item.educational_story_sha256 ||
           reviewEvidence?.educational_story_sha256 !== item.educational_story_sha256) {
