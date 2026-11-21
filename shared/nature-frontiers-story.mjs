@@ -5,11 +5,11 @@ function isPublicHttpsSource(value) {
   try {
     const url = new URL(value);
     if (url.protocol !== "https:" || url.username || url.password || (url.port && url.port !== "443")) return false;
-    const host = url.hostname.toLowerCase().replace(/^\\[|\\]$/g, "");
+    const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
     if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
         host.endsWith(".internal") || host.endsWith(".test") || host.endsWith(".invalid")) return false;
     if (host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:")) return false;
-    const ipv4 = host.match(/^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$/);
+    const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
     if (ipv4) {
       const [a,b,c,d] = ipv4.slice(1).map(Number);
       if ([a,b,c,d].some((part) => part > 255) || a === 0 || a === 10 || a === 127 || a >= 224 ||
