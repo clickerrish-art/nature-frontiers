@@ -1,4 +1,5 @@
 name: Nature Frontiers durable publisher Worker validation
+# PR validation includes the owner-bound Meta destination identity guards and read-only preflights.
 
 on:
   push:
