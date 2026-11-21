@@ -32,6 +32,7 @@ async function runScenario({ docsStatus = 200, docsBody = "Latest Graph API vers
   await import("./check-meta-api-version.mjs?scenario=" + (++scenarioNumber));
   const exitCode = process.exitCode;
   process.exitCode = undefined;
+  console.log = originalLog;
   return { calls, logs: logs.join("\n"), createdIssue, exitCode };
 }
 
