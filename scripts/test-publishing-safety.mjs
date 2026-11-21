@@ -66,7 +66,8 @@ const instagramPublisher = await readFile("scripts/publish-instagram.mjs", "utf8
 if (facebookPublisher.includes("platformIdentityError(pageId, process.env.META_EXPECTED_PAGE_ID") &&
     facebookPublisher.includes("checkFacebookLiveReadiness(") &&
     instagramPublisher.includes("META_EXPECTED_INSTAGRAM_USER_ID") &&
-    instagramPublisher.includes("platformIdentityError(")) {
+    instagramPublisher.includes("platformIdentityError(") &&
+    instagramPublisher.includes("checkInstagramLiveReadiness(")) {
   console.log("PASS: both live publishers require an exact owner-approved destination ID match");
 } else {
   failed++;
