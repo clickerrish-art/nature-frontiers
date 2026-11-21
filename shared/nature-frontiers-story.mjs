@@ -34,7 +34,7 @@ export function validateStory(story) {
     if (!NON_EMPTY(claim.text)) errors.push(`claims[${index}].text is required`);
     if (!Array.isArray(claim.sources) || claim.sources.length === 0 ||
         claim.sources.some((source) => !isPublicHttpsSource(source))) {
-      errors.push(`claims[${index}] needs at least one traceable HTTPS source`);
+      errors.push(`claims[${index}] needs at least one traceable public HTTPS source`);
     }
     if (!NON_EMPTY(claim.visual_evidence)) errors.push(`claims[${index}] must identify matching visual evidence`);
   });
