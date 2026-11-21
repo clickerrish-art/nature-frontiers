@@ -9,6 +9,7 @@ database.exec(readFileSync(new URL("./migrations/0001_initial_schema.sql", impor
 database.exec(readFileSync(new URL("./migrations/0002_meta_webhook_events.sql", import.meta.url), "utf8"));
 database.exec(readFileSync(new URL("./migrations/0003_media_evidence.sql", import.meta.url), "utf8"));
 database.exec(readFileSync(new URL("./migrations/0004_review_evidence.sql", import.meta.url), "utf8"));
+database.exec(readFileSync(new URL("./migrations/0005_educational_story.sql", import.meta.url), "utf8"));
 
 function d1Adapter(db) {
   function statement(sql, params = []) {
@@ -72,9 +73,38 @@ assert.equal(missingToken.status, 503);
 assert.equal((await call("/api/content", "GET", undefined, "wrong-token")).status, 401);
 
 const mediaHash = "a".repeat(64);
+const educationalStory = {
+  title: "How elephants use their trunks",
+  learning_objective: "Explain how an elephant uses its trunk to gather food and water",
+  audience_takeaway: "The trunk is a versatile muscular organ used for feeding and drinking",
+  claims: [{ text: "Elephants use their trunks to gather food and draw water", sources: ["https://www.nationalgeographic.com/animals/mammals/facts/african-elephant"], visual_evidence: "Original footage visibly shows an elephant using its trunk to gather food or water" }],
+  story_beats: [
+    { type: "hook_question", description: "What can an elephant do with its trunk?" },
+    { type: "evidence", description: "Show the elephant using its trunk to gather food or water" },
+    { type: "explanation", description: "Explain the trunk's role in feeding and drinking" },
+    { type: "takeaway", description: "Summarize how the trunk helps the elephant meet daily needs" }
+  ],
+  media_kind: "video",
+  visual_claim_alignment: "The original footage directly shows the trunk action described by the claim",
+  species_identification_basis: "Species identification confirmed by a qualified reviewer",
+  brand_logo: "lion_face",
+  original_camera_provenance: true,
+  rights_verified: true,
+  human_editorial_review: true,
+  accessibility: { captions: true, sound_off_comprehensible: true, alt_text_or_visual_description: "An elephant uses its trunk to gather food" },
+  ai_generated_wildlife_visuals: false,
+  generic_stock_footage: false
+};
+function canonicalJson(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return "[" + value.map(canonicalJson).join(",") + "]";
+  return "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonicalJson(value[key])).join(",") + "}";
+}
+const educationalStorySha256 = createHash("sha256").update(canonicalJson(educationalStory)).digest("hex");
+
 const created = await call("/api/content", "POST", {
   id: "crocodile-reel-001", content_type: "reel", caption: "A careful wildlife fact. Footage: Creator via Pexels.",
-  media_url: "https://cdn.example.org/crocodile.mp4", media_sha256: mediaHash
+  media_url: "https://cdn.example.org/crocodile.mp4", media_sha256: mediaHash, educational_story: educationalStory
 });
 assert.equal(created.status, 201);
 assert.equal((await created.json()).status, "draft");
@@ -124,7 +154,7 @@ const reviewMissing = await call("/api/content/crocodile-reel-001/submit-review"
 assert.equal(reviewMissing.status, 409);
 
 const reviewBody = {
-  content_sha256: mediaHash, reviewer: "editorial-reviewer", reviewed_at: "2026-11-21T05:10:00.000Z",
+  content_sha256: mediaHash, educational_story_sha256: educationalStorySha256, reviewer: "editorial-reviewer", reviewed_at: "2026-11-21T05:10:00.000Z",
   human_review_confirmed: true, content_accuracy_confirmed: true, wildlife_welfare_confirmed: true,
   non_graphic_review_passed: true, media_integrity_review_passed: true, media_technical_review_passed: true,
   watermark_scan_passed: true, media_accessibility_confirmed: true,
@@ -140,15 +170,28 @@ assert.equal(reviewRecorded.status, 200);
 const submitted = await call("/api/content/crocodile-reel-001/submit-review", "POST", {});
 assert.equal(submitted.status, 200);
 const hashMismatch = await call("/api/content/crocodile-reel-001/approval", "POST", {
-  decision: "approved", reviewer: "owner", content_sha256: "f".repeat(64)
+  decision: "approved", reviewer: "owner", content_sha256: "f".repeat(64), educational_story_sha256: educationalStorySha256
 });
 assert.equal(hashMismatch.status, 400);
 
 const approved = await call("/api/content/crocodile-reel-001/approval", "POST", {
-  decision: "approved", reviewer: "owner", content_sha256: mediaHash
+  decision: "approved", reviewer: "owner", content_sha256: mediaHash, educational_story_sha256: educationalStorySha256
 });
 assert.equal(approved.status, 200);
 assert.equal((await approved.json()).status, "approved");
+
+const wrongStoryApproval = await call("/api/content/crocodile-reel-001/approval", "POST", {
+  decision: "approved", reviewer: "owner", content_sha256: mediaHash, educational_story_sha256: "0".repeat(64)
+});
+assert.equal(wrongStoryApproval.status, 400);
+
+database.prepare("UPDATE content_items SET educational_story_json = ? WHERE id = ?").run(JSON.stringify({ ...educationalStory, title: "Tampered after approval" }), "crocodile-reel-001");
+const tamperedStoryReservation = await call("/api/publication-reservations", "POST", {
+  content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
+  idempotency_key: "reservation-tampered-story", media_sha256: mediaHash
+});
+assert.equal(tamperedStoryReservation.status, 409);
+database.prepare("UPDATE content_items SET educational_story_json = ? WHERE id = ?").run(canonicalJson(educationalStory), "crocodile-reel-001");
 
 const disabledReservation = await call("/api/publication-reservations", "POST", {
   content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
@@ -214,7 +257,7 @@ assert.equal(conflictingConfirmation.status, 409);
 
 const expiredContent = await call("/api/content", "POST", {
   id: "expired-rights-001", content_type: "feed_post", caption: "Expired licence test.",
-  media_url: "https://cdn.example.org/expired.jpg", media_sha256: "b".repeat(64)
+  media_url: "https://cdn.example.org/expired.jpg", media_sha256: "b".repeat(64), educational_story: educationalStory
 });
 assert.equal(expiredContent.status, 201);
 const expiredRights = await call("/api/content/expired-rights-001/rights", "PUT", {
