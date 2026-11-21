@@ -86,33 +86,31 @@ const unsafeUrl = await call("/api/content", "POST", {
 assert.equal(unsafeUrl.status, 400);
 
 const rights = await call("/api/content/crocodile-reel-001/rights", "PUT", {
-  media_sha256: mediaHash, rights_status: "licensed", rights_holder: "Creator",
-  source_url: "https://www.pexels.com/video/example/", license_reference: "Pexels License",
+  media_sha256: mediaHash, rights_status: "owned", rights_holder: "Nature Frontiers",
   verified_by: "rights-reviewer", verified_at: "2026-11-21T05:00:00.000Z"
 });
 assert.equal(rights.status, 200);
 
 const mediaEvidence = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
-  media_sha256: mediaHash, media_origin: "licensed_stock", stock_footage_used: true,
-  synthetic_visuals: false, ai_generated_video: false, source_creator: "Creator",
-  license_name: "Pexels License", license_evidence_url: "https://www.pexels.com/license/",
+  media_sha256: mediaHash, media_origin: "original_camera_recording", stock_footage_used: false,
+  synthetic_visuals: false, ai_generated_video: false, source_recording_id: "NF-CAMERA-001",
+  original_camera_file_sha256: mediaHash, original_recording_retained: true,
   provenance_review_passed: true, provenance_reviewer: "rights-reviewer",
-  provenance_reviewed_at: "2026-11-21T05:05:00.000Z",
-  on_screen_disclosure_text: "Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
-  on_screen_disclosure_media_sha256: mediaHash, caption_attribution: "Footage: Creator via Pexels."
+  provenance_reviewed_at: "2026-11-21T05:05:00.000Z"
 });
 assert.equal(mediaEvidence.status, 200);
 
-const missingDisclosureHash = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
+const stockRejected = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
   media_sha256: mediaHash, media_origin: "licensed_stock", stock_footage_used: true,
   synthetic_visuals: false, ai_generated_video: false, source_creator: "Creator",
   license_name: "Pexels License", license_evidence_url: "https://www.pexels.com/license/",
   provenance_review_passed: true, provenance_reviewer: "rights-reviewer",
   provenance_reviewed_at: "2026-11-21T05:05:00.000Z",
   on_screen_disclosure_text: "Licensed stock footage — illustrative.",
-  on_screen_disclosure_media_sha256: "f".repeat(64), caption_attribution: "Footage: Creator via Pexels."
+  on_screen_disclosure_media_sha256: mediaHash, caption_attribution: "Footage: Creator via Pexels."
 });
-assert.equal(missingDisclosureHash.status, 400);
+assert.equal(stockRejected.status, 400);
+assert.equal((await stockRejected.json()).error, "original_camera_recording_required");
 
 const mismatchedRights = await call("/api/content/crocodile-reel-001/rights", "PUT", {
   media_sha256: "f".repeat(64), rights_status: "licensed", rights_holder: "Creator",
