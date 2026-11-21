@@ -1,4 +1,5 @@
 import { validateStory } from "../../shared/nature-frontiers-story.mjs";
+import { verifyCloudflareAccessIdentity } from "./cloudflare-access-auth.mjs";
 const MEDIA_PATH = /^\/media\/instagram\/media-([a-f0-9]{64})\.(jpg|jpeg|mp4)$/i;
 const ALLOWED_TYPES = new Set(["image/jpeg", "video/mp4"]);
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
@@ -220,18 +221,26 @@ function publisherRouteRole(parts, method) {
   if (parts.length === 4 && parts[1] === "publication-attempts" && parts[3] === "reconcile" && method === "POST") return "publishing_operator";
   return null;
 }
-function authenticatePublisherRole(request, env, requiredRole) {
-  const configured = Object.entries(PUBLISHER_ROLE_CONFIG).map(([role, [tokenKey, actorKey]]) => ({ role, token: env[tokenKey], actor: env[actorKey] }));
-  if (configured.some((entry) => typeof entry.token !== "string" || entry.token.length < 32 || typeof entry.actor !== "string" || !entry.actor.trim()) ||
-      new Set(configured.map((entry) => entry.token)).size !== configured.length ||
-      new Set(configured.map((entry) => entry.actor.trim().toLowerCase())).size !== configured.length) return { error: "publisher_role_auth_not_configured", status: 503 };
-  const authorization = request.headers.get("authorization") || "";
-  const supplied = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  const matches = configured.filter((entry) => constantTimeEqual(supplied, entry.token));
-  if (matches.length !== 1) return { error: "unauthorized", status: 401 };
-  const identity = matches[0];
-  if (requiredRole !== "read" && identity.role !== requiredRole) return { error: "forbidden", status: 403 };
-  return { identity: { role: identity.role, actor: identity.actor.trim() } };
+async function authenticatePublisherRole(request, env, requiredRole) {
+  // Static bearer credentials are permitted only in the explicit local test harness.
+  // Every non-test environment requires a signed, audience-bound Cloudflare Access JWT.
+  if (env.ENVIRONMENT === "test" && env.PUBLISHER_AUTH_MODE === "static_test_only") {
+    const configured = Object.entries(PUBLISHER_ROLE_CONFIG).map(([role, [tokenKey, actorKey]]) => ({ role, token: env[tokenKey], actor: env[actorKey] }));
+    if (configured.some((entry) => typeof entry.token !== "string" || entry.token.length < 32 || typeof entry.actor !== "string" || !entry.actor.trim()) ||
+        new Set(configured.map((entry) => entry.token)).size !== configured.length ||
+        new Set(configured.map((entry) => entry.actor.trim().toLowerCase())).size !== configured.length) return { error: "publisher_role_auth_not_configured", status: 503 };
+    const authorization = request.headers.get("authorization") || "";
+    const supplied = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+    const matches = configured.filter((entry) => constantTimeEqual(supplied, entry.token));
+    if (matches.length !== 1) return { error: "unauthorized", status: 401 };
+    const identity = matches[0];
+    if (requiredRole !== "read" && identity.role !== requiredRole) return { error: "forbidden", status: 403 };
+    return { identity: { role: identity.role, actor: identity.actor.trim() } };
+  }
+  const verified = await verifyCloudflareAccessIdentity(request, env);
+  if (!verified.ok) return { error: verified.error, status: verified.status };
+  if (requiredRole !== "read" && verified.identity.role !== requiredRole) return { error: "forbidden", status: 403 };
+  return { identity: verified.identity };
 }
 async function handlePublisherApi(request, env) {
   if (!env.DB) return json({ ok: false, error: "database_unavailable" }, 503);
@@ -240,7 +249,7 @@ async function handlePublisherApi(request, env) {
   const method = request.method;
   const requiredRole = publisherRouteRole(parts, method);
   if (!requiredRole) return json({ ok: false, error: "route_not_authorized" }, 403);
-  const authentication = authenticatePublisherRole(request, env, requiredRole);
+  const authentication = await authenticatePublisherRole(request, env, requiredRole);
   if (authentication.error) return json({ ok: false, error: authentication.error }, authentication.status);
   const identity = authentication.identity;
   const timestamp = new Date().toISOString();
