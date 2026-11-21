@@ -6,7 +6,10 @@ const assetBytes = Buffer.from("jpeg-bytes");
 const hash = createHash("sha256").update(assetBytes).digest("hex");
 const makeRequest = (path, method = "GET", init = {}) => new Request(`https://publisher.example${path}`, { method, ...init });
 const env = {
-  DB: { prepare: (sql) => ({ first: async () => { assert.match(sql, /meta_webhook_events/); return { name: "meta_webhook_events" }; } }) },
+  DB: { prepare: (sql) => ({ all: async () => {
+    assert.match(sql, /meta_webhook_events/);
+    return { results: ["content_items", "approvals", "audit_events", "content_targets", "media_rights", "publication_attempts", "meta_webhook_events"].map((name) => ({ name })) };
+  } }) },
   ASSETS: { fetch: async (request) => {
     assert.equal(request.method, "GET", "the Worker must fetch complete bytes to verify the hash, including for HEAD requests");
     return new Response(assetBytes, {
@@ -22,7 +25,7 @@ const healthBody = await health.json();
 assert.equal(healthBody.publishingEnabled, false);
 assert.equal(healthBody.dryRun, true);
 assert.equal(healthBody.emergencyStop, true);
-const incompleteHealth = await worker.fetch(makeRequest("/health"), { ...env, DB: { prepare: () => ({ first: async () => null }) } });
+const incompleteHealth = await worker.fetch(makeRequest("/health"), { ...env, DB: { prepare: () => ({ all: async () => ({ results: [{ name: "meta_webhook_events" }] }) }) } });
 assert.equal(incompleteHealth.status, 503);
 const incompleteHealthBody = await incompleteHealth.json();
 assert.equal(incompleteHealthBody.status, "degraded");
