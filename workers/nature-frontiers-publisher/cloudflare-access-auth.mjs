@@ -25,14 +25,14 @@ function configuredIdentityRoles(env) {
   if (!mapping || typeof mapping !== "object" || Array.isArray(mapping)) return null;
   const entries = Object.entries(mapping);
   if (!entries.length || entries.some(([email, role]) =>
-    !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || typeof role !== "string" || !ALLOWED_ROLES.has(role))) return null;
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || typeof role !== "string" || !ALLOWED_ROLES.has(role))) return null;
   const normalizedMapping = Object.create(null);
   for (const [email, role] of entries) {
     const normalizedEmail = email.trim().toLowerCase();
     if (Object.hasOwn(normalizedMapping, normalizedEmail)) return null;
     normalizedMapping[normalizedEmail] = role;
   }
-  return { issuer: "https://" + env.CF_ACCESS_TEAM_DOMAIN.replace(/\\/$/, ""), audience: env.CF_ACCESS_AUD, mapping: normalizedMapping };
+  return { issuer: "https://" + env.CF_ACCESS_TEAM_DOMAIN.replace(/\/$/, ""), audience: env.CF_ACCESS_AUD, mapping: normalizedMapping };
 }
 
 export async function verifyCloudflareAccessIdentity(request, env, nowSeconds = Math.floor(Date.now() / 1000)) {
