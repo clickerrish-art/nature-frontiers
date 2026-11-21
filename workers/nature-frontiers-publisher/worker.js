@@ -156,18 +156,9 @@ function validMediaEvidence(record, caption, mediaHash) {
   if (!record || record.media_sha256 !== mediaHash || record.synthetic_visuals !== 0 || record.ai_generated_video !== 0 ||
       record.provenance_review_passed !== 1 || !record.provenance_reviewer ||
       !record.provenance_reviewed_at || !Number.isFinite(Date.parse(record.provenance_reviewed_at))) return false;
-  if (record.media_origin === "licensed_stock") {
-    return record.stock_footage_used === 1 && !!record.source_creator && !!record.license_name &&
-      !!record.license_evidence_url && safePublicHttps(record.license_evidence_url) &&
-      typeof record.on_screen_disclosure_text === "string" && /licensed stock footage/i.test(record.on_screen_disclosure_text) &&
-      record.on_screen_disclosure_media_sha256 === mediaHash &&
-      !!record.caption_attribution && caption.includes(record.caption_attribution);
-  }
-  if (record.media_origin === "original_camera_recording") {
-    return record.stock_footage_used === 0 && !!record.source_recording_id &&
-      record.original_camera_file_sha256 === mediaHash && record.original_recording_retained === 1;
-  }
-  return false;
+  if (record.media_origin !== "original_camera_recording") return false;
+  return record.stock_footage_used === 0 && !!record.source_recording_id &&
+    record.original_camera_file_sha256 === mediaHash && record.original_recording_retained === 1;
 }
 
 function validReviewEvidence(record, contentId, mediaHash) {
@@ -286,21 +277,11 @@ async function handlePublisherApi(request, env) {
           !validRightsRecord(rights)) {
         return json({ ok: false, error: "media_provenance_or_rights_evidence_invalid" }, 400);
       }
-      const stock = origin === "licensed_stock";
       const original = origin === "original_camera_recording";
-      if (!stock && !original) return json({ ok: false, error: "unsupported_media_origin" }, 400);
-      if (stock && (body.stock_footage_used !== true || rights.rights_status !== "licensed" ||
-          typeof body.source_creator !== "string" || !body.source_creator.trim() ||
-          typeof body.license_name !== "string" || !body.license_name.trim() ||
-          !safePublicHttps(body.license_evidence_url) ||
-          typeof body.on_screen_disclosure_text !== "string" || !/licensed stock footage/i.test(body.on_screen_disclosure_text) ||
-          body.on_screen_disclosure_media_sha256 !== mediaHash ||
-          typeof body.caption_attribution !== "string" || !body.caption_attribution.trim() || !item.caption.includes(body.caption_attribution))) {
-        return json({ ok: false, error: "licensed_stock_source_license_provenance_or_disclosure_incomplete" }, 400);
-      }
-      if (original && (body.stock_footage_used !== false || rights.rights_status !== "owned" ||
+      if (!original) return json({ ok: false, error: "original_camera_recording_required" }, 400);
+      if (body.stock_footage_used !== false || rights.rights_status !== "owned" ||
           typeof body.source_recording_id !== "string" || !body.source_recording_id.trim() ||
-          body.original_camera_file_sha256 !== mediaHash || body.original_recording_retained !== true)) {
+          body.original_camera_file_sha256 !== mediaHash || body.original_recording_retained !== true) {
         return json({ ok: false, error: "original_camera_provenance_incomplete" }, 400);
       }
       const results = await apiBatch(env, [
