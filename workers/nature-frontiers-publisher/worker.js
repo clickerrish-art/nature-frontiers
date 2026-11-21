@@ -123,8 +123,9 @@ function safePublicHttps(value) {
     if (url.protocol !== "https:" || url.username || url.password || (url.port && url.port !== "443")) return false;
     const host = url.hostname.toLowerCase();
     if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) return false;
-    if (/^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)) return false;
-    if (host === "0.0.0.0" || host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:")) return false;
+    // Source references must use DNS hostnames, never IP literals. URL parsing
+    // canonicalizes alternate IPv4 forms; IPv6 hostnames retain square brackets.
+    if (host.startsWith("[") || host.includes(":") || /^\d+(?:\.\d+){0,3}$/.test(host)) return false;
     return true;
   } catch { return false; }
 }
