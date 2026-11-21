@@ -90,6 +90,16 @@ function request(path, method = "GET", body, token) {
 async function call(path, method, body, token) {
   return worker.fetch(request(path, method, body, token ?? ROLE_TOKENS[roleForRoute(path, method)]), env);
 }
+const nonJsonMutation = await worker.fetch(new Request("https://publisher.example/api/content", {
+  method: "POST", headers: { authorization: "Bearer " + ROLE_TOKENS.editor, "content-type": "text/plain" }, body: JSON.stringify({ id: "wrong-content-type" })
+}), env);
+assert.equal(nonJsonMutation.status, 415);
+assert.equal((await nonJsonMutation.json()).error, "application_json_required");
+const missingContentType = await worker.fetch(new Request("https://publisher.example/api/content", {
+  method: "POST", headers: { authorization: "Bearer " + ROLE_TOKENS.editor }, body: JSON.stringify({ id: "missing-content-type" })
+}), env);
+assert.equal(missingContentType.status, 415);
+
 const missingToken = await worker.fetch(request("/api/content", "GET", undefined, null), { ...env, PUBLISHER_EDITOR_TOKEN: undefined });
 assert.equal(missingToken.status, 503);
 assert.equal((await call("/api/content", "GET", undefined, "wrong-token")).status, 401);
