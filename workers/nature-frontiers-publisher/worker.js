@@ -279,7 +279,7 @@ async function handlePublisherApi(request, env) {
       }
       const original = origin === "original_camera_recording";
       if (!original) return json({ ok: false, error: "original_camera_recording_required" }, 400);
-      if (body.stock_footage_used !== false || rights.rights_status !== "owned" ||
+      if (body.stock_footage_used !== false || !["owned", "licensed"].includes(rights.rights_status) ||
           typeof body.source_recording_id !== "string" || !body.source_recording_id.trim() ||
           body.original_camera_file_sha256 !== mediaHash || body.original_recording_retained !== true) {
         return json({ ok: false, error: "original_camera_provenance_incomplete" }, 400);
