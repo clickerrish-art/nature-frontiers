@@ -186,14 +186,6 @@ const wrongStoryApproval = await call("/api/content/crocodile-reel-001/approval"
 });
 assert.equal(wrongStoryApproval.status, 400);
 
-database.prepare("UPDATE content_items SET educational_story_json = ? WHERE id = ?").run(JSON.stringify({ ...educationalStory, title: "Tampered after approval" }), "crocodile-reel-001");
-const tamperedStoryReservation = await call("/api/publication-reservations", "POST", {
-  content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
-  idempotency_key: "reservation-tampered-story", media_sha256: mediaHash
-});
-assert.equal(tamperedStoryReservation.status, 409);
-database.prepare("UPDATE content_items SET educational_story_json = ? WHERE id = ?").run(canonicalJson(educationalStory), "crocodile-reel-001");
-
 const disabledReservation = await call("/api/publication-reservations", "POST", {
   content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
   idempotency_key: "reservation-disabled-001", media_sha256: mediaHash
@@ -203,6 +195,14 @@ assert.equal(disabledReservation.status, 423);
 env.PUBLISH_ENABLED = "true";
 env.PUBLISH_DRY_RUN = "false";
 env.PUBLISH_EMERGENCY_STOP = "false";
+
+database.prepare("UPDATE content_items SET educational_story_json = ? WHERE id = ?").run(JSON.stringify({ ...educationalStory, title: "Tampered after approval" }), "crocodile-reel-001");
+const tamperedStoryReservation = await call("/api/publication-reservations", "POST", {
+  content_id: "crocodile-reel-001", platform: "facebook", account_id: "1431329126735709",
+  idempotency_key: "reservation-tampered-story", media_sha256: mediaHash
+});
+assert.equal(tamperedStoryReservation.status, 409);
+database.prepare("UPDATE content_items SET educational_story_json = ? WHERE id = ?").run(canonicalJson(educationalStory), "crocodile-reel-001");
 
 const wrongAccount = await call("/api/publication-reservations", "POST", {
   content_id: "crocodile-reel-001", platform: "facebook", account_id: "1000000000000000",
