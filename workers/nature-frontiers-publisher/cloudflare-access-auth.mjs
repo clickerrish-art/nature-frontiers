@@ -32,7 +32,16 @@ function configuredIdentityRoles(env) {
     if (Object.hasOwn(normalizedMapping, normalizedEmail)) return null;
     normalizedMapping[normalizedEmail] = role;
   }
-  return { issuer: "https://" + env.CF_ACCESS_TEAM_DOMAIN.replace(/\/$/, ""), audience: env.CF_ACCESS_AUD, mapping: normalizedMapping };
+  let revokedSubjects;
+  try { revokedSubjects = JSON.parse(env.PUBLISHER_ACCESS_REVOKED_SUBJECTS_JSON || "[]"); }
+  catch { return null; }
+  if (!Array.isArray(revokedSubjects) || revokedSubjects.some((subject) => typeof subject !== "string" || !subject.trim())) return null;
+  return {
+    issuer: "https://" + env.CF_ACCESS_TEAM_DOMAIN.replace(/\/$/, ""),
+    audience: env.CF_ACCESS_AUD,
+    mapping: normalizedMapping,
+    revokedSubjects: new Set(revokedSubjects)
+  };
 }
 
 export async function verifyCloudflareAccessIdentity(request, env, nowSeconds = Math.floor(Date.now() / 1000)) {
@@ -54,6 +63,7 @@ export async function verifyCloudflareAccessIdentity(request, env, nowSeconds = 
         (claims.iat !== undefined && (!Number.isFinite(claims.iat) || claims.iat > nowSeconds + 60))) {
       return { ok: false, error: "unauthorized", status: 401 };
     }
+    if (config.revokedSubjects.has(claims.sub)) return { ok: false, error: "identity_revoked", status: 403 };
     const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
     if (!audiences.includes(config.audience)) return { ok: false, error: "unauthorized", status: 401 };
     const email = typeof claims.email === "string" ? claims.email.trim().toLowerCase() : "";
