@@ -1,5 +1,27 @@
 const REQUIRED_BEATS = ["hook_question", "evidence", "explanation", "takeaway"];
 const NON_EMPTY = (value) => typeof value === "string" && value.trim().length > 0;
+function isPublicHttpsSource(value) {
+  if (!NON_EMPTY(value)) return false;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password || (url.port && url.port !== "443")) return false;
+    const host = url.hostname.toLowerCase().replace(/^\\[|\\]$/g, "");
+    if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
+        host.endsWith(".internal") || host.endsWith(".test") || host.endsWith(".invalid")) return false;
+    if (host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:")) return false;
+    const ipv4 = host.match(/^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$/);
+    if (ipv4) {
+      const [a,b,c,d] = ipv4.slice(1).map(Number);
+      if ([a,b,c,d].some((part) => part > 255) || a === 0 || a === 10 || a === 127 || a >= 224 ||
+          (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
+          (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) ||
+          (a === 192 && b === 0 && c === 2) || (a === 198 && (b === 18 || b === 19 || b === 51)) ||
+          (a === 203 && b === 0 && c === 113)) return false;
+    }
+    return true;
+  } catch { return false; }
+}
+
 
 export function validateStory(story) {
   const errors = [];
@@ -11,7 +33,7 @@ export function validateStory(story) {
   else story.claims.forEach((claim, index) => {
     if (!NON_EMPTY(claim.text)) errors.push(`claims[${index}].text is required`);
     if (!Array.isArray(claim.sources) || claim.sources.length === 0 ||
-        claim.sources.some((source) => !NON_EMPTY(source) || !/^https:\/\//i.test(source))) {
+        claim.sources.some((source) => !isPublicHttpsSource(source))) {
       errors.push(`claims[${index}] needs at least one traceable HTTPS source`);
     }
     if (!NON_EMPTY(claim.visual_evidence)) errors.push(`claims[${index}] must identify matching visual evidence`);
