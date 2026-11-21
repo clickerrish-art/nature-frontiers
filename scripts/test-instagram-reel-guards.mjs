@@ -23,6 +23,7 @@ const valid = {
   non_graphic_review_passed: true,
   media_accessibility_confirmed: true,
   media_technical_review_passed: true,
+  media_integrity_review_passed: true,
   watermark_scan_passed: true,
   audio_present: false,
   media_sha256: "a".repeat(64),
@@ -39,6 +40,7 @@ const valid = {
   provenance_reviewer: "editor",
   provenance_reviewed_at: "2026-11-20T10:00:00Z",
   on_screen_disclosure_confirmed: true,
+  on_screen_disclosure_media_sha256: "a".repeat(64),
   on_screen_disclosure_text: "Licensed stock footage — illustrative, not a Nature Frontiers field recording.",
   caption_attribution: "Footage: Creator via Pexels."
 };
