@@ -65,6 +65,8 @@ on:
       - "scripts/test-facebook-video-media.mjs"
       - "scripts/test-series-scripts.mjs"
       - "content/series/**"
+      - "content/campaigns/**"
+      - "scripts/test-content-buffer.mjs"
       - "scripts/test-publishing-safety.mjs"
       - "scripts/publishing-cadence.mjs"
       - "scripts/test-publishing-cadence.mjs"
@@ -149,6 +151,8 @@ jobs:
           node-version: "24"
       - name: Validate product catalogue
         run: node scripts/validate-campaign.mjs
+      - name: Validate the 42-piece editorial buffer remains draft-only and source-backed
+        run: npm run test:content-buffer
       - name: Test fail-closed publishing controls
         run: node scripts/test-publishing-safety.mjs
       - name: Test configured Meta Page and Instagram identity matching
