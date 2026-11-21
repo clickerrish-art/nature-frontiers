@@ -1,4 +1,5 @@
 name: Nature Frontiers publishing (gated)
+# PR validation includes the owner-bound Meta destination identity guards and read-only preflights.
 
 on:
   workflow_dispatch:
