@@ -177,6 +177,17 @@ const rights = await call("/api/content/crocodile-reel-001/rights", "PUT", {
 });
 assert.equal(rights.status, 200);
 assert.equal(database.prepare("SELECT verified_by FROM media_rights WHERE media_sha256 = ?").get(mediaHash).verified_by, ROLE_ACTORS.rights_reviewer);
+const unsupportedOwnership = await call("/api/content/crocodile-reel-001/rights", "PUT", {
+  media_sha256: mediaHash, rights_status: "owned", rights_holder: "Claimed creator"
+});
+assert.equal(unsupportedOwnership.status, 400);
+assert.equal((await unsupportedOwnership.json()).error, "rights_evidence_incomplete_or_expired");
+const evidencedOwnership = await call("/api/content/crocodile-reel-001/rights", "PUT", {
+  media_sha256: mediaHash, rights_status: "owned", rights_holder: "Original camera operator",
+  source_url: "https://creator.example.org/original-recording",
+  license_reference: "Signed ownership declaration NF-OWN-001"
+});
+assert.equal(evidencedOwnership.status, 200);
 
 const mediaEvidence = await call("/api/content/crocodile-reel-001/media-evidence", "PUT", {
   media_sha256: mediaHash, media_origin: "original_camera_recording", stock_footage_used: false,
