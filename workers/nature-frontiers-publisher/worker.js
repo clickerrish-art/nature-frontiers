@@ -336,7 +336,7 @@ async function handlePublisherApi(request, env) {
     }
 
     if (parts.length === 4 && parts[1] === "content" && parts[3] === "review-evidence" && method === "PUT") {
-      const item = await apiFirst(env, "SELECT id, media_sha256, status FROM content_items WHERE id = ?", [parts[2]]);
+      const item = await apiFirst(env, "SELECT id, media_sha256, educational_story_sha256, status FROM content_items WHERE id = ?", [parts[2]]);
       if (!item) return json({ ok: false, error: "content_not_found" }, 404);
       if (["publishing", "published"].includes(item.status)) return json({ ok: false, error: "review_evidence_locked_after_publication_starts" }, 409);
       const mediaHash = typeof body.content_sha256 === "string" ? body.content_sha256.toLowerCase() : "";
