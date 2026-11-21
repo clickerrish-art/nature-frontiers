@@ -1,3 +1,4 @@
+import { pathToFileURL } from "node:url";
 import { platformIdentityError } from "./platform-identity.mjs";
 
 const GRAPH_HOST = "https://graph.facebook.com";
@@ -35,7 +36,7 @@ export async function checkFacebookLiveReadiness({ apiVersion, pageId, expectedP
   return { status: "READ_ONLY_PASS", pageId: payload.id, pageName: typeof payload.name === "string" ? payload.name : null };
 }
 
-if (process.argv[1] && new URL(import.meta.url).pathname.endsWith("/check-facebook-live-readiness.mjs")) {
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   try {
     const result = await checkFacebookLiveReadiness({
       apiVersion: process.env.META_GRAPH_API_VERSION,
