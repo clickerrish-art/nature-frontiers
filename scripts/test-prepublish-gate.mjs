@@ -27,9 +27,13 @@ const educationalStory = {
   ai_generated_wildlife_visuals: false,
   generic_stock_footage: false
 };
+const canonicalJson = (value) => value === null || typeof value !== "object" ? JSON.stringify(value)
+  : Array.isArray(value) ? "[" + value.map(canonicalJson).join(",") + "]"
+  : "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonicalJson(value[key])).join(",") + "}";
+const educationalStorySha256 = createHash("sha256").update(canonicalJson(educationalStory)).digest("hex");
 function validCampaign() {
   const campaign = { id: "c1", educational_story: structuredClone(educationalStory), status: "approved", destination: "facebook:nature-frontiers", caption: "Nature is extraordinary. https://selar.com/example", link_check: { status: 200, checked_at: "2026-11-13T07:00:00.000Z", final_url: "https://selar.com/example" }, media_assets: [structuredClone(media)], disclosure: { paid_promotion: true } };
-  campaign.human_approval = { reviewer: "human-reviewer", approved_at: "2026-11-13T07:30:00.000Z", destination: campaign.destination, caption_sha256: createHash("sha256").update(campaign.caption.trim()).digest("hex"), media_sha256: [media.sha256] };
+  campaign.human_approval = { reviewer: "human-reviewer", approved_at: "2026-11-13T07:30:00.000Z", destination: campaign.destination, caption_sha256: createHash("sha256").update(campaign.caption.trim()).digest("hex"), educational_story_sha256: educationalStorySha256, media_sha256: [media.sha256] };
   return campaign;
 }
 const tests = [
@@ -48,7 +52,8 @@ const tests = [
   ["AI-generated media is prohibited even with native disclosure", () => { const c=validCampaign(); c.media_assets[0].ai_generated=true; c.media_assets[0].ai_disclosure={required:true,native_control_verified:true}; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="AI_GENERATED_MEDIA_PROHIBITED")); }],
   ["AI-generated media without disclosure is also blocked", () => { const c=validCampaign(); c.media_assets[0].ai_generated=true; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="AI_GENERATED_MEDIA_PROHIBITED")); }],
   ["undeclared media origin is blocked", () => { const c=validCampaign(); delete c.media_assets[0].ai_generated; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="MEDIA_ORIGIN_UNDECLARED")); }],
-  ["approval hash mismatch blocked", () => { const c=validCampaign(); c.human_approval.caption_sha256="0".repeat(64); assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="HUMAN_APPROVAL_NOT_BOUND")); }]
+  ["approval hash mismatch blocked", () => { const c=validCampaign(); c.human_approval.caption_sha256="0".repeat(64); assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="HUMAN_APPROVAL_NOT_BOUND")); }],
+  ["story changed after approval is blocked", () => { const c=validCampaign(); c.educational_story.audience_takeaway="A changed story"; assert.ok(validatePrepublishCampaign(c,[],policy,now).issues.some(x=>x.code==="HUMAN_APPROVAL_NOT_BOUND")); }]
 ];
 let failures=0;
 for (const [name,fn] of tests) { try { fn(); console.log("PASS:",name); } catch(e) { failures++; console.error("FAIL:",name,e); } }
