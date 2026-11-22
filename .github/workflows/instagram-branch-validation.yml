@@ -1,0 +1,67 @@
+name: Instagram feature-branch validation
+
+on:
+  push:
+    branches:
+      - codex/instagram-unified-login-setup
+    paths:
+      - "scripts/instagram-*.mjs"
+      - "scripts/check-instagram-*.mjs"
+      - "scripts/test-instagram-*.mjs"
+      - "scripts/test-check-instagram-*.mjs"
+      - "scripts/meta-webhook.mjs"
+      - "scripts/test-meta-webhook.mjs"
+      - "data/instagram-*.json"
+      - "workers/nature-frontiers-publisher/**"
+      - "package.json"
+      - ".github/workflows/instagram-branch-validation.yml"
+      - ".github/workflows/instagram-live-preflight.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instagram-feature-validation
+  cancel-in-progress: false
+
+jobs:
+  instagram-safety-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact pushed commit
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Check Instagram module syntax
+        run: |
+          node --check scripts/instagram-api.mjs
+          node --check scripts/instagram-runtime-api.mjs
+          node --check scripts/instagram-campaign-gate.mjs
+          node --check scripts/instagram-media-host.mjs
+          node --check scripts/instagram-state-store.mjs
+          node --check scripts/instagram-publisher.mjs
+          node --check scripts/publish-instagram.mjs
+          node --check scripts/check-instagram-media.mjs
+          node --check scripts/check-instagram-live-readiness.mjs
+          node --check scripts/meta-webhook.mjs
+      - name: Run mocked Instagram API contract tests
+        run: node scripts/test-instagram-api.mjs
+      - name: Run mocked campaign, approval, reservation and recovery tests
+        run: node scripts/test-instagram-campaign.mjs
+      - name: Run mocked media technical preflight tests
+        run: node scripts/test-check-instagram-media.mjs
+      - name: Run mocked read-only SUAT preflight contract tests
+        run: node scripts/test-check-instagram-live-readiness.mjs
+      - name: Run local Meta webhook signature, challenge and persistence tests
+        run: node scripts/test-meta-webhook.mjs
+      - name: Run Cloudflare publisher Worker media and Meta webhook route tests
+        run: node workers/nature-frontiers-publisher/worker.test.mjs
+      - name: Confirm this workflow did not receive publishing credentials
+        run: |
+          test -z "${INSTAGRAM_ACCESS_TOKEN:-}"
+          test -z "${META_PAGE_ACCESS_TOKEN:-}"
+          echo "No Meta publishing credentials are exposed to this test workflow."

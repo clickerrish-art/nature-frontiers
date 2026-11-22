@@ -59,8 +59,10 @@ export function validatePrepublishCampaign(campaign, history, policy, now = new 
     const audio = asset?.audio;
     if (audio?.present === true && (audio.license_status !== "licensed" || !audio.license_ref)) add("AUDIO_NOT_CLEARED", "Media asset " + (index + 1) + " contains audio without verified licensing evidence.");
     if (audio?.present !== true && audio?.present !== false) add("AUDIO_STATUS_UNKNOWN", "Media asset " + (index + 1) + " must explicitly declare whether audio is present.");
-    if (asset?.ai_generated === true && (asset?.ai_disclosure?.required !== true || asset?.ai_disclosure?.native_control_verified !== true)) {
-      add("AI_DISCLOSURE_MISSING", "Media asset " + (index + 1) + " requires verified destination-native AI disclosure.");
+    if (asset?.ai_generated === true) {
+      add("AI_GENERATED_MEDIA_PROHIBITED", "Nature Frontiers requires genuine original wildlife media; AI-generated assets are not eligible for publication, even when disclosed.");
+    } else if (asset?.ai_generated !== false) {
+      add("MEDIA_ORIGIN_UNDECLARED", "Media asset " + (index + 1) + " must be explicitly confirmed as non-AI before publication.");
     }
   }
 

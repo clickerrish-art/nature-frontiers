@@ -1,28 +1,23 @@
 const groups = [
   {
     platform: "Meta (Facebook Page)",
-    required: ["META_PAGE_ID", "META_PAGE_ACCESS_TOKEN"],
-    note: "Token must have valid Page publishing access; app review and Page permissions may apply."
+    required: ["META_PAGE_ID", "META_PAGE_ACCESS_TOKEN", "META_GRAPH_API_VERSION"],
+    note: "Presence only; Page token validity, Page tasks, app access level, and publishing eligibility are not verified."
   },
   {
     platform: "Instagram",
-    required: ["META_PAGE_ACCESS_TOKEN", "INSTAGRAM_USER_ID"],
-    note: "Requires an eligible professional account and a supported Meta API setup."
+    required: ["INSTAGRAM_ACCESS_TOKEN", "INSTAGRAM_USER_ID", "META_GRAPH_API_VERSION"],
+    note: "Presence only; the token must match the selected Instagram API login path. Token validity, scopes, account ownership, App Review status, and publishing eligibility are not verified. Do not substitute the Facebook Page token."
   },
   {
     platform: "Pinterest",
     required: ["PINTEREST_ACCESS_TOKEN", "PINTEREST_BOARD_ID"],
-    note: "Token must include the required pin/board scopes."
+    note: "Token must include the required pin/board scopes; this check does not validate them."
   },
   {
     platform: "TikTok",
     required: ["TIKTOK_ACCESS_TOKEN", "TIKTOK_OPEN_ID"],
-    note: "Content Posting API access and any required app audit must be complete."
-  },
-  {
-    platform: "YouTube",
-    required: ["YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET", "YOUTUBE_REFRESH_TOKEN", "YOUTUBE_CHANNEL_ID"],
-    note: "OAuth must be authorized for the intended channel; uploads are subject to quota and API restrictions."
+    note: "Content Posting API access and any required app audit must be complete; this check does not validate them."
   }
 ];
 
