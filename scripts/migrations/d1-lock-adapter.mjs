@@ -63,9 +63,10 @@ export class D1MigrationLockStore {
     return this.db.prepare(`SELECT lock_key, target_database_id, worker_name, run_id, plan_sha256, manifest_sha256, owner_token_hash, acquired_at, expires_at, recovery_approval_id FROM nf_migration_lock WHERE lock_key='global'`).first();
   }
 
-  async acquire({ run, target, ownerTokenHash, at = new Date().toISOString() }) {
+  async acquire({ run, target, ownerTokenHash, actor, at = new Date().toISOString() }) {
     assertRun(run, target);
     assertHash(ownerTokenHash, "ownerTokenHash");
+    if (typeof actor !== "string" || !actor.trim() || actor.length > 200) fail("INVALID_ACTOR", "A named lock owner is required for the audit event.");
     assertIso(at, "acquiredAt");
     const eventKey = `${run.runId}:ACQUIRED:${ownerTokenHash}`;
     const results = await this.db.batch([
@@ -83,8 +84,8 @@ export class D1MigrationLockStore {
         WHERE run_id=? AND state='APPROVED' AND EXISTS(SELECT 1 FROM nf_migration_lock WHERE lock_key='global' AND run_id=? AND owner_token_hash=?)`,
         at, run.runId, run.runId, ownerTokenHash),
       statement(this.db, `INSERT OR IGNORE INTO nf_migration_run_events(run_id,revision,state,occurred_at,actor,reason,approval_id)
-        SELECT run_id,revision,state,updated_at,actor,reason,approval_id FROM nf_migration_runs WHERE run_id=? AND state='LOCKED'`,
-        run.runId)
+        SELECT run_id,revision,state,updated_at,?,reason,approval_id FROM nf_migration_runs WHERE run_id=? AND state='LOCKED'`,
+        actor.trim(), run.runId)
     ]);
     const current = await this.read();
     const acquired = changes(results[0]) === 1 && changes(results[2]) === 1;
@@ -92,9 +93,10 @@ export class D1MigrationLockStore {
     return { acquired, alreadyOwned, lock: current };
   }
 
-  async release({ runId, ownerTokenHash, at = new Date().toISOString() }) {
+  async release({ runId, ownerTokenHash, actor, at = new Date().toISOString() }) {
     if (!UUID.test(runId ?? "")) fail("INVALID_RUN_ID", "runId must be a UUID.");
     assertHash(ownerTokenHash, "ownerTokenHash");
+    if (typeof actor !== "string" || !actor.trim() || actor.length > 200) fail("INVALID_ACTOR", "A named lock owner is required for the audit event.");
     assertIso(at, "releasedAt");
     const eventKey = `${runId}:RELEASED:${ownerTokenHash}`;
     const results = await this.db.batch([
@@ -109,8 +111,8 @@ export class D1MigrationLockStore {
         AND EXISTS(SELECT 1 FROM nf_migration_lock_events WHERE event_key=? AND event_type='RELEASED')`,
         at, runId, eventKey),
       statement(this.db, `INSERT OR IGNORE INTO nf_migration_run_events(run_id,revision,state,occurred_at,actor,reason,approval_id)
-        SELECT run_id,revision,state,updated_at,actor,reason,approval_id FROM nf_migration_runs WHERE run_id=? AND state='RELEASED' AND updated_at=?`,
-        runId, at)
+        SELECT run_id,revision,state,updated_at,?,reason,approval_id FROM nf_migration_runs WHERE run_id=? AND state='RELEASED' AND updated_at=?`,
+        actor.trim(), runId, at)
     ]);
     return { released: changes(results[1]) === 1 };
   }

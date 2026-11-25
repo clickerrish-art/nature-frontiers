@@ -51,7 +51,7 @@ export class D1MigrationRunOrchestrator {
 
   async reject({runId,expectedPlanSha256,expectedManifestSha256,actor,at,reason}){
     const result=await this.runStore.reject({
-      runId,expectedPlanSha256,expectedManifestSha256,target:stagingLockTarget,
+      runId,expectedPlanSha256,expectedManifestSha256,target:this.target,
       actor,at,reason
     });
     const run=await this.runStore.get(runId);

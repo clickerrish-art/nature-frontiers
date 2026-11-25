@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { buildDryRunPlan, parseStrictJson, stagingTarget } from "./planner.mjs";
+import { buildDryRunPlan, parseStrictJson, stagingTarget, rehearsalTarget } from "./planner.mjs";
 
 const bytes=Buffer.from("CREATE TABLE example (id INTEGER PRIMARY KEY);\n");
 const sha256=createHash("sha256").update(bytes).digest("hex");
@@ -46,4 +46,12 @@ test("empty manifest is not schema or ledger verification",()=>{
   assert.equal(p.disposition,"NO_MIGRATIONS_DECLARED");
   assert.equal(p.databaseState,"NOT_INSPECTED_NO_D1_CONNECTION");
   assert.equal(p.schemaFingerprint,null);
+});
+
+test("planner accepts only the exact isolated rehearsal pair in addition to staging",()=>{
+ const target={...rehearsalTarget};
+ const m={...manifest([]),target};
+ const p=plan(m,new Map(),target,raw(m));
+ assert.equal(p.target.environment,"rehearsal");
+ assert.throws(()=>plan(m,new Map(),{...target,worker:stagingTarget.worker},raw(m)),{code:"UNKNOWN_TARGET_DENIED"});
 });

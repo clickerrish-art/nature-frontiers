@@ -3,6 +3,8 @@ import path from "node:path";
 
 const STAGING_DATABASE_ID = "89be73af-ebaf-4c19-b75a-9871adb8ba3c";
 const STAGING_WORKER = "nature-frontiers-staging";
+const REHEARSAL_DATABASE_ID = "a12fb838-1bd1-4811-9cf1-2ad5b21089d4";
+const REHEARSAL_WORKER = "nf-adapter-worker-rehearsal";
 const ID_PATTERN = /^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const COMMIT_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
@@ -79,12 +81,13 @@ export function parseStrictJson(source) {
 export function validateTarget(target) {
   if (!isPlainObject(target)) fail("INVALID_TARGET", "Target must be an object.");
   rejectUnknownKeys(target, TARGET_KEYS, "target");
-  if (target.environment !== "staging") fail("TARGET_ENVIRONMENT_DENIED", "Only the staging environment is permitted.");
+  if (target.environment !== "staging" && target.environment !== "rehearsal") fail("TARGET_ENVIRONMENT_DENIED", "Only staging or the explicitly isolated rehearsal environment is permitted.");
   if (target.databaseId === "nature-frontiers-prod-state" || target.worker === "nature-frontiers-publisher") {
     fail("PRODUCTION_TARGET_DENIED", "Production resources are explicitly denied.");
   }
-  if (target.databaseId !== STAGING_DATABASE_ID) fail("UNKNOWN_DATABASE_DENIED", "Database ID does not match the pinned staging D1 allowlist.");
-  if (target.worker !== STAGING_WORKER) fail("UNKNOWN_WORKER_DENIED", "Worker name does not match the pinned staging Worker allowlist.");
+  const staging = target.environment === "staging" && target.databaseId === STAGING_DATABASE_ID && target.worker === STAGING_WORKER;
+  const rehearsal = target.environment === "rehearsal" && target.databaseId === REHEARSAL_DATABASE_ID && target.worker === REHEARSAL_WORKER;
+  if (!staging && !rehearsal) fail("UNKNOWN_TARGET_DENIED", "Target must exactly match the pinned staging pair or isolated disposable rehearsal pair.");
   return { environment: target.environment, databaseId: target.databaseId, worker: target.worker };
 }
 
@@ -166,3 +169,4 @@ export function buildDryRunPlan({ manifest, artifacts, target, manifestBytes, so
   return { ...body, planSha256, disposition:migrations.length ? "PLAN_ONLY_NOT_EXECUTABLE" : "NO_MIGRATIONS_DECLARED" };
 }
 export const stagingTarget = Object.freeze({ environment:"staging", databaseId:STAGING_DATABASE_ID, worker:STAGING_WORKER });
+export const rehearsalTarget = Object.freeze({ environment:"rehearsal", databaseId:REHEARSAL_DATABASE_ID, worker:REHEARSAL_WORKER });

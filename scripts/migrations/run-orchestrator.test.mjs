@@ -94,3 +94,13 @@ test("orchestrator can be explicitly pinned to the isolated disposable rehearsal
  assert.equal(runStore.calls[0][1].target.worker,rehearsalLockTarget.worker);
  assert.throws(()=>new D1MigrationRunOrchestrator({runStore,target:{...rehearsalLockTarget,worker:"nature-frontiers-staging"}}),{code:"TARGET_DENIED"});
 });
+
+test("rehearsal-pinned orchestrator rejects against its own target, not staging",async()=>{
+ const runStore=new Store();
+ const rehearsalPlan={...planResult,plan:{...planResult.plan,target:rehearsalLockTarget}};
+ const service=new D1MigrationRunOrchestrator({runStore,target:rehearsalLockTarget});
+ await service.recordPlan({planResult:rehearsalPlan,runId,actor:"planner"});
+ const result=await service.reject({runId,expectedPlanSha256:rehearsalPlan.plan.planSha256,expectedManifestSha256:rehearsalPlan.plan.manifestSha256,actor:"reviewer",reason:"Not approved",at:"2026-11-25T12:05:00.000Z"});
+ assert.equal(result.rejected,true);
+ assert.equal(result.run.state,"REFUSED");
+});

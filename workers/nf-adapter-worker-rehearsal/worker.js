@@ -1,212 +1,152 @@
-import { D1MigrationLockStore, sha256Hex, rehearsalLockTarget } from "./d1-lock-adapter.mjs";
-import { D1MigrationRunStore } from "./d1-run-store.mjs";
-import { D1MigrationRunOrchestrator } from "./run-orchestrator.mjs";
+import { MigrationRunLifecycle } from "./migration-runner.mjs";
+import { rehearsalLockTarget } from "./d1-lock-adapter.mjs";
 
-const json = (value, status=200) => new Response(JSON.stringify(value), {
-  status, headers: { "content-type":"application/json; charset=utf-8", "cache-control":"no-store" }
+const json=(value,status=200)=>new Response(JSON.stringify(value),{
+  status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}
 });
-const interruptedOwnerToken = "nf-job4a-interrupted-owner-token-00000000000000000000000000000000";
+const interruptedOwnerToken="nf-job4b-interrupted-owner-token-00000000000000000000000000000000";
+const services=env=>new MigrationRunLifecycle({db:env.DB,target:rehearsalLockTarget});
+const now=()=>new Date().toISOString();
 
-function services(env) {
-  const store = new D1MigrationRunStore(env.DB);
-  const locks = new D1MigrationLockStore(env.DB);
-  const orchestrator = new D1MigrationRunOrchestrator({ runStore:store, lockStore:locks, target:rehearsalLockTarget });
-  return { store, locks, orchestrator };
+function planFor(runner){
+  const manifest={schemaVersion:1,streamId:"nf.job4b.rehearsal",target:rehearsalLockTarget,migrations:[]};
+  return runner.plan({manifestBytes:new TextEncoder().encode(JSON.stringify(manifest)),artifacts:new Map()});
 }
-
-async function dispatch(input, env) {
-  const {store,locks,orchestrator}=services(env);
-  switch (input.action) {
-    case "health": {
-      const row = await env.DB.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type='table' AND name LIKE 'nf_migration_%'").first();
-      return { ok:true, target:rehearsalLockTarget, controlTables:row?.count ?? 0 };
+async function recordApproved(env,suffix){
+  const runner=services(env),runId=crypto.randomUUID(),planResult=planFor(runner);
+  await runner.recordPlan({planResult,runId,actor:"job4b-planner-"+suffix,at:now(),reason:"Job 4B integrated runner rehearsal"});
+  await runner.approve({runId,expectedPlanSha256:planResult.plan.planSha256,expectedManifestSha256:planResult.plan.manifestSha256,
+    actor:"job4b-approver-"+suffix,approvalId:"job4b-approval-"+suffix,at:now(),reason:"Explicit disposable rehearsal approval"});
+  return {runId,ownerToken:"job4b-owner-token-"+suffix+"-0123456789abcdef0123456789abcdef"};
+}
+async function dispatch(input,env){
+  const runner=services(env);
+  switch(input.action){
+    case "health":{
+      const row=await env.DB.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type='table' AND name LIKE 'nf_migration_%'").first();
+      return {ok:true,target:rehearsalLockTarget,controlTables:row?.count??0,capabilities:runner.capabilities};
     }
-    case "recordPlan": {
-      return orchestrator.recordPlan({
-        planResult: {
-          mode:"PLAN_ONLY", executionEnabled:false,
-          sideEffects:{d1Reads:false,d1Writes:false,lockAcquired:false,sqlExecuted:false,workerDeployed:false},
-          plan:{ mode:"READ_ONLY_DRY_RUN", executionEnabled:false, target:rehearsalLockTarget,
-            planSha256:input.planSha256, manifestSha256:input.manifestSha256 }
-        },
-        runId:input.runId, actor:input.actor, at:input.at, reason:input.reason || "Disposable D1 adapter rehearsal"
-      });
+    case "recordPlan":{
+      const planResult=planFor(runner);
+      return runner.recordPlan({planResult,runId:input.runId,actor:input.actor,at:input.at,reason:input.reason||"Job 4B plan-only runner rehearsal"});
     }
-    case "approve": {
-      const run=await store.get(input.runId);
-      if(!run) throw Object.assign(new Error("No persisted run exists."),{code:"RUN_NOT_FOUND"});
-      return orchestrator.approve({
-        runId:run.runId,expectedPlanSha256:run.planSha256,
-        expectedManifestSha256:run.manifestSha256,actor:input.actor,
-        approvalId:input.approvalId,at:input.at,reason:input.reason
-      });
+    case "approve":{
+      const run=await runner.runStore.get(input.runId);
+      if(!run)throw Object.assign(new Error("No persisted run exists."),{code:"RUN_NOT_FOUND"});
+      return runner.approve({runId:run.runId,expectedPlanSha256:run.planSha256,expectedManifestSha256:run.manifestSha256,
+        actor:input.actor,approvalId:input.approvalId,at:input.at,reason:input.reason||"Explicit rehearsal approval"});
     }
-    case "acquire": {
-      const run=await store.get(input.runId);
-      if(!run) throw Object.assign(new Error("No persisted run exists."),{code:"RUN_NOT_FOUND"});
-      const ownerTokenHash=await sha256Hex(input.ownerToken);
-      return locks.acquire({run,target:rehearsalLockTarget,ownerTokenHash,at:input.at});
+    case "acquire":
+      return runner.acquire({runId:input.runId,ownerToken:input.ownerToken,actor:input.actor||"job4b-lock-owner",at:input.at});
+    case "release":
+      return runner.release({runId:input.runId,ownerToken:input.ownerToken,actor:input.actor||"job4b-lock-owner",at:input.at});
+    case "recover":{
+      const ownerTokenHash=await (await import("./d1-lock-adapter.mjs")).sha256Hex(input.ownerToken);
+      return runner.recoverInterrupted({runId:input.runId,ownerTokenHash,processTerminationConfirmed:input.processTerminationConfirmed,
+        approvalId:input.approvalId,actor:input.actor,at:input.at});
     }
-    case "release": {
-      const ownerTokenHash=await sha256Hex(input.ownerToken);
-      return locks.release({runId:input.runId,ownerTokenHash,at:input.at});
-    }
-    case "recover": {
-      const ownerTokenHash=await sha256Hex(input.ownerToken);
-      return orchestrator.recoverInterrupted({
-        runId:input.runId,ownerTokenHash,
-        processTerminationConfirmed:input.processTerminationConfirmed,
-        approvalId:input.approvalId,actor:input.actor,at:input.at
-      });
-    }
-    case "inspect": {
-      const run=await orchestrator.inspect(input.runId);
-      return {run,lock:await locks.read(),lockEvents:await locks.listEvents(input.runId)};
-    }
-    default: throw Object.assign(new Error("Unknown rehearsal action."),{code:"UNKNOWN_ACTION"});
+    case "inspect":return runner.inspect(input.runId);
+    default:throw Object.assign(new Error("Unknown runner action."),{code:"UNKNOWN_ACTION"});
   }
-}
-
-async function createApprovedRun(env, suffix) {
-  const runId=crypto.randomUUID();
-  const planSha256="a".repeat(64), manifestSha256="b".repeat(64);
-  const at=new Date().toISOString();
-  await dispatch({action:"recordPlan",runId,planSha256,manifestSha256,actor:"job4a-planner-"+suffix,at},env);
-  await dispatch({action:"approve",runId,actor:"job4a-owner-"+suffix,approvalId:"job4a-approval-"+suffix,at:new Date().toISOString()},env);
-  return {runId,ownerToken:"job4a-owner-token-"+suffix+"-0123456789abcdef0123456789abcdef"};
-}
-
-async function selfTestConcurrency(env) {
-  const [a,b]=await Promise.all([createApprovedRun(env,"A"),createApprovedRun(env,"B")]);
-  const [acquireA,acquireB]=await Promise.all([
-    dispatch({action:"acquire",runId:a.runId,ownerToken:a.ownerToken,at:new Date().toISOString()},env),
-    dispatch({action:"acquire",runId:b.runId,ownerToken:b.ownerToken,at:new Date().toISOString()},env)
-  ]);
-  const winners=[{...a,result:acquireA},{...b,result:acquireB}].filter(x=>x.result.acquired===true);
-  if(winners.length!==1) throw Object.assign(new Error("Concurrent acquisition did not produce exactly one winner."),{code:"CONCURRENCY_ASSERTION_FAILED",details:{a:acquireA.acquired,b:acquireB.acquired}});
-  const winner=winners[0];
-  const wrongOwner=await dispatch({action:"release",runId:winner.runId,ownerToken:"wrong-owner-token-0123456789abcdef0123456789abcdef",at:new Date().toISOString()},env);
-  const afterWrong=await services(env).locks.read();
-  const ownerRelease=await dispatch({action:"release",runId:winner.runId,ownerToken:winner.ownerToken,at:new Date().toISOString()},env);
-  const winnerInspect=await dispatch({action:"inspect",runId:winner.runId},env);
-  const loser=[a,b].find(x=>x.runId!==winner.runId);
-  const loserInspect=await dispatch({action:"inspect",runId:loser.runId},env);
-  return {
-    exactlyOneConcurrentWinner:winners.length===1,
-    winnerRunId:winner.runId,loserRunId:loser.runId,
-    wrongOwnerReleaseRejected:wrongOwner.released===false,
-    lockRetainedAfterWrongOwner:afterWrong?.run_id===winner.runId,
-    correctOwnerReleaseSucceeded:ownerRelease.released===true,
-    lockAbsentAfterOwnerRelease:winnerInspect.lock===null,
-    winnerFinalState:winnerInspect.run?.run?.state,
-    winnerLockEvents:winnerInspect.lockEvents,
-    loserFinalState:loserInspect.run?.run?.state
-  };
 }
 
 export default {
-  async fetch(request, env) {
-    if (!env.DB) return json({error:"HARNESS_NOT_CONFIGURED"},503);
-    const url=new URL(request.url);
-    if (request.method==="GET" && url.pathname==="/health") {
-      try { return json(await dispatch({action:"health"},env)); }
-      catch(error) { return json({error:error.code||"HEALTH_ERROR",message:error.message},500); }
-    }
-    if (request.method==="GET" && url.pathname==="/__selftest/prepare-race") {
-      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
-      try {
-        const runIds=[url.searchParams.get("runA"),url.searchParams.get("runB")];
-        if(runIds.some(id=>!id)) return json({error:"TWO_RUN_IDS_REQUIRED"},400);
-        const prepared=[];
-        for(let i=0;i<runIds.length;i++){
-          let run=await services(env).store.get(runIds[i]);
-          if(!run){
-            const at=new Date().toISOString();
-            await dispatch({action:"recordPlan",runId:runIds[i],planSha256:(i===0?"e":"f").repeat(64),manifestSha256:(i===0?"1":"2").repeat(64),actor:"job4a-race-planner-"+i,at},env);
-            await dispatch({action:"approve",runId:runIds[i],actor:"job4a-race-owner-"+i,approvalId:"job4a-race-approval-"+i,at:new Date().toISOString()},env);
-            run=await services(env).store.get(runIds[i]);
-          }
-          prepared.push({runId:run.runId,state:run.state});
-        }
-        return json({prepared});
-      } catch(error) { return json({error:error.code||"RACE_PREPARE_FAILED",message:error.message},500); }
-    }
-    if (request.method==="GET" && url.pathname==="/__selftest/race-acquire") {
-      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
-      try {
-        const runId=url.searchParams.get("runId");
-        const run=await services(env).store.get(runId);
-        if(!run) return json({error:"RUN_NOT_FOUND"},404);
-        const ownerToken="job4a-race-owner-token-"+runId+"-0123456789abcdef";
-        const ownerTokenHash=await sha256Hex(ownerToken);
-        if(run.state==="LOCKED"){
-          const lock=await services(env).locks.read();
-          return json({acquired:false,alreadyOwned:lock?.run_id===runId&&lock?.owner_token_hash===ownerTokenHash,lock});
-        }
-        if(run.state!=="APPROVED") return json({acquired:false,state:run.state,lock:await services(env).locks.read()});
-        return json(await dispatch({action:"acquire",runId,ownerToken,at:new Date().toISOString()},env));
-      } catch(error) { return json({error:error.code||"RACE_ACQUIRE_FAILED",message:error.message},500); }
-    }
-    if (request.method==="GET" && url.pathname==="/__selftest/race-release") {
-      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
-      try {
-        const runId=url.searchParams.get("runId");
-        const run=await services(env).store.get(runId);
-        if(run?.state==="RELEASED") return json({released:false,alreadyReleased:true});
-        const ownerToken="job4a-race-owner-token-"+runId+"-0123456789abcdef";
-        return json(await dispatch({action:"release",runId,ownerToken,at:new Date().toISOString()},env));
-      } catch(error) { return json({error:error.code||"RACE_RELEASE_FAILED",message:error.message},500); }
-    }
-    if (request.method==="GET" && url.pathname==="/__selftest/concurrency") {
-      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
-      try { return json(await selfTestConcurrency(env)); }
-      catch(error) { return json({error:error.code||"SELFTEST_ERROR",message:error.message,details:error.details},500); }
-    }
-    if (request.method==="GET" && url.pathname==="/__selftest/interrupt") {
-      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
-      try {
-        const runId=url.searchParams.get("runId") || crypto.randomUUID();
-        let run=await services(env).store.get(runId);
-        if (!run) {
-          const at=new Date().toISOString();
-          await dispatch({action:"recordPlan",runId,planSha256:"c".repeat(64),manifestSha256:"d".repeat(64),actor:"job4a-interruption-planner",at},env);
-          await dispatch({action:"approve",runId,actor:"job4a-interruption-owner",approvalId:"job4a-interruption-approval",at:new Date().toISOString()},env);
-          run=await services(env).store.get(runId);
-        }
-        let acquired=false;
-        if (run.state==="APPROVED") {
-          const result=await dispatch({action:"acquire",runId,ownerToken:interruptedOwnerToken,at:new Date().toISOString()},env);
-          acquired=result.acquired===true;
-        } else if (run.state==="LOCKED") {
-          const lock=await services(env).locks.read();
-          acquired=lock?.run_id===runId;
-        }
-        run=await services(env).store.get(runId);
-        return json({acquired,runId,runState:run?.state,lock:await services(env).locks.read()});
-      } catch(error) { return json({error:error.code||"INTERRUPTION_SETUP_FAILED",message:error.message},500); }
-    }
-    if (request.method==="GET" && url.pathname==="/__selftest/recover") {
-      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
-      try {
-        const runId=url.searchParams.get("runId");
-        const run=await services(env).store.get(runId);
-        if (run?.state==="AMBIGUOUS") {
-          return json({recovered:false,alreadyRecovered:true,run,events:await services(env).store.listEvents(runId),lockEvents:await services(env).locks.listEvents(runId)});
-        }
-        const recovered=await dispatch({
-          action:"recover",runId,ownerToken:interruptedOwnerToken,
-          processTerminationConfirmed:true,approvalId:"job4a-recovery-approval",
-          actor:"job4a-recovery-operator",at:new Date().toISOString()
-        },env);
-        return json(recovered);
-      } catch(error) { return json({error:error.code||"RECOVERY_FAILED",message:error.message},500); }
-    }
-    if (request.method!=="POST") return json({error:"METHOD_NOT_ALLOWED"},405);
-    if (!env.AUTH_TOKEN) return json({error:"HARNESS_NOT_CONFIGURED"},503);
-    if (request.headers.get("authorization")!==`Bearer ${env.AUTH_TOKEN}`) return json({error:"UNAUTHORIZED"},401);
-    let input;
-    try { input=await request.json(); } catch { return json({error:"INVALID_JSON"},400); }
-    try { return json(await dispatch(input,env)); }
-    catch(error) { return json({error:error.code||"REHEARSAL_ERROR",message:error.message},400); }
+ async fetch(request,env){
+  if(!env.DB)return json({error:"HARNESS_NOT_CONFIGURED"},503);
+  const url=new URL(request.url);
+  if(request.method==="GET"&&url.pathname==="/health"){
+   try{return json(await dispatch({action:"health"},env));}
+   catch(error){return json({error:error.code||"HEALTH_ERROR",message:error.message},500);}
   }
+  const selfTest=url.pathname.startsWith("/__selftest/");
+  if(selfTest&&(!env.AUTH_TOKEN||url.searchParams.get("key")!==env.AUTH_TOKEN))return json({error:"UNAUTHORIZED"},401);
+  if(request.method==="GET"&&url.pathname==="/__selftest/prepare-race"){
+   try{
+    const ids=[url.searchParams.get("runA"),url.searchParams.get("runB")];
+    if(ids.some(id=>!id))return json({error:"TWO_RUN_IDS_REQUIRED"},400);
+    const prepared=[];
+    for(let i=0;i<ids.length;i++){
+      const runner=services(env);let run=await runner.runStore.get(ids[i]);
+      if(!run){
+       const planResult=planFor(runner);
+       await runner.recordPlan({planResult,runId:ids[i],actor:"job4b-race-planner-"+i,at:now()});
+       await runner.approve({runId:ids[i],expectedPlanSha256:planResult.plan.planSha256,expectedManifestSha256:planResult.plan.manifestSha256,
+        actor:"job4b-race-approver-"+i,approvalId:"job4b-race-approval-"+i,at:now()});
+       run=await runner.runStore.get(ids[i]);
+      }
+      prepared.push({runId:run.runId,state:run.state});
+    }
+    return json({prepared});
+   }catch(error){return json({error:error.code||"RACE_PREPARE_FAILED",message:error.message},500);}
+  }
+  if(request.method==="GET"&&url.pathname==="/__selftest/race-acquire"){
+   try{
+    const runId=url.searchParams.get("runId"),runner=services(env),run=await runner.runStore.get(runId);
+    if(!run)return json({error:"RUN_NOT_FOUND"},404);
+    if(run.state==="LOCKED")return json({acquired:false,alreadyOwned:false,lock:await runner.lockStore.read()});
+    if(run.state!=="APPROVED")return json({acquired:false,state:run.state,lock:await runner.lockStore.read()});
+    const ownerToken="job4b-race-owner-token-"+runId+"-0123456789abcdef";
+    return json(await runner.acquire({runId,ownerToken,actor:"job4b-race-lock-owner",at:now()}));
+   }catch(error){return json({error:error.code||"RACE_ACQUIRE_FAILED",message:error.message},500);}
+  }
+  if(request.method==="GET"&&url.pathname==="/__selftest/race-release"){
+   try{
+    const runId=url.searchParams.get("runId"),runner=services(env),run=await runner.runStore.get(runId);
+    if(run?.state==="RELEASED")return json({released:false,alreadyReleased:true});
+    const ownerToken="job4b-race-owner-token-"+runId+"-0123456789abcdef";
+    return json(await runner.release({runId,ownerToken,actor:"job4b-race-lock-owner",at:now()}));
+   }catch(error){return json({error:error.code||"RACE_RELEASE_FAILED",message:error.message},500);}
+  }
+  if(request.method==="GET"&&url.pathname==="/__selftest/concurrency"){
+   try{
+    const [a,b]=await Promise.all([recordApproved(env,"A"),recordApproved(env,"B")]);
+    const [ra,rb]=await Promise.all([
+      dispatch({action:"acquire",runId:a.runId,ownerToken:a.ownerToken,actor:"job4b-owner-A",at:now()},env),
+      dispatch({action:"acquire",runId:b.runId,ownerToken:b.ownerToken,actor:"job4b-owner-B",at:now()},env)
+    ]);
+    const winners=[{...a,result:ra},{...b,result:rb}].filter(x=>x.result.acquired===true);
+    if(winners.length!==1)throw Object.assign(new Error("Expected exactly one D1 lock winner."),{code:"CONCURRENCY_ASSERTION_FAILED"});
+    const winner=winners[0],loser=[a,b].find(x=>x.runId!==winner.runId);
+    const wrong=await dispatch({action:"release",runId:winner.runId,ownerToken:"wrong-owner-token-0123456789abcdef0123456789abcdef",actor:"job4b-intruder",at:now()},env);
+    const retained=await services(env).lockStore.read();
+    const released=await dispatch({action:"release",runId:winner.runId,ownerToken:winner.ownerToken,actor:"job4b-owner",at:now()},env);
+    const winnerFinal=await dispatch({action:"inspect",runId:winner.runId},env);
+    const loserFinal=await dispatch({action:"inspect",runId:loser.runId},env);
+    return json({exactlyOneWinner:winners.length===1,winnerRunId:winner.runId,loserRunId:loser.runId,
+      wrongOwnerRejected:wrong.released===false,lockRetainedAfterWrongOwner:retained?.run_id===winner.runId,
+      ownerReleaseSucceeded:released.released===true,winnerState:winnerFinal.run.state,loserState:loserFinal.run.state,
+      runEvents:winnerFinal.events,lockEvents:winnerFinal.lockEvents});
+   }catch(error){return json({error:error.code||"SELFTEST_ERROR",message:error.message},500);}
+  }
+  if(request.method==="GET"&&url.pathname==="/__selftest/interrupt"){
+   try{
+    const runId=url.searchParams.get("runId")||crypto.randomUUID(),runner=services(env);
+    let run=await runner.runStore.get(runId);
+    if(!run){
+      const planResult=planFor(runner);
+      await runner.recordPlan({planResult,runId,actor:"job4b-interruption-planner",at:now()});
+      await runner.approve({runId,expectedPlanSha256:planResult.plan.planSha256,expectedManifestSha256:planResult.plan.manifestSha256,
+       actor:"job4b-interruption-approver",approvalId:"job4b-interruption-approval",at:now()});
+    }
+    run=await runner.runStore.get(runId);
+    if(run.state==="APPROVED")await runner.acquire({runId,ownerToken:interruptedOwnerToken,actor:"job4b-interruption-owner",at:now()});
+    const result=await runner.inspect(runId);
+    return json({runId,runState:result.run.state,lock:result.lock,events:result.events,lockEvents:result.lockEvents});
+   }catch(error){return json({error:error.code||"INTERRUPTION_SETUP_FAILED",message:error.message},500);}
+  }
+  if(request.method==="GET"&&url.pathname==="/__selftest/recover"){
+   try{
+    const runId=url.searchParams.get("runId"),runner=services(env);
+    const ownerTokenHash=await (await import("./d1-lock-adapter.mjs")).sha256Hex(interruptedOwnerToken);
+    const result=await runner.recoverInterrupted({runId,ownerTokenHash,processTerminationConfirmed:true,
+      approvalId:"job4b-recovery-approval",actor:"job4b-recovery-operator",at:now()});
+    return json(result);
+   }catch(error){return json({error:error.code||"RECOVERY_FAILED",message:error.message},500);}
+  }
+  if(request.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
+  if(!env.AUTH_TOKEN||request.headers.get("authorization")!==`Bearer ${env.AUTH_TOKEN}`)return json({error:"UNAUTHORIZED"},401);
+  let input;try{input=await request.json();}catch{return json({error:"INVALID_JSON"},400);}
+  try{return json(await dispatch(input,env));}
+  catch(error){return json({error:error.code||"RUNNER_ERROR",message:error.message},400);}
+ }
 };

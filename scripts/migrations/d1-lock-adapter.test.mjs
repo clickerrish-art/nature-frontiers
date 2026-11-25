@@ -30,17 +30,18 @@ test("acquire is allowlist-only and issues a conditional singleton insert inside
   const db=new FakeD1([[result(1),result(1),result(1),result(1)]]);
   db.row={run_id:run.runId,owner_token_hash:owner};
   const store=new D1MigrationLockStore(db);
-  const answer=await store.acquire({run,target:stagingLockTarget,ownerTokenHash:owner,at:"2026-11-25T12:00:00.000Z"});
+  const answer=await store.acquire({run,target:stagingLockTarget,ownerTokenHash:owner,actor:"lock-owner",at:"2026-11-25T12:00:00.000Z"});
   assert.equal(answer.acquired,true);
   assert.match(db.calls[0][0].sql,/ON CONFLICT\(lock_key\) DO NOTHING/);
   assert.match(db.calls[0][0].sql,/state='APPROVED'/);
   assert.equal(db.calls[0].length,4);
-  await assert.rejects(()=>store.acquire({run,target:{...stagingLockTarget,worker:"nature-frontiers-publisher"},ownerTokenHash:owner}),{code:"TARGET_DENIED"});
+  assert.match(db.calls[0][3].sql,/SELECT run_id,revision,state,updated_at,\\?,reason/);
+  await assert.rejects(()=>store.acquire({run,target:{...stagingLockTarget,worker:"nature-frontiers-publisher"},ownerTokenHash:owner,actor:"lock-owner"}),{code:"TARGET_DENIED"});
 });
 test("owner-only release is conditional on run ID and owner hash",async()=>{
   const db=new FakeD1([[result(0),result(0),result(0),result(0)]]);
   const store=new D1MigrationLockStore(db);
-  const out=await store.release({runId:run.runId,ownerTokenHash:owner,at:"2026-11-25T12:01:00.000Z"});
+  const out=await store.release({runId:run.runId,ownerTokenHash:owner,actor:"lock-owner",at:"2026-11-25T12:01:00.000Z"});
   assert.equal(out.released,false);
   assert.match(db.calls[0][1].sql,/owner_token_hash=\?/);
   assert.match(db.calls[0][1].sql,/run_id=\?/);
@@ -72,7 +73,7 @@ test("disposable rehearsal target is exact and staging target remains separately
  db.row={run_id:run.runId,owner_token_hash:owner};
  const store=new D1MigrationLockStore(db);
  const rehearsalRun={...run,target:rehearsalLockTarget};
- const answer=await store.acquire({run:rehearsalRun,target:rehearsalLockTarget,ownerTokenHash:owner,at:"2026-11-25T12:04:00.000Z"});
+ const answer=await store.acquire({run:rehearsalRun,target:rehearsalLockTarget,ownerTokenHash:owner,actor:"lock-owner",at:"2026-11-25T12:04:00.000Z"});
  assert.equal(answer.acquired,true);
- await assert.rejects(()=>store.acquire({run:rehearsalRun,target:{...rehearsalLockTarget,worker:"nature-frontiers-staging"},ownerTokenHash:owner}),{code:"TARGET_DENIED"});
+ await assert.rejects(()=>store.acquire({run:rehearsalRun,target:{...rehearsalLockTarget,worker:"nature-frontiers-staging"},ownerTokenHash:owner,actor:"lock-owner"}),{code:"TARGET_DENIED"});
 });

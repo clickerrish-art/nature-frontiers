@@ -96,3 +96,12 @@ The existing `test:migrations` npm script uses the `scripts/migrations/*.test.mj
 The orchestration layer has no SQL execution capability, no Worker deployment capability, and does not acquire locks during plan recording or approval. Lock acquisition remains a separate explicit adapter operation. A live disposable-D1 rehearsal must not be interpreted as staging authorization.
 
 CI unit/contract tests are in `d1-run-store.test.mjs`, `run-orchestrator.test.mjs`, and `d1-lock-adapter.test.mjs`. The exact live disposable-D1 rehearsal and any blocked test cases are recorded in `workers/nature-frontiers-staging-recovered/RUN-RECORD-APPROVAL-REHEARSAL.md`.
+
+
+### Job 4B — integrated plan-only lifecycle
+
+`migration-runner.mjs` composes the pure `orchestratePlanOnly` planner with the persistent D1 run store, human-approval orchestrator, and persistent lock adapter. The supported lifecycle is explicit and separately invoked: plan → persist PLANNED → owner approval → acquire lock → owner-only release, with inspectable run and lock event histories. A locked run can enter AMBIGUOUS only through the existing confirmed-process-termination and approved recovery path.
+
+The runner exposes no migration SQL executor, DDL executor, schema mutator, or Worker deployment method. Its capability declaration explicitly keeps those operations false. The original `run-plan.mjs` CLI remains an offline staging-only command: it does not connect to D1, persist approvals, acquire locks, or execute SQL. The planner's in-process target validator now accepts only the exact staging pair or the exact disposable rehearsal pair; the staging CLI continues to pin staging and cannot be redirected to rehearsal or production.
+
+Live lifecycle integration is restricted to `nf-adapter-worker-rehearsal` and its disposable D1 binding. The Worker harness imports the checked-in runner, planner, orchestrator, run-store and lock-adapter modules. No staging or production database is read or written by the rehearsal. No migration SQL or DDL is executed by Job 4B.
