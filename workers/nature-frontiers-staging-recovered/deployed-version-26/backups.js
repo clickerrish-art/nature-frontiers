@@ -131,3 +131,5 @@ export async function handleBackups(request,env,session){
  }
  return null;
 }
+
+export {createBackup,verifyBackup,restoreMerge};
