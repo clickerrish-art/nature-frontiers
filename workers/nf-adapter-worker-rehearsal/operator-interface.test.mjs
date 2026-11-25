@@ -70,7 +70,7 @@ test("operator authentication requires exact bearer token and rejects missing or
 
 
 test("rehearsal Worker resolves lifecycle modules and enforces authenticated HTTP boundary",async()=>{
- const env={DB:{prepare(){return {first:async()=>({count:4})};}},AUTH_TOKEN:"rehearsal-auth-token-that-is-at-least-32-characters"};
+ const env={DB:{prepare(){return {bind(){return this;},first:async()=>({count:4})};},batch:async()=>[]},AUTH_TOKEN:"rehearsal-auth-token-that-is-at-least-32-characters"};
  const page=await worker.fetch(new Request("https://rehearsal.invalid/operator"),env);
  assert.equal(page.status,200);
  assert.match(page.headers.get("content-security-policy"),/default-src 'none'/);
