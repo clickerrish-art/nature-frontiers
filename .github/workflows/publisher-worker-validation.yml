@@ -15,6 +15,7 @@ on:
       - codex/instagram-unified-login-setup
     paths:
       - "workers/nature-frontiers-publisher/**"
+      - "workers/nf-adapter-worker-rehearsal/**"
       - "scripts/**"
       - "package.json"
       - ".github/workflows/publisher-worker-validation.yml"
