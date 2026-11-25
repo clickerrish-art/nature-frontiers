@@ -55,6 +55,6 @@ export function orchestratePlanOnly(input) {
       sqlExecuted: false,
       workerDeployed: false
     }),
-    plan
+    plan: deepFreeze(plan)
   });
 }
