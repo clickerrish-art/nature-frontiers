@@ -87,3 +87,15 @@ Captured: 2026-11-25 (UTC)
 - PR #26: `open`, `draft=true`, `merged=false`; head ref `codex/instagram-unified-login-setup`, head SHA `dec6a1075c01b5b20a87f47cfec130c4a972123e`. No action taken.
 - PR #28: `open`, `draft=true`, `merged=false`; head ref `codex/nf-licensed-stock-policy-fix`, head SHA `98c4bf2bf4eadc1bd7a982a9f216bcdd03c912ac`. No action taken.
 - Neither PR #26 nor PR #28 points at the recovery branch `codex/nf-durable-publisher-api`; the recovery commits are confined to that existing implementation branch.
+
+## Exact internal draft test — prepared, not executed
+
+The deployed dashboard form and create handler were inspected:
+
+- The format control offers `feed_post` (displayed as “Feed post”) and `reel`.
+- The save payload fields are `campaignId`, `contentType`, `caption`, `mediaUrl`, and `mediaSha256`.
+- The exact requested test uses `contentType=feed_post`, `campaignId=null`, an HTTPS URL, and a 64-character SHA-256 string. It satisfies the deployed source-level input validator: caption length 1–5,000, HTTPS URL without embedded credentials, and 64 hexadecimal hash characters.
+- The create handler uses a D1 batch to insert `content_items`, revision 1 in `content_revisions`, `content_audit_events`, and `audit_events`.
+- The placeholder URL is not media-rights or media-integrity evidence; the test must remain an internal draft and must not be submitted for review, approved, scheduled, or dispatched.
+
+No request was sent because the authenticated browser session could not be established. The live D1 content/revision/audit counts remain zero.
