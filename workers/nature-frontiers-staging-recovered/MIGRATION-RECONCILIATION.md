@@ -151,3 +151,18 @@ The read-only scan inspected all 30 branch heads returned by the repository bran
 
 The repository tags endpoint returned no tags, the GitHub releases endpoint returned no releases, and checked workflow runs for validation did not retain artifacts (artifact listings returned zero for sampled runs). This does not prove no external deployment bundle, expired artifact, deleted ref, local checkout, operator backup, or separately permissioned repository copy exists.
 
+
+
+## Cloudflare deployed-version provenance check
+
+The read-only Cloudflare Workers API lists 26 retained versions for `nature-frontiers-staging` (versions 1–26). Version metadata includes creation time, upload source, annotations, script ETag, handler names, and bindings; the version-detail endpoint does not return historical source-module bytes. The available script-content endpoint is for the current script, not an arbitrary historical version.
+
+Selected version details confirm that versions 1, 2, 14, 15, 24, and 25 were bound to the staging D1 ID `89be73af-ebaf-4c19-b75a-9871adb8ba3c`. Version 15 was created at `2026-11-25T09:55:10.392332Z`, nine seconds after the ledger's 0009 timestamp (`2026-11-25 09:55:01`). Its annotation identifies deployed code commit `89fe441dbda0bed9755529844f915f6062aabcc0` and message `Deploy held scheduling dashboard and encrypted Meta OAuth verification`. This is useful temporal/deployment correlation, but not proof of the 0009 SQL content or migration authoring commit. The annotation SHA is not a commit object in the accessible GitHub repository (GitHub's tree endpoint returns 422 for it), so it cannot supply the missing SQL from this repository.
+
+The same limitation applies to other annotated staging deployment commit SHAs inspected from versions 13–24. Historical Worker version metadata is not a source archive and must not be represented as recovered migration source.
+
+## User Library archive search
+
+A recursive metadata listing of the user's Library found 21 ZIP archives. The only Nature Frontiers-named ZIP is `Nature-Frontiers-recovered-media-evidence.zip`; its contents are wildlife media, audio, a README, an asset manifest, and a contact sheet—not Worker source or SQL. The small `github-actions-artifact-14583820313.zip` contains only `youtube-history-inventory.json`, unrelated to Nature Frontiers. The Library contained no files matching the `.sql`, `.tar`, `.gz`, `.7z`, or `.js` extensions in the recursive metadata listing. Semantic Library searches for Nature Frontiers source bundles, migration SQL, staging schema snapshots, and the missing migration names returned no matching source archive.
+
+This closes the search of the currently indexed Library files, not any local disk, external drive, Cloudflare export, private GitHub installation, or operator-held backup that is not in the Library.
