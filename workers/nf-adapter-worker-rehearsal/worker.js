@@ -112,6 +112,51 @@ export default {
       try { return json(await dispatch({action:"health"},env)); }
       catch(error) { return json({error:error.code||"HEALTH_ERROR",message:error.message},500); }
     }
+    if (request.method==="GET" && url.pathname==="/__selftest/prepare-race") {
+      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
+      try {
+        const runIds=[url.searchParams.get("runA"),url.searchParams.get("runB")];
+        if(runIds.some(id=>!id)) return json({error:"TWO_RUN_IDS_REQUIRED"},400);
+        const prepared=[];
+        for(let i=0;i<runIds.length;i++){
+          let run=await services(env).store.get(runIds[i]);
+          if(!run){
+            const at=new Date().toISOString();
+            await dispatch({action:"recordPlan",runId:runIds[i],planSha256:(i===0?"e":"f").repeat(64),manifestSha256:(i===0?"1":"2").repeat(64),actor:"job4a-race-planner-"+i,at},env);
+            await dispatch({action:"approve",runId:runIds[i],actor:"job4a-race-owner-"+i,approvalId:"job4a-race-approval-"+i,at:new Date().toISOString()},env);
+            run=await services(env).store.get(runIds[i]);
+          }
+          prepared.push({runId:run.runId,state:run.state});
+        }
+        return json({prepared});
+      } catch(error) { return json({error:error.code||"RACE_PREPARE_FAILED",message:error.message},500); }
+    }
+    if (request.method==="GET" && url.pathname==="/__selftest/race-acquire") {
+      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
+      try {
+        const runId=url.searchParams.get("runId");
+        const run=await services(env).store.get(runId);
+        if(!run) return json({error:"RUN_NOT_FOUND"},404);
+        const ownerToken="job4a-race-owner-token-"+runId+"-0123456789abcdef";
+        const ownerTokenHash=await sha256Hex(ownerToken);
+        if(run.state==="LOCKED"){
+          const lock=await services(env).locks.read();
+          return json({acquired:false,alreadyOwned:lock?.run_id===runId&&lock?.owner_token_hash===ownerTokenHash,lock});
+        }
+        if(run.state!=="APPROVED") return json({acquired:false,state:run.state,lock:await services(env).locks.read()});
+        return json(await dispatch({action:"acquire",runId,ownerToken,at:new Date().toISOString()},env));
+      } catch(error) { return json({error:error.code||"RACE_ACQUIRE_FAILED",message:error.message},500); }
+    }
+    if (request.method==="GET" && url.pathname==="/__selftest/race-release") {
+      if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
+      try {
+        const runId=url.searchParams.get("runId");
+        const run=await services(env).store.get(runId);
+        if(run?.state==="RELEASED") return json({released:false,alreadyReleased:true});
+        const ownerToken="job4a-race-owner-token-"+runId+"-0123456789abcdef";
+        return json(await dispatch({action:"release",runId,ownerToken,at:new Date().toISOString()},env));
+      } catch(error) { return json({error:error.code||"RACE_RELEASE_FAILED",message:error.message},500); }
+    }
     if (request.method==="GET" && url.pathname==="/__selftest/concurrency") {
       if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
       try { return json(await selfTestConcurrency(env)); }
