@@ -12,7 +12,8 @@ export function classifyInterruptedAttempt(attempt,slotState="leased"){
  if(slotState==="publishing")return "ambiguous_no_retry";
  if(!attempt)return "safe_to_hold";
  if(attempt.state==="reserved"||attempt.state==="ambiguous"||attempt.state==="confirmed")return "ambiguous_no_retry";
- return "safe_to_hold";
+ if(attempt.state==="failed")return "safe_to_hold";
+ return "ambiguous_no_retry";
 }
 async function body(request){const raw=await request.text();if(raw.length>4096)throw fail("Request body too large",413);try{return JSON.parse(raw)}catch{throw fail("Invalid JSON body")}}
 async function audit(db,actor,event,details,contentId=null){
@@ -63,13 +64,13 @@ export async function handleRunner(request,env,session){
    db.prepare("SELECT ci.id,ci.media_sha256,cr.revision,cr.payload_sha256 FROM content_items ci JOIN content_revisions cr ON cr.content_id=ci.id AND cr.revision=(SELECT MAX(revision) FROM content_revisions WHERE content_id=ci.id) WHERE ci.id=?").bind(slot.content_id).first(),
    db.prepare("SELECT validation_status FROM media_assets WHERE media_sha256=(SELECT media_sha256 FROM content_items WHERE id=?)").bind(slot.content_id).first(),
    db.prepare("SELECT id,rights_status,evidence_sha256,permitted_platforms_json,permitted_uses_json,expires_at,revoked_at FROM media_rights_evidence WHERE media_sha256=(SELECT media_sha256 FROM content_items WHERE id=?) ORDER BY created_at DESC LIMIT 20").bind(slot.content_id).all(),
-   db.prepare("SELECT id,reviewer_id,payload_sha256,rights_evidence_sha256,signed_receipt,approved_at,expires_at,revoked_at FROM approval_receipts WHERE content_id=? AND platform=? AND decision='approved' ORDER BY created_at DESC LIMIT 20").bind(slot.content_id,slot.platform).all()
+   db.prepare("SELECT id,reviewer_id,payload_sha256,rights_evidence_sha256,policy_version,signed_receipt,approved_at,expires_at,revoked_at FROM approval_receipts WHERE content_id=? AND platform=? AND decision='approved' ORDER BY created_at DESC LIMIT 20").bind(slot.content_id,slot.platform).all()
   ]);
   if(!content||asset?.validation_status!=="passed")return json({error:"Current media bytes have not passed validation"},409);
   const now=new Date().toISOString();
-  const matchingRights=(rights.results||[]).find(x=>x.evidence_sha256&&(x.rights_status==="owned"||x.rights_status==="licensed"||x.rights_status==="public_domain")&&!x.revoked_at&&(!x.expires_at||x.expires_at>now)&&JSON.parse(x.permitted_platforms_json||"[]").includes(slot.platform)&&JSON.parse(x.permitted_uses_json||"[]").includes("social_media"));
+  const matchingRights=(rights.results||[]).find(x=>{try{return Boolean(x.evidence_sha256)&&(x.rights_status==="owned"||x.rights_status==="licensed"||x.rights_status==="public_domain")&&!x.revoked_at&&(!x.expires_at||x.expires_at>now)&&Array.isArray(JSON.parse(x.permitted_platforms_json||"[]"))&&JSON.parse(x.permitted_platforms_json||"[]").includes(slot.platform)&&Array.isArray(JSON.parse(x.permitted_uses_json||"[]"))&&JSON.parse(x.permitted_uses_json||"[]").includes("social_media")}catch{return false}});
   if(!matchingRights)return json({error:"No current rights evidence permits this destination and social-media use"},409);
-  const matchingReceipt=(receipt.results||[]).find(x=>x.rights_evidence_sha256===matchingRights.evidence_sha256&&!x.revoked_at&&x.expires_at>now&&x.payload_sha256===content.payload_sha256);
+  const matchingReceipt=(receipt.results||[]).find(x=>x.rights_evidence_sha256===matchingRights.evidence_sha256&&x.policy_version==="nf-media-release-v1"&&!x.revoked_at&&(!x.expires_at||x.expires_at>now)&&x.payload_sha256===content.payload_sha256);
   if(!matchingReceipt)return json({error:"No current approval receipt is bound to the latest content revision and rights evidence"},409);
   const valid=await verifySignedApprovalReceipt(matchingReceipt.signed_receipt,env.NF_SESSION_SECRET,{
    id:matchingReceipt.id,contentId:slot.content_id,platform:slot.platform,decision:"approved",reviewerId:matchingReceipt.reviewer_id,
