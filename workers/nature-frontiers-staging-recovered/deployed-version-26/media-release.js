@@ -240,7 +240,7 @@ export async function handleMediaRelease(request, env, session) {
   const asset = await env.DB.prepare("SELECT validation_status FROM media_assets WHERE media_sha256=?").bind(content.media_sha256).first();
   if (asset?.validation_status !== "passed") throw fail("Actual media bytes have not passed verification",409);
   if (!validExpiry(body.expiresAt)) throw fail("Approval expiry must be a future ISO-8601 timestamp");
-  const now = new Date().toISOString(), id = crypto.randomUUID();
+  const id = crypto.randomUUID();
   const approvalExpiry = body.expiresAt || new Date(Date.now()+7*24*60*60*1000).toISOString();
   const receipt = {id,contentId,platform,decision:"approved",reviewerId:session.user.id,revision:content.revision,payloadSha256:content.payload_sha256,mediaSha256:content.media_sha256,rightsEvidenceSha256:body.rightsEvidenceSha256.toLowerCase(),approvedAt:now,expiresAt:approvalExpiry,policyVersion:"nf-media-release-v1"};
   const signed = JSON.stringify({...receipt,signature:await sign(env.NF_SESSION_SECRET,JSON.stringify(receipt))});
