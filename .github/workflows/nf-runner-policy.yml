@@ -18,6 +18,8 @@ jobs:
         run: |
           node --check workers/nature-frontiers-staging-recovered/deployed-version-26/runner.mjs
           node --check workers/nature-frontiers-staging-recovered/deployed-version-26/meta-dispatch.mjs
+          node --experimental-default-type=module --check workers/nature-frontiers-staging-recovered/deployed-version-26/media-release.js
+          node --experimental-default-type=module --check workers/nature-frontiers-staging-recovered/deployed-version-26/scheduling.js
           node --experimental-default-type=module --check workers/nature-frontiers-staging-recovered/deployed-version-26/index.js
       - name: Execute runner safety tests
         run: node --test workers/nature-frontiers-staging-recovered/deployed-version-26/tests/*.test.mjs
