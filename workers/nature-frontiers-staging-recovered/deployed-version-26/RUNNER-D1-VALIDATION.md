@@ -12,7 +12,7 @@ Environment: temporary Cloudflare D1 database, not the staging database
 - The database was created only for this validation and populated with synthetic test fixtures.
 - The recovered schema snapshot was applied only to this disposable database. It was not applied to staging.
 - No Meta API request, OAuth exchange, content publication, or production Worker deployment was performed.
-- The disposable database is scheduled for deletion after the checks below.
+- The disposable database was deleted successfully after the checks below; no temporary D1 database remains.
 
 ## Actual D1 checks performed
 
