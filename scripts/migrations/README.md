@@ -60,3 +60,14 @@ npm run migration:run-plan -- \
 The command loads manifest and artifact bytes from within the repository, rejects path/symlink escapes, validates the exact target before reading files, and emits a JSON result. It does not persist a run record: creating a D1 run record would itself be a write and is outside plan-only mode.
 
 The plan-only orchestration tests are included automatically by `npm run test:migrations`. They cover deterministic output, explicit no-side-effect flags, capability/input rejection, malformed UTF-8, and target refusal. These are offline Node tests, not live D1 or Worker-runtime evidence.
+
+
+### Adversarial hardening (2026-11-25)
+
+The plan-only result now deep-freezes the plan recursively, including target objects, migration records, and dependency arrays. Mutation-resistance tests cover those nested values.
+
+The CLI opens manifest and artifact files once with `O_NOFOLLOW`, verifies regular-file descriptors, checks canonical containment and device/inode identity, then reads bytes from the validated descriptor. Final-component symlinks are rejected; intermediate symlinks are accepted only when their resolved target remains within the permitted root. Platforms without `O_NOFOLLOW` fail closed. The manifest is decoded with fatal UTF-8 and strict duplicate-key parsing before any artifact is opened.
+
+Subprocess adversarial tests live in `scripts/migrations/run-plan.test.mjs`. They exercise valid empty and synthetic non-empty plans, malformed/duplicate arguments, wrong-target rejection before file access, manifest and artifact traversal/symlink attempts, duplicate JSON keys, malformed UTF-8, missing artifacts, checksum/length mismatches, and refusal output without partial JSON.
+
+The existing `test:migrations` npm script uses the `scripts/migrations/*.test.mjs` glob, so both the orchestration and CLI subprocess tests are automatically included in the existing CI migration test step. CI evidence for this hardening is pending until a run completes on the resulting commit.
