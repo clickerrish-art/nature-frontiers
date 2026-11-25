@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dispatchOperatorAction, operatorHtml, operatorLimits } from "./operator-interface.mjs";
+import { dispatchOperatorAction, isOperatorAuthorized, operatorHtml, operatorLimits } from "./operator-interface.mjs";
 
 const planHash="a".repeat(64),manifestHash="b".repeat(64),runId="123e4567-e89b-42d3-a456-426614174099";
 function fakeRunner(){
@@ -56,4 +56,13 @@ test("unknown fields and unsupported actions fail closed",async()=>{
  await assert.rejects(()=>dispatchOperatorAction(runner,{action:"executeDDL"}),{code:"UNKNOWN_ACTION"});
  await assert.rejects(()=>dispatchOperatorAction(runner,{action:"inspect",runId,sql:"DROP TABLE x"}),{code:"UNKNOWN_FIELD"});
  assert.equal(runner.calls.length,0);
+});
+
+test("operator authentication requires exact bearer token and rejects missing or wrong tokens",()=>{
+ const secret="rehearsal-auth-token-that-is-at-least-32-characters";
+ const request=authorization=>new Request("https://example.invalid/api/operator",{method:"POST",headers:authorization?{authorization}:{}});
+ assert.equal(isOperatorAuthorized(request(null),secret),false);
+ assert.equal(isOperatorAuthorized(request("Bearer wrong"),secret),false);
+ assert.equal(isOperatorAuthorized(request("Bearer "+secret),secret),true);
+ assert.equal(isOperatorAuthorized(request("Bearer "+secret),"short"),false);
 });

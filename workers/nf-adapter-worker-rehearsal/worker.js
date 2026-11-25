@@ -1,6 +1,6 @@
 import { MigrationRunLifecycle } from "./migration-runner.mjs";
 import { rehearsalLockTarget, sha256Hex } from "./d1-lock-adapter.mjs";
-import { dispatchOperatorAction, operatorHtml, operatorLimits } from "./operator-interface.mjs";
+import { dispatchOperatorAction, isOperatorAuthorized, operatorHtml, operatorLimits } from "./operator-interface.mjs";
 
 const securityHeaders={
  "cache-control":"no-store, max-age=0",
@@ -33,7 +33,7 @@ export default {
   }
   if(url.pathname!=="/api/operator")return json({error:"NOT_FOUND"},404);
   if(request.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
-  if(!env.AUTH_TOKEN||request.headers.get("authorization")!==`Bearer ${env.AUTH_TOKEN}`)return json({error:"UNAUTHORIZED"},401);
+  if(!isOperatorAuthorized(request,env.AUTH_TOKEN))return json({error:"UNAUTHORIZED"},401);
   const contentType=request.headers.get("content-type")||"";
   if(!contentType.toLowerCase().startsWith("application/json"))return json({error:"JSON_REQUIRED"},415);
   const declared=Number(request.headers.get("content-length")||0);
