@@ -58,7 +58,7 @@ test("orchestrator fails closed for a target mismatch and does not return an exe
       artifacts: new Map(),
       target: { ...stagingTarget, databaseId: "wrong" }
     }),
-    { code: "UNKNOWN_DATABASE_DENIED" }
+    { code: "UNKNOWN_TARGET_DENIED" }
   );
 });
 

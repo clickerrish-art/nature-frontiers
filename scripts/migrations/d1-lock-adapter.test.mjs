@@ -35,7 +35,7 @@ test("acquire is allowlist-only and issues a conditional singleton insert inside
   assert.match(db.calls[0][0].sql,/ON CONFLICT\(lock_key\) DO NOTHING/);
   assert.match(db.calls[0][0].sql,/state='APPROVED'/);
   assert.equal(db.calls[0].length,4);
-  assert.match(db.calls[0][3].sql,/SELECT run_id,revision,state,updated_at,\\?,reason/);
+  assert.match(db.calls[0][3].sql,/SELECT run_id,revision,state,updated_at,\?,reason/);
   await assert.rejects(()=>store.acquire({run,target:{...stagingLockTarget,worker:"nature-frontiers-publisher"},ownerTokenHash:owner,actor:"lock-owner"}),{code:"TARGET_DENIED"});
 });
 test("owner-only release is conditional on run ID and owner hash",async()=>{

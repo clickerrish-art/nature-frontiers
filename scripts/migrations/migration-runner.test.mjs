@@ -20,6 +20,7 @@ class LockStore {
   constructor(runStore){this.runStore=runStore;this.lock=null;this.events=[];}
   async read(){return this.lock;}
   async listEvents(){return this.events;}
+  async recoverStale(){return {recovered:false};}
   async acquire(a){if(this.runStore.run.state!=="APPROVED")return {acquired:false};if(this.lock)return {acquired:false,alreadyOwned:false};this.lock={run_id:a.run.runId,owner_token_hash:a.ownerTokenHash};this.runStore.run={...this.runStore.run,state:"LOCKED",revision:2};this.events.push({event_type:"ACQUIRED",owner_token_hash:a.ownerTokenHash});this.runStore.events.push({revision:2,state:"LOCKED",actor:a.actor});return {acquired:true};}
   async release(a){if(this.lock?.run_id!==a.runId||this.lock.owner_token_hash!==a.ownerTokenHash)return {released:false};this.lock=null;this.runStore.run={...this.runStore.run,state:"RELEASED",revision:3};this.events.push({event_type:"RELEASED",owner_token_hash:a.ownerTokenHash});this.runStore.events.push({revision:3,state:"RELEASED",actor:a.actor});return {released:true};}
 }
