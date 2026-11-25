@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { dispatchOperatorAction, isOperatorAuthorized, operatorHtml, operatorLimits } from "./operator-interface.mjs";
+import worker from "./worker.js";
 
 const planHash="a".repeat(64),manifestHash="b".repeat(64),runId="123e4567-e89b-42d3-a456-426614174099";
 function fakeRunner(){
@@ -65,4 +66,24 @@ test("operator authentication requires exact bearer token and rejects missing or
  assert.equal(isOperatorAuthorized(request("Bearer wrong"),secret),false);
  assert.equal(isOperatorAuthorized(request("Bearer "+secret),secret),true);
  assert.equal(isOperatorAuthorized(request("Bearer "+secret),"short"),false);
+});
+
+
+test("rehearsal Worker resolves lifecycle modules and enforces authenticated HTTP boundary",async()=>{
+ const env={DB:{prepare(){return {first:async()=>({count:4})};}},AUTH_TOKEN:"rehearsal-auth-token-that-is-at-least-32-characters"};
+ const page=await worker.fetch(new Request("https://rehearsal.invalid/operator"),env);
+ assert.equal(page.status,200);
+ assert.match(page.headers.get("content-security-policy"),/default-src 'none'/);
+ assert.match(await page.text(),/Migration run operator/);
+ const unauthenticated=await worker.fetch(new Request("https://rehearsal.invalid/api/operator",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"inspect",runId})}),env);
+ assert.equal(unauthenticated.status,401);
+ const wrongToken=await worker.fetch(new Request("https://rehearsal.invalid/api/operator",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer wrong"},body:JSON.stringify({action:"inspect",runId})}),env);
+ assert.equal(wrongToken.status,401);
+ const authenticated=await worker.fetch(new Request("https://rehearsal.invalid/api/operator",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.AUTH_TOKEN},body:JSON.stringify({action:"executeDDL"})}),env);
+ assert.equal(authenticated.status,400);
+ assert.equal((await authenticated.json()).error,"UNKNOWN_ACTION");
+ const wrongMethod=await worker.fetch(new Request("https://rehearsal.invalid/api/operator",{method:"GET"}),env);
+ assert.equal(wrongMethod.status,405);
+ const noDdlRoute=await worker.fetch(new Request("https://rehearsal.invalid/api/execute-ddl",{method:"POST"}),env);
+ assert.equal(noDdlRoute.status,404);
 });
