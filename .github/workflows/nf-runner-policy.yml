@@ -23,4 +23,4 @@ jobs:
           node --experimental-default-type=module --check workers/nature-frontiers-staging-recovered/deployed-version-26/scheduling.js
           node --experimental-default-type=module --check workers/nature-frontiers-staging-recovered/deployed-version-26/index.js
       - name: Execute runner safety tests
-        run: node --test workers/nature-frontiers-staging-recovered/deployed-version-26/tests/*.test.mjs
+        run: node --experimental-default-type=module --test workers/nature-frontiers-staging-recovered/deployed-version-26/tests/*.test.mjs
