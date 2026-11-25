@@ -314,6 +314,6 @@ Approval of this design is not approval of runner implementation, runner deploym
 
 ## 14. Current disposition
 
-**DESIGN PROPOSED — RUNNER ABSENT — IMPLEMENTATION NOT AUTHORIZED — STAGING AND PRODUCTION UNCHANGED.**
+**DESIGN APPROVED FOR OFFLINE PLANNER IMPLEMENTATION ONLY — DDL RUNNER ABSENT — NO D1 CONNECTION — STAGING AND PRODUCTION UNCHANGED.**
 
-The next engineering gate is review of this contract and the D1 statement-execution rehearsal plan. Do not draft an executable schema repair until runner implementation and DDL failure semantics have been independently validated.
+Owner instruction authorizes the first implementation milestone only: manifest validation, SHA-256 verification, deterministic dry-run planning, and staging-only target refusal without a live D1 connection. It does not authorize lock-table bootstrap, DDL execution, D1 reads/writes, Worker deployment, or production actions. DDL execution remains blocked pending disposable-D1 failure-semantics rehearsal and separate explicit staging approval.
