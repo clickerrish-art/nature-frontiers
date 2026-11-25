@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { D1MigrationRunOrchestrator } from "./run-orchestrator.mjs";
 import { orchestratePlanOnly } from "./plan-only-runner.mjs";
 import { stagingTarget } from "./planner.mjs";
@@ -64,7 +63,7 @@ test("interrupted locked run requires lock adapter, dead-process proof, owner ha
  await service.approve({runId,expectedPlanSha256:planResult.plan.planSha256,expectedManifestSha256:planResult.plan.manifestSha256,actor:"owner",approvalId:"approval"});
  runStore.run={...runStore.run,state:"LOCKED",revision:2};
  const ownerHash="a".repeat(64), lockEvents=[{event_type:"STALE_RECOVERED",owner_token_hash:ownerHash,approval_id:"incident-approval"}];
- const lockStore={async recoverStale(args){assert.equal(args.processTerminationConfirmed,true);assert.equal(args.actor,"incident-operator");return {recovered:true};},async listEvents(){return lockEvents;}};
+ const lockStore={async recoverStale(args){assert.equal(args.processTerminationConfirmed,true);assert.equal(args.actor,"incident-operator");runStore.run={...runStore.run,state:"AMBIGUOUS",revision:runStore.run.revision+1};runStore.events.push({revision:runStore.run.revision,state:"AMBIGUOUS",actor:args.actor});return {recovered:true};},async listEvents(){return lockEvents;}};
  const recovery=new D1MigrationRunOrchestrator({runStore,lockStore});
  const result=await recovery.recoverInterrupted({runId,ownerTokenHash:ownerHash,processTerminationConfirmed:true,approvalId:"incident-approval",actor:"incident-operator",at:"2026-11-25T12:03:00.000Z"});
  assert.equal(result.recovered,true);
@@ -73,4 +72,14 @@ test("interrupted locked run requires lock adapter, dead-process proof, owner ha
 test("interruption recovery refuses a run not durably locked",async()=>{
  const {service}=make();
  await assert.rejects(()=>service.recoverInterrupted({runId,ownerTokenHash:"a".repeat(64),processTerminationConfirmed:true,approvalId:"approval",actor:"operator"}),{code:"LOCK_STORE_REQUIRED"});
+});
+
+test("does not report recovery unless the run store confirms AMBIGUOUS",async()=>{
+ const {runStore,service}=make();
+ await service.recordPlan({planResult,runId,actor:"planner"});
+ await service.approve({runId,expectedPlanSha256:planResult.plan.planSha256,expectedManifestSha256:planResult.plan.manifestSha256,actor:"owner",approvalId:"approval"});
+ runStore.run={...runStore.run,state:"LOCKED",revision:2};
+ const lockStore={async recoverStale(){return {recovered:true};},async listEvents(){return [];}};
+ const recovery=new D1MigrationRunOrchestrator({runStore,lockStore});
+ await assert.rejects(()=>recovery.recoverInterrupted({runId,ownerTokenHash:"a".repeat(64),processTerminationConfirmed:true,approvalId:"incident",actor:"operator"}),{code:"RECOVERY_STATE_MISMATCH"});
 });
