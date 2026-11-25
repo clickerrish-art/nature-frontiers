@@ -91,7 +91,16 @@ export async function handleMediaRelease(request, env, session) {
   const rightsRevokeMatch = path.match(/^\/api\/content\/([a-f0-9-]{36})\/rights\/([a-f0-9-]{36})\/revoke$/i);
   const approvalMatch = path.match(/^\/api\/content\/([a-f0-9-]{36})\/approval$/i);
   const receiptCheckMatch = path.match(/^\/api\/content\/([a-f0-9-]{36})\/approval-verification$/i);
-  if (!mediaMatch && !rightsMatch && !rightsRevokeMatch && !approvalMatch && !receiptCheckMatch) return null;
+  const targetMatch = path.match(/^\/api\/content\/([a-f0-9-]{36})\/targets$/i);
+  if (!mediaMatch && !rightsMatch && !rightsRevokeMatch && !approvalMatch && !receiptCheckMatch && !targetMatch) return null;
+  if (targetMatch && request.method === "GET") {
+    if (!session || session.user?.role !== "owner") return json({error:"Owner session required"},403);
+    const [targets,connections] = await Promise.all([
+      env.DB.prepare("SELECT ct.platform,ct.account_id,ct.status,mc.page_name,mc.status AS connection_status,mc.identity_verified_at,mc.permissions_verified_at,mc.instagram_identity_verified_at,mc.token_expires_at FROM content_targets ct LEFT JOIN meta_connections mc ON mc.provider='meta' AND ((ct.platform='facebook' AND mc.page_id=ct.account_id) OR (ct.platform='instagram' AND mc.instagram_business_account_id=ct.account_id)) WHERE ct.content_id=? ORDER BY ct.platform").bind(targetMatch[1]).all(),
+      env.DB.prepare("SELECT id,page_id,page_name,instagram_business_account_id,status,identity_verified_at,permissions_verified_at,instagram_identity_verified_at,token_expires_at FROM meta_connections WHERE provider='meta' ORDER BY updated_at DESC").all()
+    ]);
+    return json({targets:targets.results||[],connections:connections.results||[]});
+  }
   if (receiptCheckMatch && request.method === "GET") {
     if (!session || session.user?.role !== "owner") return json({error:"Owner session required"},403);
     const rows = await env.DB.prepare("SELECT id,content_id,platform,decision,reviewer_id,payload_sha256,rights_evidence_sha256,signed_receipt,approved_at,expires_at,revoked_at FROM approval_receipts WHERE content_id=? ORDER BY created_at DESC LIMIT 50").bind(receiptCheckMatch[1]).all();
@@ -134,14 +143,39 @@ export async function handleMediaRelease(request, env, session) {
     await audit(env.DB,rightsRevokeMatch[1],session.user.id,"media.rights.revocation.authorized",{evidenceId:evidence.id,evidenceSha256:evidence.evidence_sha256,revokedAt:now});
     return json({revoked:true,evidenceId:evidence.id,evidenceSha256:evidence.evidence_sha256,revokedAt:now,revokedBy:session.user.id});
   }
-  if (!mediaMatch && !rightsMatch && !approvalMatch) return json({error:"Method not allowed"},405);
+  if (!mediaMatch && !rightsMatch && !approvalMatch && !targetMatch) return json({error:"Method not allowed"},405);
   if (request.method !== "POST") return json({error:"Method not allowed"},405);
   if (!session || session.user?.role !== "owner") return json({error:"Owner session required"},403);
-  const contentId = (mediaMatch || rightsMatch || approvalMatch)[1];
+  const contentId = (mediaMatch || rightsMatch || approvalMatch || targetMatch)[1];
   const content = await env.DB.prepare("SELECT ci.id,ci.content_type,ci.caption,ci.media_url,ci.media_sha256,ci.status,cr.revision,cr.payload_sha256 FROM content_items ci JOIN content_revisions cr ON cr.content_id=ci.id AND cr.revision=(SELECT MAX(revision) FROM content_revisions WHERE content_id=ci.id) WHERE ci.id=?")
     .bind(contentId).first();
   if (!content) return json({error:"Content not found"},404);
-  if (content.status !== "draft" && content.status !== "needs_review") return json({error:"Only an editable draft can enter media and rights review"},409);
+  if ((mediaMatch || rightsMatch) && content.status !== "draft" && content.status !== "needs_review") return json({error:"Only an editable draft can enter media and rights review"},409);
+  if (approvalMatch && !["draft","needs_review","approved"].includes(content.status)) return json({error:"Only current reviewable content can receive platform approval"},409);
+  if (targetMatch) {
+    const body = await parseBody(request);
+    const platform = body.platform;
+    const accountId = String(body.accountId||"");
+    if (!PLATFORMS.has(platform) || !/^\\d{5,30}$/.test(accountId) ||
+        body.confirmation !== "BIND NATURE FRONTIERS " + platform.toUpperCase() + " DESTINATION") {
+      throw fail("Platform, exact numeric destination ID and explicit destination-binding confirmation are required",403);
+    }
+    if (["publishing","published"].includes(content.status)) return json({error:"Published or publishing content cannot be rebound to another destination"},409);
+    const now = new Date().toISOString();
+    const connection = platform === "facebook"
+      ? await env.DB.prepare("SELECT id,page_id,token_expires_at FROM meta_connections WHERE provider='meta' AND page_id=? AND status='verified' AND identity_verified_at IS NOT NULL AND permissions_verified_at IS NOT NULL AND (token_expires_at IS NULL OR token_expires_at>?)").bind(accountId,now).first()
+      : await env.DB.prepare("SELECT id,instagram_business_account_id,token_expires_at FROM meta_connections WHERE provider='meta' AND instagram_business_account_id=? AND status='verified' AND identity_verified_at IS NOT NULL AND permissions_verified_at IS NOT NULL AND instagram_identity_verified_at IS NOT NULL AND (token_expires_at IS NULL OR token_expires_at>?)").bind(accountId,now).first();
+    if (!connection) return json({error:"The exact destination is not present on a current, verified Meta connection"},409);
+    const existing = await env.DB.prepare("SELECT account_id,status FROM content_targets WHERE content_id=? AND platform=?").bind(contentId,platform).first();
+    if (existing?.account_id===accountId && existing.status==="approved") return json({bound:true,unchanged:true,platform,accountId,status:"approved"});
+    if (existing && existing.account_id!==accountId) {
+      await env.DB.prepare("UPDATE approval_receipts SET revoked_at=? WHERE content_id=? AND platform=? AND revoked_at IS NULL").bind(now,contentId,platform).run();
+      await env.DB.prepare("UPDATE content_items SET status='needs_review',updated_at=? WHERE id=? AND status='approved'").bind(now,contentId).run();
+    }
+    await env.DB.prepare("INSERT INTO content_targets(content_id,platform,account_id,platform_media_id,published_at,status) VALUES(?,?,?,NULL,NULL,'held') ON CONFLICT(content_id,platform) DO UPDATE SET account_id=excluded.account_id,platform_media_id=NULL,published_at=NULL,status='held'").bind(contentId,platform,accountId).run();
+    await audit(env.DB,contentId,session.user.id,"content.destination.bound",{platform,accountId,connectionId:connection.id,approvalReset:Boolean(existing&&existing.account_id!==accountId)});
+    return json({bound:true,platform,accountId,status:"held",nextStep:"Re-approve this platform after binding the exact destination"});
+  }
 
   if (mediaMatch) {
     const fetched = await fetchVerified(content.media_url, env.NF_MEDIA_ALLOWED_HOSTS, MEDIA_MAX_BYTES, MEDIA_TYPES);
@@ -200,6 +234,9 @@ export async function handleMediaRelease(request, env, session) {
       (rights.expires_at && rights.expires_at <= new Date().toISOString()) ||
       !JSON.parse(rights.permitted_platforms_json).includes(platform) ||
       !JSON.parse(rights.permitted_uses_json).includes("social_media")) throw fail("No current matching rights record permits this platform and use",409);
+  const now = new Date().toISOString();
+  const target = await env.DB.prepare("SELECT ct.account_id,ct.status FROM content_targets ct JOIN meta_connections mc ON mc.provider='meta' AND mc.status='verified' AND mc.identity_verified_at IS NOT NULL AND mc.permissions_verified_at IS NOT NULL AND ((ct.platform='facebook' AND mc.page_id=ct.account_id) OR (ct.platform='instagram' AND mc.instagram_business_account_id=ct.account_id AND mc.instagram_identity_verified_at IS NOT NULL)) WHERE ct.content_id=? AND ct.platform=? AND ct.status IN ('held','approved') AND (mc.token_expires_at IS NULL OR mc.token_expires_at>?)").bind(contentId,platform,now).first();
+  if (!target) throw fail("Bind and verify the exact Meta destination before approving this platform",409);
   const asset = await env.DB.prepare("SELECT validation_status FROM media_assets WHERE media_sha256=?").bind(content.media_sha256).first();
   if (asset?.validation_status !== "passed") throw fail("Actual media bytes have not passed verification",409);
   if (!validExpiry(body.expiresAt)) throw fail("Approval expiry must be a future ISO-8601 timestamp");
@@ -209,6 +246,12 @@ export async function handleMediaRelease(request, env, session) {
   const signed = JSON.stringify({...receipt,signature:await sign(env.NF_SESSION_SECRET,JSON.stringify(receipt))});
   await env.DB.prepare("INSERT INTO approval_receipts(id,content_id,platform,decision,reviewer_id,payload_sha256,rights_evidence_sha256,policy_version,signed_receipt,approved_at,expires_at,created_at) VALUES(?,?,?,'approved',?,?,?,?,?,?,?,?)")
     .bind(id,contentId,platform,session.user.id,content.payload_sha256,body.rightsEvidenceSha256.toLowerCase(),"nf-media-release-v1",signed,now,approvalExpiry,now).run();
-  await audit(env.DB,contentId,session.user.id,"content.human.approved",{approvalId:id,platform,revision:content.revision,payloadSha256:content.payload_sha256,mediaSha256:content.media_sha256,rightsEvidenceSha256:body.rightsEvidenceSha256.toLowerCase(),signatureAlgorithm:"HMAC-SHA256"});
+  const targetUpdate = await env.DB.prepare("UPDATE content_targets SET status='approved' WHERE content_id=? AND platform=? AND account_id=? AND status IN ('held','approved')").bind(contentId,platform,target.account_id).run();
+  if (Number(targetUpdate?.meta?.changes||0)!==1) {
+    await env.DB.prepare("UPDATE approval_receipts SET revoked_at=? WHERE id=? AND revoked_at IS NULL").bind(now,id).run();
+    throw fail("Destination changed during approval; the new receipt was revoked and approval must be repeated",409);
+  }
+  await env.DB.prepare("UPDATE content_items SET status='approved',updated_at=? WHERE id=? AND status IN ('draft','needs_review','approved')").bind(now,contentId).run();
+  await audit(env.DB,contentId,session.user.id,"content.human.approved",{approvalId:id,platform,accountId:target.account_id,revision:content.revision,payloadSha256:content.payload_sha256,mediaSha256:content.media_sha256,rightsEvidenceSha256:body.rightsEvidenceSha256.toLowerCase(),signatureAlgorithm:"HMAC-SHA256"});
   return json({approved:true,approvalId:id,platform,revision:content.revision,payloadSha256:content.payload_sha256,rightsEvidenceSha256:body.rightsEvidenceSha256.toLowerCase(),approvedBy:session.user.id,approvedAt:now,expiresAt:approvalExpiry,signatureAlgorithm:"HMAC-SHA256"});
 }
