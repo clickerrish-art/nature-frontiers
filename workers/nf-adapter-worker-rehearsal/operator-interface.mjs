@@ -28,7 +28,10 @@ function assertKeys(input,allowed){
 }
 const at=()=>new Date().toISOString();
 
-export function isOperatorAuthorized(request,expectedToken){\n return typeof expectedToken==="string"&&expectedToken.length>=32&&request.headers.get("authorization")===`Bearer ${expectedToken}`;\n}\n\nexport async function dispatchOperatorAction(runner,input,{hashOwnerToken}={}){
+export function isOperatorAuthorized(request,expectedToken){
+ return typeof expectedToken==="string"&&expectedToken.length>=32&&request.headers.get("authorization")===`Bearer ${expectedToken}`;
+}
+
  if(!input||typeof input!=="object"||Array.isArray(input))fail("INVALID_INPUT","Request body must be a JSON object.");
  const action=requiredString(input.action,"action",40);
  switch(action){
