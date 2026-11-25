@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { D1MigrationRunStore } from "./d1-run-store.mjs";
-import { stagingLockTarget } from "./d1-lock-adapter.mjs";
+import { stagingLockTarget, rehearsalLockTarget } from "./d1-lock-adapter.mjs";
 const hash="a".repeat(64), otherHash="b".repeat(64), runId="123e4567-e89b-42d3-a456-426614174099";
 class Statement {constructor(db,sql,params=[]){this.db=db;this.sql=sql;this.params=params;}bind(...p){return new Statement(this.db,this.sql,p);}async first(){return this.db.row??null;}async all(){return {results:this.db.events??[]};}}
 class DB {constructor(results=[]){this.results=results;this.calls=[];this.prepared=[];this.row=null;this.events=[];}prepare(sql){this.prepared.push(sql);return new Statement(this,sql);}async batch(s){this.calls.push(s);return this.results.shift()??s.map(()=>({meta:{changes:0}}));}}
@@ -54,4 +54,15 @@ test("event history is ordered by revision and scoped to one run",async()=>{
  const events=await store.listEvents(runId);
  assert.equal(events.length,2);
  assert.match(db.prepared[0],/ORDER BY revision/);
+});
+
+test("run store accepts only the exact disposable rehearsal target pair",async()=>{
+ const db=new DB([[r(1),r(1)]]),store=new D1MigrationRunStore(db);
+ const result=await store.create({...base,target:rehearsalLockTarget});
+ assert.deepEqual(result,{created:true});
+ assert.equal(db.calls[0][0].params[3],rehearsalLockTarget.databaseId);
+ assert.equal(db.calls[0][0].params[4],rehearsalLockTarget.worker);
+ const denied=new DB(),deniedStore=new D1MigrationRunStore(denied);
+ await assert.rejects(()=>deniedStore.create({...base,target:{...rehearsalLockTarget,databaseId:stagingLockTarget.databaseId}}),{code:"TARGET_DENIED"});
+ assert.equal(denied.calls.length,0);
 });
