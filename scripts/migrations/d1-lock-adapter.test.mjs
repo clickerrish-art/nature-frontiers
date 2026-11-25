@@ -47,14 +47,14 @@ test("owner-only release is conditional on run ID and owner hash",async()=>{
 });
 test("interruption recovery refuses absent process-termination proof and approval",async()=>{
   const db=new FakeD1(),store=new D1MigrationLockStore(db);
-  await assert.rejects(()=>store.recoverStale({runId:run.runId,ownerTokenHash:owner,processTerminationConfirmed:false,approvalId:"incident-1"}),{code:"PROCESS_MAY_RESUME"});
-  await assert.rejects(()=>store.recoverStale({runId:run.runId,ownerTokenHash:owner,processTerminationConfirmed:true,approvalId:""}),{code:"RECOVERY_APPROVAL_REQUIRED"});
+  await assert.rejects(()=>store.recoverStale({runId:run.runId,ownerTokenHash:owner,processTerminationConfirmed:false,approvalId:"incident-1",actor:"recovery-operator"}),{code:"PROCESS_MAY_RESUME"});
+  await assert.rejects(()=>store.recoverStale({runId:run.runId,ownerTokenHash:owner,processTerminationConfirmed:true,approvalId:"",actor:"recovery-operator"}),{code:"RECOVERY_APPROVAL_REQUIRED"});
   assert.equal(db.calls.length,0);
 });
 test("stale recovery is a conditional D1 batch with owner, approval and process proof",async()=>{
   const db=new FakeD1([[result(1),result(1),result(1),result(1),result(1)]]);
   const store=new D1MigrationLockStore(db);
-  const out=await store.recoverStale({runId:run.runId,ownerTokenHash:owner,processTerminationConfirmed:true,approvalId:"incident-approval-9",at:"2026-11-25T12:02:00.000Z"});
+  const out=await store.recoverStale({runId:run.runId,ownerTokenHash:owner,processTerminationConfirmed:true,approvalId:"incident-approval-9",actor:"recovery-operator",at:"2026-11-25T12:02:00.000Z"});
   assert.equal(out.recovered,true);
   assert.equal(db.calls[0].length,5);
   assert.match(db.calls[0][0].sql,/recovery_approval_id=\?/);
