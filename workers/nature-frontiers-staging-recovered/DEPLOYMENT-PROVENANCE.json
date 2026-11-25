@@ -1,0 +1,34 @@
+{
+  "captured_at": "2026-11-25",
+  "worker": "nature-frontiers-staging",
+  "versions": [
+    {
+      "number": 24,
+      "id": "a378aca2-5bbf-457c-832f-647c705dc0d2",
+      "created_on": "2026-11-25T10:07:12.730196Z",
+      "source_commit_annotation": "a69d5a5ef44cd2737c023d26deaeb5547cc8c9ed",
+      "etag": "7082c1cdf2d27f5a663039af78539ba3a5be42bc8272fd5ce109099dd9469d1f"
+    },
+    {
+      "number": 25,
+      "id": "98ba14e3-e5e2-490c-ba21-14615ffa23cc",
+      "created_on": "2026-11-25T10:23:01.300669Z",
+      "trigger": "secret",
+      "etag": "7082c1cdf2d27f5a663039af78539ba3a5be42bc8272fd5ce109099dd9469d1f"
+    }
+  ],
+  "source_commit_resolution": "The version 24 annotated SHA is not resolvable in the accessible GitHub repository (GitHub API 422). Version 25 has no commit annotation. Recovered module files are a byte-for-byte source snapshot retrieved from the deployed Worker API, not a claim that the original Git commit has been recovered.",
+  "module_names": [
+    "index.js",
+    "meta-oauth.js",
+    "meta-webhooks.js",
+    "scheduling.js",
+    "analytics.js",
+    "backups.js",
+    "media-release.js"
+  ],
+  "source_branch": "codex/nf-durable-publisher-api",
+  "branch_head_before_snapshot": "ebaf70ccc2ac1c2df5d05890dab0834f889bd4bc",
+  "main_head_at_capture": "678e3db436bb8e50c8e8d8aab48ef024e75fbdf0",
+  "safety": "Snapshot only. Not deployed. Does not modify production, D1, Worker settings, secrets, or publishing controls."
+}
