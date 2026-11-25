@@ -30,5 +30,46 @@
   "source_branch": "codex/nf-durable-publisher-api",
   "branch_head_before_snapshot": "ebaf70ccc2ac1c2df5d05890dab0834f889bd4bc",
   "main_head_at_capture": "678e3db436bb8e50c8e8d8aab48ef024e75fbdf0",
-  "safety": "Snapshot only. Not deployed. Does not modify production, D1, Worker settings, secrets, or publishing controls."
+  "safety": "Snapshot only. Not deployed. Does not modify production, D1, Worker settings, secrets, or publishing controls.",
+  "schema_snapshot": {
+    "file": "schema.snapshot.sql",
+    "tables": 25,
+    "indexes": 19,
+    "triggers": 31,
+    "data_rows_included": false,
+    "purpose": "Exact DDL snapshot of the live staging D1 sqlite_master at capture time. This is not an original numbered migration and must not be recorded as 0007, 0008, or 0009."
+  },
+  "migration_reconciliation": {
+    "repository_migrations_present": [
+      "0001_initial_schema.sql",
+      "0002_meta_webhook_events.sql",
+      "0003_media_evidence.sql",
+      "0004_review_evidence.sql"
+    ],
+    "repository_migrations_missing": [
+      "0007",
+      "0008",
+      "0009"
+    ],
+    "staging_ledger": [
+      "0009_meta_token_encryption.sql"
+    ],
+    "observations": [
+      "0007/0008 effects are present in staging tables and triggers but their original source files and ledger records are unavailable.",
+      "0009 token-encryption columns are present and its ledger record exists.",
+      "The current repository Worker migration generation expects media_evidence and review_evidence, which are absent from staging; staging instead has media_assets and media_rights_evidence."
+    ],
+    "action": "No migration applied. No migration ledger rows fabricated. Preserve active D1 until original migration lineage is recovered."
+  },
+  "snapshot_commits": {
+    "index_js": "51d997671055f0a08890c6278264de1bb01f4344",
+    "meta_oauth_js": "0a4024c9de327bac20bb285de854bfe464395bf8",
+    "meta_webhooks_js": "622e43aa1c54432fd53255fc9f51f62c3cf1e251",
+    "scheduling_js": "ff1833e5285686d93d29105be6b0195365279c51",
+    "analytics_js": "fb691080a59367f8f7a0f47fb208f4a569db3118",
+    "backups_js": "6e2db39d98a4a4ea948dd6a32c07edae6c576c57",
+    "media_release_js": "c657058daffefb49c617524ecfc776643618cde1",
+    "initial_schema_snapshot": "345c335eb4b745ec31d4c43ed8ea137468c63f1f",
+    "corrected_schema_snapshot": "514bdd8e488958d8a91240adb5af2d33a32b642b"
+  }
 }
