@@ -19,6 +19,20 @@ async function audit(db,actor,event,details,contentId=null){
   .bind(crypto.randomUUID(),event,contentId,actor,JSON.stringify(details),new Date().toISOString()).run();
 }
 async function readControls(db){const q=await db.prepare(CONTROL_SQL).all();return runnerPolicy(q.results||[])}
+async function sign(secret,value){
+ const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const bytes=await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(value));
+ return [...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+export async function verifySignedApprovalReceipt(raw,secret,expected){
+ try{
+  const parsed=JSON.parse(raw),signature=parsed.signature;delete parsed.signature;
+  const actual=await sign(secret,JSON.stringify(parsed));
+  const same=typeof signature==="string"&&signature.length===actual.length&&[...signature].every((ch,i)=>ch.charCodeAt(0)===actual.charCodeAt(i));
+  return same&&Object.entries(expected).every(([key,value])=>parsed[key]===value)&&parsed.decision==="approved"&&parsed.policyVersion==="nf-media-release-v1";
+ }catch{return false}
+}
+
 export async function handleRunner(request,env,session){
  const path=new URL(request.url).pathname,method=request.method,db=env.DB,actor=session.user.id;
  if(path==="/api/runner/status"&&method==="GET"){
@@ -36,6 +50,38 @@ export async function handleRunner(request,env,session){
   const due=await db.prepare("SELECT s.id,s.content_id,s.platform,s.scheduled_at,s.state,s.attempt_count,s.max_attempts,ci.status AS content_status,ci.media_sha256 FROM schedule_slots s JOIN content_items ci ON ci.id=s.content_id WHERE s.scheduled_at<=? AND s.state IN ('held','ready','failed','dead_letter') ORDER BY s.scheduled_at LIMIT 100")
    .bind(new Date().toISOString()).all();
   return json({previewOnly:true,dispatchExecuted:false,safety,due:due.results||[],blockers:["Provider dispatch is disabled in this build","No job is eligible for execution unless explicitly placed in ready state by the approved release workflow","Every live release requires verified Meta identity, rights evidence and a current signed approval receipt"]});
+ }
+
+ if(path==="/api/runner/enqueue"&&method==="POST"){
+  const input=await body(request);
+  if(typeof input.scheduleId!=="string"||!/^[0-9a-f-]{36}$/i.test(input.scheduleId))throw fail("A valid scheduleId is required");
+  const slot=await db.prepare("SELECT id,content_id,platform,state FROM schedule_slots WHERE id=?").bind(input.scheduleId).first();
+  if(!slot)return json({error:"Schedule slot not found"},404);
+  if(slot.state!=="held")return json({error:"Only held schedule slots can enter the dry-run queue",state:slot.state},409);
+  const [content,asset,rights,receipt]=await Promise.all([
+   db.prepare("SELECT ci.id,ci.media_sha256,cr.revision,cr.payload_sha256 FROM content_items ci JOIN content_revisions cr ON cr.content_id=ci.id AND cr.revision=(SELECT MAX(revision) FROM content_revisions WHERE content_id=ci.id) WHERE ci.id=?").bind(slot.content_id).first(),
+   db.prepare("SELECT validation_status FROM media_assets WHERE media_sha256=(SELECT media_sha256 FROM content_items WHERE id=?)").bind(slot.content_id).first(),
+   db.prepare("SELECT id,rights_status,evidence_sha256,permitted_platforms_json,permitted_uses_json,expires_at,revoked_at FROM media_rights_evidence WHERE media_sha256=(SELECT media_sha256 FROM content_items WHERE id=?) ORDER BY created_at DESC LIMIT 20").bind(slot.content_id).all(),
+   db.prepare("SELECT id,reviewer_id,payload_sha256,rights_evidence_sha256,signed_receipt,approved_at,expires_at,revoked_at FROM approval_receipts WHERE content_id=? AND platform=? AND decision='approved' ORDER BY created_at DESC LIMIT 20").bind(slot.content_id,slot.platform).all()
+  ]);
+  if(!content||asset?.validation_status!=="passed")return json({error:"Current media bytes have not passed validation"},409);
+  const now=new Date().toISOString();
+  const matchingRights=(rights.results||[]).find(x=>x.evidence_sha256&&(x.rights_status==="owned"||x.rights_status==="licensed"||x.rights_status==="public_domain")&&!x.revoked_at&&(!x.expires_at||x.expires_at>now)&&JSON.parse(x.permitted_platforms_json||"[]").includes(slot.platform)&&JSON.parse(x.permitted_uses_json||"[]").includes("social_media"));
+  if(!matchingRights)return json({error:"No current rights evidence permits this destination and social-media use"},409);
+  const matchingReceipt=(receipt.results||[]).find(x=>x.rights_evidence_sha256===matchingRights.evidence_sha256&&!x.revoked_at&&x.expires_at>now&&x.payload_sha256===content.payload_sha256);
+  if(!matchingReceipt)return json({error:"No current approval receipt is bound to the latest content revision and rights evidence"},409);
+  const valid=await verifySignedApprovalReceipt(matchingReceipt.signed_receipt,env.NF_SESSION_SECRET,{
+   id:matchingReceipt.id,contentId:slot.content_id,platform:slot.platform,decision:"approved",reviewerId:matchingReceipt.reviewer_id,
+   revision:Number(content.revision),payloadSha256:content.payload_sha256,mediaSha256:content.media_sha256,
+   rightsEvidenceSha256:matchingRights.evidence_sha256,approvedAt:matchingReceipt.approved_at,expiresAt:matchingReceipt.expires_at,policyVersion:"nf-media-release-v1"
+  });
+  if(!valid)return json({error:"Approval signature or exact content/media binding is invalid"},409);
+  const safety=await readControls(db);
+  if(!safety.mayRunDryRun)return json({error:"Fail-closed dry-run controls are not active",safety},409);
+  const result=await db.prepare("UPDATE schedule_slots SET state='ready',updated_at=? WHERE id=? AND state='held'").bind(now,slot.id).run();
+  if(Number(result?.meta?.changes||0)!==1)return json({error:"Schedule changed concurrently; reload"},409);
+  await audit(db,actor,"runner.dry_run.enqueued",{scheduleId:slot.id,platform:slot.platform,approvalId:matchingReceipt.id,rightsEvidenceSha256:matchingRights.evidence_sha256,providerDispatch:false},slot.content_id);
+  return json({scheduleId:slot.id,state:"ready",mode:"dry_run_only",providerDispatch:false});
  }
  if(path==="/api/runner/claim"&&method==="POST"){
   const input=await body(request);
