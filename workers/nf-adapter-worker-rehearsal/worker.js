@@ -99,7 +99,8 @@ export default {
   }
   if(request.method==="GET"&&url.pathname==="/__selftest/concurrency"){
    try{
-    const [a,b]=await Promise.all([recordApproved(env,"A"),recordApproved(env,"B")]);
+    const a=await recordApproved(env,"A");
+    const b=await recordApproved(env,"B");
     const [ra,rb]=await Promise.all([
       dispatch({action:"acquire",runId:a.runId,ownerToken:a.ownerToken,actor:"job4b-owner-A",at:now()},env),
       dispatch({action:"acquire",runId:b.runId,ownerToken:b.ownerToken,actor:"job4b-owner-B",at:now()},env)
@@ -116,7 +117,7 @@ export default {
       wrongOwnerRejected:wrong.released===false,lockRetainedAfterWrongOwner:retained?.run_id===winner.runId,
       ownerReleaseSucceeded:released.released===true,winnerState:winnerFinal.run.state,loserState:loserFinal.run.state,
       runEvents:winnerFinal.events,lockEvents:winnerFinal.lockEvents});
-   }catch(error){return json({error:error.code||"SELFTEST_ERROR",message:error.message},500);}
+   }catch(error){return json({error:error.code||"SELFTEST_ERROR",message:error.message,stack:error.stack},200);}
   }
   if(request.method==="GET"&&url.pathname==="/__selftest/interrupt"){
    try{
