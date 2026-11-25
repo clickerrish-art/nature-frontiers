@@ -160,7 +160,7 @@ export async function handleMediaRelease(request, env, session) {
         body.confirmation !== "BIND NATURE FRONTIERS " + platform.toUpperCase() + " DESTINATION") {
       throw fail("Platform, exact numeric destination ID and explicit destination-binding confirmation are required",403);
     }
-    if (["publishing","published"].includes(content.status)) return json({error:"Published or publishing content cannot be rebound to another destination"},409);
+    if (!["draft","needs_review","approved","scheduled"].includes(content.status)) return json({error:"Only editable or scheduled content can be bound to a destination"},409);
     const now = new Date().toISOString();
     const connection = platform === "facebook"
       ? await env.DB.prepare("SELECT id,page_id,token_expires_at FROM meta_connections WHERE provider='meta' AND page_id=? AND status='verified' AND identity_verified_at IS NOT NULL AND permissions_verified_at IS NOT NULL AND (token_expires_at IS NULL OR token_expires_at>?)").bind(accountId,now).first()
@@ -168,12 +168,13 @@ export async function handleMediaRelease(request, env, session) {
     if (!connection) return json({error:"The exact destination is not present on a current, verified Meta connection"},409);
     const existing = await env.DB.prepare("SELECT account_id,status FROM content_targets WHERE content_id=? AND platform=?").bind(contentId,platform).first();
     if (existing?.account_id===accountId && existing.status==="approved") return json({bound:true,unchanged:true,platform,accountId,status:"approved"});
-    if (existing && existing.account_id!==accountId) {
+    const targetChanged = existing?.account_id !== accountId;
+    if (targetChanged) {
       await env.DB.prepare("UPDATE approval_receipts SET revoked_at=? WHERE content_id=? AND platform=? AND revoked_at IS NULL").bind(now,contentId,platform).run();
-      await env.DB.prepare("UPDATE content_items SET status='needs_review',updated_at=? WHERE id=? AND status='approved'").bind(now,contentId).run();
+      await env.DB.prepare("UPDATE content_items SET status='needs_review',updated_at=? WHERE id=? AND status IN ('approved','scheduled')").bind(now,contentId).run();
     }
     await env.DB.prepare("INSERT INTO content_targets(content_id,platform,account_id,platform_media_id,published_at,status) VALUES(?,?,?,NULL,NULL,'held') ON CONFLICT(content_id,platform) DO UPDATE SET account_id=excluded.account_id,platform_media_id=NULL,published_at=NULL,status='held'").bind(contentId,platform,accountId).run();
-    await audit(env.DB,contentId,session.user.id,"content.destination.bound",{platform,accountId,connectionId:connection.id,approvalReset:Boolean(existing&&existing.account_id!==accountId)});
+    await audit(env.DB,contentId,session.user.id,"content.destination.bound",{platform,accountId,connectionId:connection.id,approvalReset:targetChanged});
     return json({bound:true,platform,accountId,status:"held",nextStep:"Re-approve this platform after binding the exact destination"});
   }
 
