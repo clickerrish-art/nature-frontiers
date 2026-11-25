@@ -73,7 +73,7 @@ Specific interruption fixture:
 
 The branch now adds the disposable Worker harness path to the Worker validation workflow and syntax-checks the harness entrypoint. The migration contract tests also include exact rehearsal target validation for the lock adapter, run store and orchestrator.
 
-Final CI disposition for the exact source SHA is recorded after the latest workflow run completes. CI is supplemental; the live Worker and independent D1 evidence above are separate acceptance evidence.
+GitHub Actions run `45639736902` completed successfully for commit `d24e45ae66e41867a60d78cc83d24198f6a34337`. Its `worker-and-platform-safety` job completed every step, including the migration test glob and existing platform safety checks. That commit includes the target allowlist and its new adapter/run-store/orchestrator tests. The later Worker harness additions for cross-request concurrency and the workflow path/syntax-check update were committed after that run; a successful CI run on the latest branch HEAD has not yet been independently confirmed. The current Worker version 9 deployment accepted and executes the later harness source. CI is supplemental; the live Worker and independent D1 evidence above are separate acceptance evidence.
 
 ## Acceptance disposition
 
