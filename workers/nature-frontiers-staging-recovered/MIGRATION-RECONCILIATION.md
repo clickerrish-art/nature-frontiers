@@ -101,12 +101,12 @@ The two available base migrations (0001/0002) define seven tables and three inde
 Established:
 - Staging ledger currently contains only the 0009 row.
 - The live staging application schema inventory is 25 tables, 19 indexes, 31 triggers.
-- The inspected branch contains only migrations 0001–0004.
+- The inspected durable-publisher branch contains migrations 0001–0004; a separate PR #32 branch contains an incompatible 0005 educational-story migration.
 - 0003/0004 tables are absent from staging.
 - Recovered staging Worker source uses a later schema generation that differs from the checked-in 0003/0004 schema.
 
 Not established:
-- Original SQL or authoritative commit provenance for 0005–0009.
+- Original SQL or authoritative commit provenance for the staging chain's 0005–0009; the recovered PR #32 0005 is an incompatible schema-generation candidate, not staging provenance.
 - Whether 0005/0006 ever existed.
 - Exact SQL and intended object ownership for 0007/0008.
 - Exact statements in 0009, or the provenance of every token/identity column.
@@ -121,3 +121,33 @@ Not established:
 5. Test any approved forward plan against a disposable local D1 database first, including constraints, triggers, indexes, and data-preservation checks. Do not test by applying it to active staging.
 
 Until those conditions are met, keep staging and production databases unchanged and keep publishing disabled, dry run enabled, and the emergency stop active.
+
+
+### Newly recovered 0005 candidate — not part of the staging migration chain
+
+A full scan of all 30 current branch heads found one additional numbered SQL file on the PR #32 head branch:
+
+- Path: `workers/nature-frontiers-publisher/migrations/0005_educational_story.sql`
+- Branch: `codex/nf-original-camera-only-20261121`
+- Blob SHA: `47fac90f17891667f8b6335ef80c54cc45966933`
+- Introducing commit: `4a579cec6a3ae17e774532e45ceed5e0623451bf`
+- Commit message: `Add persisted educational story approval binding`
+- Commit time: `2026-11-21T19:12:03Z`
+- PR: [#32](https://github.com/clickerrish-art/Nature-Frontiers/pull/32)
+
+Its SQL adds `educational_story_json` and `educational_story_sha256` to `content_items`, and `educational_story_sha256` to `review_evidence` and `approvals`, then creates `idx_approvals_story_binding`.
+
+This is an authentic Git-tracked migration candidate with identifiable provenance, but it is **not** an original 0005 migration for the current staging schema generation:
+- It depends on `review_evidence`, which does not exist in staging.
+- Staging's `content_items` currently has only the ten columns returned by read-only `PRAGMA table_info(content_items)`; neither educational-story column is present.
+- The staging Worker generation uses `media_assets`, `media_rights_evidence`, and `approval_receipts`, not the `media_evidence` / `review_evidence` generation used by this migration branch.
+- The branch's base is PR #26 head `dec6a1075c01b5b20a87f47cfec130c4a972123e`, whose tree contains only `0002_meta_webhook_events.sql`; this does not establish it as a continuation of the staging migration chain.
+
+Therefore, preserve this file as provenance for the separate durable-publisher/educational-story schema generation. Do not apply it to staging, relabel it as the missing staging 0005, or use its sequence number to infer 0006–0009.
+
+## Expanded repository and artifact search
+
+The read-only scan inspected all 30 branch heads returned by the repository branches endpoint, all 27 pull requests returned by the repository PR endpoint (including closed PRs via their retained refs where present), the available PR head/merge refs, and all 100 most recent workflow runs plus the next page. The numbered migration files found across branch trees were 0001–0004 on the durable-publisher branch and the distinct 0005 candidate above on PR #32's branch. No 0006, 0007, 0008, or 0009 SQL file was found in those branch trees.
+
+The repository tags endpoint returned no tags, the GitHub releases endpoint returned no releases, and checked workflow runs for validation did not retain artifacts (artifact listings returned zero for sampled runs). This does not prove no external deployment bundle, expired artifact, deleted ref, local checkout, operator backup, or separately permissioned repository copy exists.
+
