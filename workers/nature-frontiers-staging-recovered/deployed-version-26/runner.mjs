@@ -113,8 +113,8 @@ export async function handleRunner(request,env,session){
   if(!slot||!run||run.state!=="started"||slot.state!=="leased"||slot.lease_token_hash!==leaseHash)return json({error:"Lease ownership could not be verified"},409);
   if(Date.parse(slot.lease_expires_at||"")<=Date.now())return json({error:"Lease expired; reconcile before completion"},409);
   const results=await db.batch([
-   db.prepare("UPDATE schedule_slots SET state='held',lease_token_hash=NULL,lease_expires_at=NULL,last_error_code='dry_run_completed',updated_at=? WHERE id=? AND state='leased' AND lease_token_hash=? AND lease_expires_at>?").bind(now,slot.id,leaseHash,now),
-   db.prepare("UPDATE worker_runs SET state='completed',finished_at=?,heartbeat_at=? WHERE id=? AND state='started'").bind(now,now,run.id)
+   db.prepare("UPDATE worker_runs SET state='completed',finished_at=?,heartbeat_at=? WHERE id=? AND state='started' AND EXISTS(SELECT 1 FROM schedule_slots WHERE id=? AND state='leased' AND lease_token_hash=? AND lease_expires_at>?)").bind(now,now,run.id,slot.id,leaseHash,now),
+   db.prepare("UPDATE schedule_slots SET state='held',lease_token_hash=NULL,lease_expires_at=NULL,last_error_code='dry_run_completed',updated_at=? WHERE id=? AND state='leased' AND lease_token_hash=? AND lease_expires_at>? AND EXISTS(SELECT 1 FROM worker_runs WHERE id=? AND state='completed' AND finished_at=?)").bind(now,slot.id,leaseHash,now,run.id,now)
   ]);
   if(Number(results?.[0]?.meta?.changes||0)!==1||Number(results?.[1]?.meta?.changes||0)!==1)return json({error:"Lease completion lost a concurrent state change"},409);
   await audit(db,actor,"runner.dry_run.completed",{runId:run.id,scheduleId:slot.id,providerDispatch:false},slot.content_id);
@@ -126,15 +126,20 @@ export async function handleRunner(request,env,session){
   for(const slot of stale.results||[]){
    const attempt=await db.prepare("SELECT id,state FROM publication_attempts WHERE idempotency_key=(SELECT idempotency_key FROM schedule_slots WHERE id=?) ORDER BY started_at DESC LIMIT 1").bind(slot.id).first();
    const classification=classifyInterruptedAttempt(attempt,slot.state),now=new Date().toISOString();
-   if(classification==="ambiguous_no_retry"){
-    if(attempt?.id)await db.prepare("UPDATE publication_attempts SET state='ambiguous',finished_at=?,error_code='interrupted_unknown_provider_state' WHERE id=? AND state IN ('reserved','confirmed','ambiguous')").bind(now,attempt.id).run();
-    await db.prepare("UPDATE schedule_slots SET state='dead_letter',lease_token_hash=NULL,lease_expires_at=NULL,last_error_code='ambiguous_provider_state',updated_at=? WHERE id=? AND state IN ('leased','publishing') AND lease_expires_at<=?").bind(now,slot.id,now).run();
-   }else{
-    await db.prepare("UPDATE schedule_slots SET state='held',lease_token_hash=NULL,lease_expires_at=NULL,last_error_code='interrupted_before_provider_attempt',updated_at=? WHERE id=? AND state IN ('leased','publishing') AND lease_expires_at<=?").bind(now,slot.id,now).run();
+   const ambiguous=classification==="ambiguous_no_retry";
+   const nextState=ambiguous?"dead_letter":"held";
+   const errorCode=ambiguous?"ambiguous_provider_state":"interrupted_before_provider_attempt";
+   const statements=[
+    db.prepare("UPDATE schedule_slots SET state=?,lease_token_hash=NULL,lease_expires_at=NULL,last_error_code=?,updated_at=? WHERE id=? AND state IN ('leased','publishing') AND lease_expires_at<=?").bind(nextState,errorCode,now,slot.id,now)
+   ];
+   if(ambiguous&&attempt?.id&&attempt.state==="reserved"){
+    statements.push(db.prepare("UPDATE publication_attempts SET state='ambiguous',finished_at=?,error_code='interrupted_unknown_provider_state' WHERE id=? AND state='reserved' AND EXISTS(SELECT 1 FROM schedule_slots WHERE id=? AND state='dead_letter' AND last_error_code=? AND updated_at=?)").bind(now,attempt.id,slot.id,errorCode,now));
    }
-   await db.prepare("UPDATE worker_runs SET state='abandoned',finished_at=?,error_code='lease_expired' WHERE schedule_slot_id=? AND state IN ('started','heartbeat')").bind(now,slot.id).run();
-   await audit(db,actor,"runner.lease.reconciled",{scheduleId:slot.id,classification,attemptState:attempt?.state||null},slot.content_id);
-   outcomes.push({scheduleId:slot.id,classification,automaticRetry:false});
+   statements.push(db.prepare("UPDATE worker_runs SET state='abandoned',finished_at=?,error_code='lease_expired' WHERE schedule_slot_id=? AND state IN ('started','heartbeat') AND EXISTS(SELECT 1 FROM schedule_slots WHERE id=? AND state=? AND last_error_code=? AND updated_at=?)").bind(now,slot.id,slot.id,nextState,errorCode,now));
+   statements.push(db.prepare("INSERT INTO audit_events(id,event_type,content_id,actor,details_json,created_at) SELECT ?, 'runner.lease.reconciled',?,?,?,? WHERE EXISTS(SELECT 1 FROM schedule_slots WHERE id=? AND state=? AND last_error_code=? AND updated_at=?)").bind(crypto.randomUUID(),slot.content_id,actor,JSON.stringify({scheduleId:slot.id,classification,attemptState:attempt?.state||null,automaticRetry:false}),now,slot.id,nextState,errorCode,now));
+   const results=await db.batch(statements);
+   if(Number(results?.[0]?.meta?.changes||0)!==1)continue;
+   outcomes.push({scheduleId:slot.id,classification,state:nextState,automaticRetry:false});
   }
   return json({reconciled:outcomes.length,outcomes,automaticRetry:false,providerDispatch:false});
  }
