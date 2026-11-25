@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { D1MigrationRunOrchestrator } from "./run-orchestrator.mjs";
 import { orchestratePlanOnly } from "./plan-only-runner.mjs";
 import { stagingTarget } from "./planner.mjs";
+import { rehearsalLockTarget } from "./d1-lock-adapter.mjs";
 
 const bytes=Buffer.from(JSON.stringify({schemaVersion:1,streamId:"nature-frontiers.staging.forward-v1",target:stagingTarget,migrations:[]}));
 const planResult=orchestratePlanOnly({manifestBytes:bytes,artifacts:new Map(),target:stagingTarget});
@@ -82,4 +83,14 @@ test("does not report recovery unless the run store confirms AMBIGUOUS",async()=
  const lockStore={async recoverStale(){return {recovered:true};},async listEvents(){return [];}};
  const recovery=new D1MigrationRunOrchestrator({runStore,lockStore});
  await assert.rejects(()=>recovery.recoverInterrupted({runId,ownerTokenHash:"a".repeat(64),processTerminationConfirmed:true,approvalId:"incident",actor:"operator"}),{code:"RECOVERY_STATE_MISMATCH"});
+});
+
+test("orchestrator can be explicitly pinned to the isolated disposable rehearsal target",async()=>{
+ const runStore=new Store();
+ const rehearsalPlan={...planResult,plan:{...planResult.plan,target:rehearsalLockTarget}};
+ const service=new D1MigrationRunOrchestrator({runStore,target:rehearsalLockTarget});
+ await service.recordPlan({planResult:rehearsalPlan,runId,actor:"rehearsal-operator"});
+ assert.equal(runStore.calls[0][1].target.databaseId,rehearsalLockTarget.databaseId);
+ assert.equal(runStore.calls[0][1].target.worker,rehearsalLockTarget.worker);
+ assert.throws(()=>new D1MigrationRunOrchestrator({runStore,target:{...rehearsalLockTarget,worker:"nature-frontiers-staging"}}),{code:"TARGET_DENIED"});
 });
