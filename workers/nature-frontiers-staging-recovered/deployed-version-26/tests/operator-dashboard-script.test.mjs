@@ -23,6 +23,9 @@ test("operator dashboard exposes safe runner status, preview, reconcile and due 
  const html=assetBody("/");
  const app=assetBody("/app.js");
  assert.match(html,/id="runner-panel"/);
+ assert.ok(app.includes('data-action="bind-target"'));
+ assert.ok(app.includes('"/targets"'));
+ assert.ok(app.includes("BIND NATURE FRONTIERS "));
  assert.match(html,/id="runner-reconcile"/);
  assert.match(app,/api\("\/api\/runner\/status"\)/);
  assert.match(app,/api\("\/api\/runner\/preview"/);
