@@ -1,0 +1,23 @@
+name: Nature Frontiers runner policy tests
+on:
+  push:
+    branches:
+      - codex/nf-durable-runner-fail-closed
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runner-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check recovered Worker modules
+        run: |
+          node --check workers/nature-frontiers-staging-recovered/deployed-version-26/runner.mjs
+          node --check workers/nature-frontiers-staging-recovered/deployed-version-26/meta-dispatch.mjs
+          node --experimental-default-type=module --check workers/nature-frontiers-staging-recovered/deployed-version-26/index.js
+      - name: Execute runner safety tests
+        run: node --test workers/nature-frontiers-staging-recovered/deployed-version-26/tests/runner-policy.test.mjs
