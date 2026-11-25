@@ -71,3 +71,18 @@ The CLI opens manifest and artifact files once with `O_NOFOLLOW`, verifies regul
 Subprocess adversarial tests live in `scripts/migrations/run-plan.test.mjs`. They exercise valid empty and synthetic non-empty plans, malformed/duplicate arguments, wrong-target rejection before file access, manifest and artifact traversal/symlink attempts, duplicate JSON keys, malformed UTF-8, missing artifacts, checksum/length mismatches, and refusal output without partial JSON.
 
 The existing `test:migrations` npm script uses the `scripts/migrations/*.test.mjs` glob, so both the orchestration and CLI subprocess tests are automatically included in the existing CI migration test step. CI evidence for this hardening is pending until a run completes on the resulting commit.
+
+
+### Persistent run records and human approval orchestration
+
+`D1MigrationRunStore` and `D1MigrationRunOrchestrator` persist a plan-only run and its human decisions in the control tables defined by `d1-lock-schema.sql`.
+
+- `recordPlan` accepts only a `PLAN_ONLY` result whose execution flag is false and whose side-effect capability flags are all false. It persists the exact plan and manifest SHA-256 values, pinned staging target, creator identity, revision 0, and initial `PLANNED` event in one D1 batch.
+- `approve` is a compare-and-swap transition from `PLANNED` revision 0 to `APPROVED` revision 1. The caller must supply the exact expected plan hash and manifest hash, exact pinned target, named approver, and explicit approval reference. The approval event records the approver separately from the plan creator.
+- `reject` is a compare-and-swap transition from `PLANNED` to `REFUSED`, preserving the reviewer identity and reason. A rejected run cannot be approved by these transitions.
+- `inspect` returns the durable run and append-only revision-ordered event history.
+- `recoverInterrupted` is available only for a persisted `LOCKED` run and delegates to the D1 lock adapter. It requires process-termination confirmation, the exact owner-token hash, a named recovery operator, and an explicit recovery approval. Recovery ends in `AMBIGUOUS`; it never marks a run successful or retries SQL.
+
+The orchestration layer has no SQL execution capability, no Worker deployment capability, and does not acquire locks during plan recording or approval. Lock acquisition remains a separate explicit adapter operation. A live disposable-D1 rehearsal must not be interpreted as staging authorization.
+
+CI unit/contract tests are in `d1-run-store.test.mjs`, `run-orchestrator.test.mjs`, and `d1-lock-adapter.test.mjs`. The exact live disposable-D1 rehearsal and any blocked test cases are recorded in `workers/nature-frontiers-staging-recovered/RUN-RECORD-APPROVAL-REHEARSAL.md`.
