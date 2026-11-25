@@ -1,5 +1,7 @@
 const STAGING_DATABASE_ID = "89be73af-ebaf-4c19-b75a-9871adb8ba3c";
 const STAGING_WORKER = "nature-frontiers-staging";
+const REHEARSAL_DATABASE_ID = "a12fb838-1bd1-4811-9cf1-2ad5b21089d4";
+const REHEARSAL_WORKER = "nf-adapter-worker-rehearsal";
 const SHA256 = /^[a-f0-9]{64}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
@@ -7,9 +9,12 @@ export class D1MigrationLockError extends Error {
   constructor(code, message) { super(message); this.name = "D1MigrationLockError"; this.code = code; }
 }
 function fail(code, message) { throw new D1MigrationLockError(code, message); }
+export const stagingLockTarget = Object.freeze({ environment:"staging", databaseId:STAGING_DATABASE_ID, worker:STAGING_WORKER });
+export const rehearsalLockTarget = Object.freeze({ environment:"rehearsal", databaseId:REHEARSAL_DATABASE_ID, worker:REHEARSAL_WORKER });
+const ALLOWED_TARGETS = [stagingLockTarget, rehearsalLockTarget];
 function assertTarget(target) {
-  if (!target || target.environment !== "staging" || target.databaseId !== STAGING_DATABASE_ID || target.worker !== STAGING_WORKER) {
-    fail("TARGET_DENIED", "Persistent migration locks are restricted to the pinned Nature Frontiers staging target.");
+  if (!target || !ALLOWED_TARGETS.some(allowed => target.environment===allowed.environment && target.databaseId===allowed.databaseId && target.worker===allowed.worker)) {
+    fail("TARGET_DENIED", "Target must exactly match the pinned staging or isolated disposable rehearsal resource.");
   }
 }
 function assertHash(value, label) {
@@ -147,4 +152,3 @@ export class D1MigrationLockStore {
   }
 }
 
-export const stagingLockTarget = Object.freeze({ environment:"staging", databaseId:STAGING_DATABASE_ID, worker:STAGING_WORKER });
