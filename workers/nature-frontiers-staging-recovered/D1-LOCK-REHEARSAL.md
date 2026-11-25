@@ -6,54 +6,69 @@ Branch: `codex/nf-durable-publisher-api`
 
 ## Scope and resource isolation
 
-A new disposable D1 database was created solely for this rehearsal:
+Two newly created disposable D1 databases were used in sequence; neither was an existing project database:
 
-- Name: `nf-lock-rehearsal-20261125`
-- ID: `38261569-4fd3-4948-90a0-9b2386be5519`
-- Read replication: disabled
-- Region: ENAM
+1. `nf-lock-rehearsal-20261125` — ID `38261569-4fd3-4948-90a0-9b2386be5519`, initial concurrency/recovery and batch rollback probes.
+2. `nf-lock-adapter-validation-20261125` — ID `cfafca12-432d-4d2f-8820-a473c8f686ed`, exact schema and SQL sequence matching the checked-in adapter.
 
-No existing D1 database was used. In particular, the staging database `89be73af-ebaf-4c19-b75a-9871adb8ba3c`, production database `nature-frontiers-prod-state`, backup database and SonicVhibez database were not mutated.
+Both had read replication disabled and were created in the Cloudflare account's ENAM region.
 
-## Results
+The existing Nature Frontiers staging D1 `89be73af-ebaf-4c19-b75a-9871adb8ba3c`, production D1 `nature-frontiers-prod-state`, staging backup D1, and SonicVhibez D1 were not mutated.
+
+## Disposable D1 results
 
 | Required behavior | Result | Evidence |
 |---|---|---|
-| Atomic singleton acquisition | PASS | Two simultaneous Cloudflare D1 API inserts for different approved runs produced changes=1 and changes=0; exactly one lock row existed |
-| Owner-only release | PASS | Wrong owner delete returned changes=0 and lock remained; matching owner delete removed it and emitted a release audit event |
-| Simultaneous-run exclusion | PASS | Concurrent insert race admitted one run only; losing run made no lock change |
-| Interruption persistence | PASS | Lock was acquired, then left untouched across separate API requests; it remained present with `expires_at=NULL` |
-| No time-based stale stealing | PASS | The persisted lock used an old acquisition timestamp; a contender still received changes=0 |
-| Manual stale recovery | PASS | Recovery without the correct owner hash made zero changes; exact owner plus process-termination confirmation and approval reference deleted lock and emitted `STALE_RECOVERED` audit event |
-| D1 batch rollback | PASS | Batch created a probe table then deliberately failed on a missing table; subsequent sqlite_master query confirmed the probe table was absent |
-| Run-state integration | NOT YET INTEGRATED | Current rehearsal used disposable run records; runner integration remains a separate step |
+| Atomic singleton acquisition | PASS | Two concurrent D1 batch acquisitions for different approved runs returned claim changes 0 and 1; exactly one lock row existed |
+| Owner-only release | PASS | Wrong owner batch returned changes 0 for all four statements and preserved the lock; matching owner returned changes 1 for audit, delete, run-state update and run-event insert |
+| Simultaneous-run exclusion | PASS | The losing run remained APPROVED and no lock was created for it; winner moved to LOCKED |
+| Interruption persistence | PASS | Lock survived separate API requests; a later contender was refused; lock had `expires_at=NULL` and an old acquisition timestamp |
+| No time-based stale stealing | PASS | Old timestamp did not permit a contender to acquire the singleton lock |
+| Manual stale recovery | PASS | Wrong owner hash returned changes 0 for all five statements; exact owner plus approval reference removed lock, wrote `STALE_RECOVERED`, and moved run to `AMBIGUOUS` |
+| D1 batch rollback | PASS | A batch created a probe table then failed on a missing table; subsequent `sqlite_master` query confirmed the probe table was rolled back |
+| D1 run creation and approval SQL | PASS | Run rows and initial APPROVED rows were inserted in batches; approved state and approval references were checked by subsequent lock acquisition |
+| D1 JavaScript binding runtime | NOT_TESTED | The checked-in JavaScript adapter was not executed inside a Worker bound to D1 |
 
-Cloudflare D1 batch behavior was directly exercised through the D1 HTTP API: successful batch statements were rolled back when a later statement failed. This is a live disposable-D1 observation, not an assumption based on local SQLite.
+For the adapter-validation database, the exact SQL sequences in `d1-lock-adapter.mjs` were replayed through Cloudflare's D1 query API. The concurrent race returned:
 
-## Adapter implementation
+- contender A: `[0,0,0,0]`
+- contender B: `[1,1,1,1]`
+- one persisted lock row, owned by B; run B state `LOCKED`, revision 2.
 
-`scripts/migrations/d1-lock-adapter.mjs` provides a Cloudflare Worker D1 binding adapter:
-- all lock mutations use `D1Database.batch()`;
-- singleton acquisition is `INSERT ... ON CONFLICT(lock_key) DO NOTHING` from an exact approved run row;
-- acquisition binds target, plan, manifest and owner digest;
-- release is conditional on both run ID and owner hash;
-- stale recovery requires process-termination proof, exact owner hash and explicit approval ID;
-- recovery leaves the run `AMBIGUOUS`, never `RELEASED`;
-- no TTL, expiry or automatic lock stealing exists;
+For owner release, the wrong owner returned `[0,0,0,0]`; the correct owner returned `[1,1,1,1]`, and the run moved to `RELEASED`.
+
+For interruption recovery, a lock acquired with an old timestamp persisted across separate API requests. A different approved run received `[0,0,0,0]`. Recovery with the wrong owner returned `[0,0,0,0,0]`. Recovery with the exact owner and explicit incident approval returned `[1,1,1,1,1]`; the run ended in `AMBIGUOUS` with a durable `STALE_RECOVERED` audit event and approval reference.
+
+Cloudflare D1 batch behavior was directly tested: when a later statement failed, earlier schema changes in the same batch were rolled back. This is observed D1 behavior, not an assumption based on local SQLite.
+
+## Implementation committed
+
+- `scripts/migrations/d1-lock-schema.sql`: disposable-first schema for run rows, run events, singleton lock and immutable lock audit events.
+- `scripts/migrations/d1-lock-adapter.mjs`: D1 binding adapter for conditional singleton acquisition, owner-only release, manual stale recovery, hashed owner tokens and audit trail.
+- `scripts/migrations/d1-run-store.mjs`: persistent planned-run creation and explicit approval transitions.
+- `scripts/migrations/d1-lock-adapter.test.mjs` and `d1-run-store.test.mjs`: Node contract/validation tests. These are not substitutes for the direct D1 rehearsal.
+- CI syntax checks cover both D1 modules; the test suite runs all migration tests.
+
+Adapter invariants:
+- one singleton key per migration stream;
+- atomic `INSERT ... ON CONFLICT DO NOTHING` acquisition from an exact APPROVED run;
+- all multi-statement changes use `D1Database.batch()`;
+- owner release matches both run ID and owner-token digest;
+- recovery requires process-termination confirmation, exact owner digest and explicit approval;
+- recovery ends in `AMBIGUOUS`, never a successful/released state;
+- no expiry/TTL or automatic stealing;
 - raw owner tokens are never persisted;
-- SQL DDL is kept in a separate schema file and never run by the adapter.
-
-The schema file is a disposable-first specification only. It has not been applied to staging or production.
+- no DDL, runner dispatch, or migration execution is present in adapter code.
 
 ## Important limits
 
-- This rehearsal used Cloudflare's D1 HTTP query API to exercise the same SQLite statements and batch transaction semantics. It did not run the JavaScript adapter inside a deployed Worker with an actual D1 binding.
-- A D1 Worker-binding integration test and run-state/lock orchestration integration remain required before runner integration.
-- The test database is isolated and disposable. It must be deleted after evidence capture.
+- Direct D1 API execution validated the SQL and D1 transaction semantics; the JS adapter itself has not been executed in a deployed Worker with a real D1 binding.
+- GitHub CI validates the JavaScript contract tests and syntax, not a Worker binding.
+- Both disposable databases must be deleted after evidence capture.
 - No migration DDL was executed against Nature Frontiers staging or production.
 
 ## Disposition
 
-**DISPOSABLE D1 LOCK SEMANTICS: PASS FOR TESTED OPERATIONS. ADAPTER SOURCE ADDED, WORKER-BINDING INTEGRATION NOT YET VERIFIED. DO NOT INTEGRATE WITH RUNNER OR APPLY SCHEMA TO STAGING.**
+**DISPOSABLE D1 SQL SEMANTICS: PASS FOR ACQUIRE, OWNER RELEASE, CONCURRENCY, INTERRUPTION PERSISTENCE, MANUAL RECOVERY AND BATCH ROLLBACK. PERSISTENT D1 ADAPTER AND RUN STORE IMPLEMENTED. WORKER-BINDING RUNTIME: NOT_TESTED. RUNNER INTEGRATION: NOT AUTHORIZED/NOT DONE.**
 
-Next gate: verify this adapter inside an isolated Worker using a disposable D1 binding, then run the interruption/concurrency suite through the adapter itself. Only after that review may runner integration be proposed.
+Next gate: exercise the checked-in JavaScript adapter inside an isolated Worker with a disposable D1 binding. Only after that test and independent review should runner integration be considered. The schema must not be applied to staging or production as part of this milestone.

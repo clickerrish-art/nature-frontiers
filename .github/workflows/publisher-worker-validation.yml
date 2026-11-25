@@ -36,10 +36,10 @@ jobs:
           node-version: "24"
       - name: Validate catalogue
         run: node scripts/validate-campaign.mjs
-      - name: Test read-only migration planner (no D1 binding or credentials)
+      - name: Test migration planner and D1 adapter contracts (no live D1 binding or credentials)
         run: npm run test:migrations
       - name: Check migration planner syntax
-        run: node --check scripts/migrations/planner.mjs && node --check scripts/migrations/plan.mjs && node --check scripts/migrations/d1-lock-adapter.mjs
+        run: node --check scripts/migrations/planner.mjs && node --check scripts/migrations/plan.mjs && node --check scripts/migrations/d1-lock-adapter.mjs && node --check scripts/migrations/d1-run-store.mjs
       - name: Check Worker syntax
         run: node --check workers/nature-frontiers-publisher/worker.js
       - name: Test health, media and signed Meta webhook routes
