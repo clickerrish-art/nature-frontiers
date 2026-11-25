@@ -102,7 +102,7 @@ async function main() {
     target,
     sourceCommit: process.env.GITHUB_SHA ?? null
   });
-  process.stdout.write(JSON.stringify(result, null, 2) + "\\n");
+  process.stdout.write(JSON.stringify(result, null, 2) + "\n");
 }
 
 main().catch(error => {
