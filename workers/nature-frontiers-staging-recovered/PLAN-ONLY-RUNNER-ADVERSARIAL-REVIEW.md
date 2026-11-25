@@ -72,3 +72,21 @@ These controls support the conclusion that the reviewed pure orchestration funct
 **NOT READY TO EXTEND.** Resolve R1 and R3 before adding runner capabilities. R2 should be fixed or explicitly bounded by a documented trusted-checkout threat model before the CLI is used on mutable/untrusted workspaces.
 
 No code changes, D1 operations, deployments, migration execution, or changes to `main` were made as part of this review. This report does not authorize runner execution or staging changes.
+
+
+## Remediation implementation — 2026-11-25
+
+The three findings have been addressed in code on the same feature branch; CI evidence is pending.
+
+- **R1:** `plan-only-runner.mjs` recursively freezes the complete plan. `plan-only-runner.test.mjs` now tests mutation attempts against the plan, target, migration array, migration record, and dependency array.
+- **R2:** `run-plan.mjs` uses descriptor-based reads with `O_NOFOLLOW`, regular-file checks, canonical path containment, and device/inode comparison before reading from the same opened descriptor. It fails closed if `O_NOFOLLOW` is unavailable. Strict UTF-8 and duplicate-key parsing occur before artifact access.
+- **R3:** New `run-plan.test.mjs` subprocess tests cover valid empty/non-empty inputs, argument failures, target refusal before file access, manifest/artifact traversal and symlink attacks, duplicate keys, malformed UTF-8, missing files, checksum/length mismatch, and no partial success output. The existing `test:migrations` glob includes this file.
+
+Implementation commits:
+- `246946604b26f6f450347b21ff0f6c0c30b34cc9` — deep freeze
+- `6c37309ce038a63fe0d26495ed47208aeb7e1375` — mutation tests
+- `2ca4f2939f64e7ed09ef47f52ff59a723da70a06` — descriptor-based CLI file handling
+- `5762c74bc1ed70aff7e2ede1044d08091f8ac85c` — subprocess adversarial tests
+- `37cdc53613f6329cb2a245c7063cedae646ee9bb` — documentation
+
+**Acceptance remains pending CI.** Source changes and test inclusion are implemented, but none of R1–R3 will be marked PASS until the migration test job runs on the resulting exact branch SHA and passes. No D1 operations, deployment, DDL execution, or changes to `main` were made.
