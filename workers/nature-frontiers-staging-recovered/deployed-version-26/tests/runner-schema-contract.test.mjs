@@ -14,7 +14,7 @@ function table(name){
 }
 function hasColumns(name,columns){
  const sql=table(name);
- const declared=new Set(sql.split("\n").slice(1).map(line=>line.trim().match(/^([a-z_][a-z0-9_]*)\s+(?:TEXT|INTEGER)/i)?.[1]).filter(Boolean));
+ const declared=new Set([...sql.matchAll(/(?:^|[,(\s])([a-z_][a-z0-9_]*)\s+(?:TEXT|INTEGER)\b/gi)].map(match=>match[1]));
  for(const column of columns)assert.ok(declared.has(column),`${name} is missing column ${column}`);
 }
 
