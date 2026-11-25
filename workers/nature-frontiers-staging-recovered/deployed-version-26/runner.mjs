@@ -8,7 +8,8 @@ export function runnerPolicy(controls){
   mayRunDryRun:values.emergency_stop===true&&values.publishing_enabled===false&&values.dry_run===true,
   mayPublish:false};
 }
-export function classifyInterruptedAttempt(attempt){
+export function classifyInterruptedAttempt(attempt,slotState="leased"){
+ if(slotState==="publishing")return "ambiguous_no_retry";
  if(!attempt)return "safe_to_hold";
  if(attempt.state==="reserved"||attempt.state==="ambiguous"||attempt.state==="confirmed")return "ambiguous_no_retry";
  return "safe_to_hold";
@@ -123,12 +124,12 @@ export async function handleRunner(request,env,session){
   const outcomes=[];
   for(const slot of stale.results||[]){
    const attempt=await db.prepare("SELECT id,state FROM publication_attempts WHERE idempotency_key=(SELECT idempotency_key FROM schedule_slots WHERE id=?) ORDER BY started_at DESC LIMIT 1").bind(slot.id).first();
-   const classification=classifyInterruptedAttempt(attempt),now=new Date().toISOString();
+   const classification=classifyInterruptedAttempt(attempt,slot.state),now=new Date().toISOString();
    if(classification==="ambiguous_no_retry"){
     if(attempt?.id)await db.prepare("UPDATE publication_attempts SET state='ambiguous',finished_at=?,error_code='interrupted_unknown_provider_state' WHERE id=? AND state IN ('reserved','confirmed','ambiguous')").bind(now,attempt.id).run();
     await db.prepare("UPDATE schedule_slots SET state='dead_letter',lease_token_hash=NULL,lease_expires_at=NULL,last_error_code='ambiguous_provider_state',updated_at=? WHERE id=? AND state IN ('leased','publishing') AND lease_expires_at<=?").bind(now,slot.id,now).run();
    }else{
-    await db.prepare("UPDATE schedule_slots SET state='held',lease_token_hash=NULL,lease_expires_at=NULL,last_error_code='interrupted_before_provider_attempt',updated_at=? WHERE id=? AND state='leased' AND lease_expires_at<=?").bind(now,slot.id,now).run();
+    await db.prepare("UPDATE schedule_slots SET state='held',lease_token_hash=NULL,lease_expires_at=NULL,last_error_code='interrupted_before_provider_attempt',updated_at=? WHERE id=? AND state IN ('leased','publishing') AND lease_expires_at<=?").bind(now,slot.id,now).run();
    }
    await db.prepare("UPDATE worker_runs SET state='abandoned',finished_at=?,error_code='lease_expired' WHERE schedule_slot_id=? AND state IN ('started','heartbeat')").bind(now,slot.id).run();
    await audit(db,actor,"runner.lease.reconciled",{scheduleId:slot.id,classification,attemptState:attempt?.state||null},slot.content_id);
