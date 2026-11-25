@@ -9,8 +9,13 @@ const fail = (code, message) => Object.assign(new Error(message), { code });
 
 export default {
   async fetch(request, env) {
+    if (!env.DB) return json({ error:"HARNESS_NOT_CONFIGURED" },503);
+    if (request.method === "GET" && new URL(request.url).pathname === "/health") {
+      const row = await env.DB.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type='table' AND name LIKE 'nf_migration_%'").first();
+      return json({ ok:true, target:rehearsalLockTarget, controlTables:row?.count ?? 0 });
+    }
     if (request.method !== "POST") return json({ error:"METHOD_NOT_ALLOWED" },405);
-    if (!env.DB || !env.AUTH_TOKEN) return json({ error:"HARNESS_NOT_CONFIGURED" },503);
+    if (!env.AUTH_TOKEN) return json({ error:"HARNESS_NOT_CONFIGURED" },503);
     const supplied = request.headers.get("authorization") || "";
     if (supplied !== `Bearer ${env.AUTH_TOKEN}`) return json({ error:"UNAUTHORIZED" },401);
     let input;
