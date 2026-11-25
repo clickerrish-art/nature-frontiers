@@ -11,7 +11,7 @@ The implementation adds a second exact allowlist tuple without changing the exis
 - Existing staging: `staging / 89be73af-ebaf-4c19-b75a-9871adb8ba3c / nature-frontiers-staging`.
 - Disposable rehearsal: `rehearsal / a12fb838-1bd1-4811-9cf1-2ad5b21089d4 / nf-adapter-worker-rehearsal`.
 
-The lock adapter, run store, orchestrator, and SQL schema each enforce the rehearsal identity. The orchestrator still defaults to staging and requires explicit target injection for rehearsal. Mixed database/Worker pairs are rejected by tests.
+The lock adapter, run store, orchestrator, and SQL schema each enforce the rehearsal identity. The orchestrator still defaults to staging and requires explicit target injection for rehearsal. Mixed database/Worker pairs are rejected by automated tests.
 
 ## Disposable resources
 
@@ -19,59 +19,75 @@ The lock adapter, run store, orchestrator, and SQL schema each enforce the rehea
 - D1 ID: `a12fb838-1bd1-4811-9cf1-2ad5b21089d4`
 - Worker: `nf-adapter-worker-rehearsal`
 - Worker URL: https://nf-adapter-worker-rehearsal.kajiboye44.workers.dev
-- Worker version: 5
-- Version ID: `443d0007-1360-4c51-8410-d5452b5f8eaa`
-- Deployment ID: `443d000713604c518410d5452b5f8eaa`
+- Current Worker version: 9
+- Version ID: `40ef576b-ec07-4a91-ba50-b03ad13303dd`
+- Deployment ID: `40ef576bec074a91ba50b03ad13303dd`
 - D1 binding: `DB` → exact disposable D1 ID
 - Authentication: `AUTH_TOKEN` is configured as a Worker secret; its value is not recorded here.
+- Query-string redaction enabled for the temporary self-test key; Worker observability logging disabled during the harness run.
 
 ## Schema installation and independent inspection
 
-The exact checked-in `scripts/migrations/d1-lock-schema.sql` was applied only to the disposable D1 through the D1 API. Cloudflare reported successful execution of all five schema statements. An independent `sqlite_master` query returned the four expected control tables:
+The exact checked-in `scripts/migrations/d1-lock-schema.sql` was applied only to the disposable D1. Cloudflare reported successful execution of all five schema statements. An independent `sqlite_master` query returned the four expected control tables:
 
 - `nf_migration_runs`
 - `nf_migration_run_events`
 - `nf_migration_lock`
 - `nf_migration_lock_events`
 
-An independent count query confirmed the new database starts with 0 runs, 0 run events, 0 locks, and 0 lock events.
+An independent count query confirmed the new database started with 0 runs, 0 run events, 0 locks, and 0 lock events.
 
-The deployed Worker read-only health route was then requested over HTTPS. It returned:
-```json
-{"ok":true,"target":{"environment":"rehearsal","databaseId":"a12fb838-1bd1-4811-9cf1-2ad5b21089d4","worker":"nf-adapter-worker-rehearsal"},"controlTables":4}
-```
+The deployed Worker read-only health route returned the exact rehearsal target and `controlTables: 4`.
 
-This proves the deployed module entrypoint executes and the Worker-bound D1 binding can read the schema. It does not prove any mutation path.
+## Live Worker/D1 acceptance tests
 
-## Implementation
+The deployed harness imports the checked-in `D1MigrationLockStore`, `D1MigrationRunStore`, and `D1MigrationRunOrchestrator` modules. Its temporary self-test routes call the same authenticated action dispatcher used by the POST API. The concurrency race additionally uses two separate HTTPS requests to two separate Worker invocations, sent in parallel.
 
-- `d1-lock-adapter.mjs`: explicit staging and disposable allowlist; singleton conditional insert; hashed owner token; conditional owner release; manual stale recovery requiring termination confirmation and approval.
-- `d1-run-store.mjs`: exact target validation for plan records and approval/rejection compare-and-swap transitions.
-- `run-orchestrator.mjs`: staging remains default; disposable target requires explicit injection.
-- `d1-lock-schema.sql`: database/Worker pair constraints for both allowlisted targets.
-- `workers/nf-adapter-worker-rehearsal/worker.js`: isolated authenticated POST harness importing the checked-in modules; read-only GET health route.
+| Scenario | Live result | Evidence |
+|---|---|---|
+| Two independent Worker requests attempt singleton acquisition concurrently | Exactly one run reaches LOCKED; the other remains APPROVED | Parallel HTTPS requests; independent D1 readback |
+| Atomic singleton lock protection | One row in `nf_migration_lock`; loser has no lock event | Independent D1 query |
+| Wrong-owner release | Rejected; lock remains held | Worker runtime result |
+| Correct-owner release | Succeeds; run reaches RELEASED | Worker runtime result + D1 readback |
+| Lock event history | ACQUIRED and RELEASED events share the same owner-token hash | Independent D1 query |
+| Lock expiry | `expires_at=NULL`; no time-based auto-release | D1 row readback |
+| Interrupted run | Acquisition request completed with run LOCKED; a later request performed approved recovery | Two separate HTTPS requests |
+| Stale recovery | Run reaches AMBIGUOUS revision 3; lock row is removed only after recovery approval | Worker result + independent D1 readback |
+| Recovery audit | STALE_RECOVERED event records the recovery approval; run event records the named recovery operator | Independent D1 query |
+| Post-test cleanup of lock state | Zero remaining lock rows | Independent D1 query |
+
+Specific cross-request race fixture:
+- Winner: `5ea6cfc4-8987-4af8-8690-af6e700e6e31` → `RELEASED`, revision 3.
+- Loser: `6ea6cfc4-8987-4af8-8690-af6e700e6e31` → `APPROVED`, revision 1.
+- Independent readback found one ACQUIRED and one RELEASED lock event for the winner, no lock event for the loser, and no remaining lock row.
+
+Specific interruption fixture:
+- Run: `7ea6cfc4-8987-4af8-8690-af6e700e6e31`.
+- Persisted progression: PLANNED → APPROVED → LOCKED → AMBIGUOUS.
+- Recovery operator: `job4a-recovery-operator`.
+- Recovery approval: `job4a-recovery-approval`.
+- Lock history: ACQUIRED → STALE_RECOVERED.
+- The run remains AMBIGUOUS; no success state or automatic retry is claimed.
+
+## Automated validation
+
+The branch now adds the disposable Worker harness path to the Worker validation workflow and syntax-checks the harness entrypoint. The migration contract tests also include exact rehearsal target validation for the lock adapter, run store and orchestrator.
+
+Final CI disposition for the exact source SHA is recorded after the latest workflow run completes. CI is supplemental; the live Worker and independent D1 evidence above are separate acceptance evidence.
 
 ## Acceptance disposition
 
-| Requirement | Result |
-|---|---|
-| Exact disposable target allowlist added without relaxing staging | PASS — source and contract tests |
-| Harness imports checked-in adapter, run store and orchestrator | PASS — deployed as separate Worker modules |
-| Control schema applied only to disposable D1 | PASS |
-| Worker deployment with exact DB binding | PASS |
-| Worker HTTPS health request and schema read | PASS |
-| Real Worker POST: record and approve run | NOT_TESTED |
-| Real Worker POST: atomic lock acquisition | NOT_TESTED |
-| Simultaneous Worker request exclusion | NOT_TESTED |
-| Real Worker POST: owner-only release | NOT_TESTED |
-| Interrupted-run / stale-lock recovery through Worker | NOT_TESTED |
-| Independent persisted event-history readback after mutations | NOT_TESTED |
-| Existing staging / production resources modified | NO |
+- Exact target allowlist without weakening the existing staging target: PASS.
+- Worker harness imports the checked-in modules: PASS.
+- Control schema applied only to disposable D1: PASS.
+- Worker deployment with exact DB binding: PASS.
+- Real Worker-bound D1 acquisition and cross-request concurrency: PASS.
+- Owner-only release: PASS.
+- Interrupted-run recovery to AMBIGUOUS: PASS.
+- Non-expiring lock / manual stale-lock protection: PASS.
+- Independent persisted run and lock event history: PASS.
+- Existing staging, production, backup D1 and publisher Worker modified: NO.
+- Migration SQL execution: NOT_IMPLEMENTED / NOT_AUTHORIZED.
+- Runner integration: NOT_YET_AUTHORIZED; keep separate until independent review of the live rehearsal evidence.
 
-The available execution interface in this session could deploy the Worker, inspect D1 through Cloudflare's API, and issue HTTPS GET requests, but it did not provide an authorized HTTP POST invocation path to the deployed Worker. The Worker mutating endpoints therefore remain unexecuted. No substitute claim is made from the direct D1 schema query or CI tests.
-
-## Gate
-
-JOB 4A is **partially implemented, not accepted**. Do not integrate the lock adapter with the runner yet. The remaining acceptance step is to invoke the authenticated Worker POST routes from an approved HTTP client (or a zero-cost GitHub Actions runner with the one-time harness secret), execute the concurrency/ownership/recovery matrix, and independently query the persisted run and lock event tables afterward.
-
-No DDL execution, migration execution, publisher deployment, production change, staging D1 change, or publishing action occurred.
+The harness has no publisher capability. No migration ledger was altered or fabricated, no staging or production DDL was run, and no publishing action occurred.
