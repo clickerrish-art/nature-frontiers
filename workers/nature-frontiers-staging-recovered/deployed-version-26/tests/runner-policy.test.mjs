@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {runnerPolicy,classifyInterruptedAttempt} from "../runner.mjs";
 import {evaluateMetaDispatchGate,dispatchMetaPost} from "../meta-dispatch.mjs";
+import {verifySignedApprovalReceipt} from "../runner.mjs";
 
 test("runner only accepts exact fail-closed dry-run controls",()=>{
  assert.equal(runnerPolicy([{key:"emergency_stop",enabled:1},{key:"publishing_enabled",enabled:0},{key:"dry_run",enabled:1}]).mayRunDryRun,true);
