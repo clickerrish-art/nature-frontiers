@@ -1,6 +1,6 @@
 const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"}});
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
-const REQUIRED=["pages_show_list","pages_read_engagement","pages_manage_posts","instagram_basic","instagram_content_publish","instagram_manage_insights"];
+const FACEBOOK_REQUIRED=["pages_show_list","pages_read_engagement","pages_manage_posts"];
 const GRAPH_VERSION="v27.0";
 const hex=bytes=>[...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
 const digest=async value=>hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value)));
@@ -50,9 +50,9 @@ export async function handleMetaOAuth(request,env,session){
   await env.DB.prepare("INSERT INTO oauth_states(state_hash,provider,created_at,expires_at,consumed_at,redirect_uri,initiating_subject) VALUES(?,'meta',?,?,NULL,?,?)").bind(await digest(state),now.toISOString(),expires,cfg.redirect,session.user.id).run();
   const url=new URL("https://www.facebook.com/"+cfg.version+"/dialog/oauth");
   url.searchParams.set("client_id",cfg.appId);url.searchParams.set("redirect_uri",cfg.redirect);url.searchParams.set("state",state);
-  url.searchParams.set("response_type","code");url.searchParams.set("scope",REQUIRED.join(","));
+  url.searchParams.set("response_type","code");url.searchParams.set("scope",FACEBOOK_REQUIRED.join(","));
   url.searchParams.set("auth_type","rerequest");
-  return json({authorizationUrl:url.href,stateExpiresAt:expires,requestedPermissions:REQUIRED,providerMutations:false,publishingEnabled:false});
+  return json({authorizationUrl:url.href,stateExpiresAt:expires,requestedPermissions:FACEBOOK_REQUIRED,instagramLoginRequired:true,providerMutations:false,publishingEnabled:false});
  }
  if(path==="/api/meta/oauth/callback"&&method==="GET"){
   const cfg=config(env),u=new URL(request.url),state=u.searchParams.get("state")||"",code=u.searchParams.get("code")||"";
@@ -75,7 +75,7 @@ export async function handleMetaOAuth(request,env,session){
   if(!longResponse.ok||!longToken.access_token)throw fail("Meta long-lived token exchange failed",502);
   const permissions=await metaGraphRead("me/permissions",longToken.access_token,cfg.version);
   const granted=(permissions.data||[]).filter(x=>x.status==="granted").map(x=>x.permission).sort();
-  const pages=await metaGraphRead("me/accounts",longToken.access_token,cfg.version,{fields:"id,name,access_token,tasks,instagram_business_account{id,username,account_type}",limit:100});
+  const pages=await metaGraphRead("me/accounts",longToken.access_token,cfg.version,{fields:"id,name,access_token,tasks",limit:100});
   const list=pages.data||[];
   if(!list.length)throw fail("Meta returned no Pages for this operator; verify Page access in Meta Business Suite",409);
   const expires=Number(longToken.expires_in)>0?new Date(Date.now()+Number(longToken.expires_in)*1000).toISOString():null;
@@ -86,11 +86,11 @@ export async function handleMetaOAuth(request,env,session){
    const id=existing?.id||crypto.randomUUID(),sealed=await encryptToken(page.access_token,cfg.keySecret,id+":"+page.id);
    const tasks=Array.isArray(page.tasks)?page.tasks:[];
    await env.DB.prepare("INSERT INTO meta_connections(id,provider,page_id,page_name,instagram_business_account_id,granted_permissions_json,secret_binding_name,token_expires_at,identity_verified_at,permissions_verified_at,status,created_at,updated_at,access_token_ciphertext,access_token_nonce,token_key_version,instagram_identity_verified_at,page_tasks_json) VALUES(?,'meta',?,?,?,?,?,?,NULL,NULL,'unverified',?,?,?,?,1,NULL,?) ON CONFLICT(provider,page_id) DO UPDATE SET page_name=excluded.page_name,instagram_business_account_id=excluded.instagram_business_account_id,granted_permissions_json=excluded.granted_permissions_json,secret_binding_name=excluded.secret_binding_name,token_expires_at=excluded.token_expires_at,status='unverified',updated_at=excluded.updated_at,access_token_ciphertext=excluded.access_token_ciphertext,access_token_nonce=excluded.access_token_nonce,token_key_version=1,identity_verified_at=NULL,permissions_verified_at=NULL,instagram_identity_verified_at=NULL,page_tasks_json=excluded.page_tasks_json")
-    .bind(id,String(page.id),String(page.name||""),page.instagram_business_account?.id?String(page.instagram_business_account.id):null,JSON.stringify(granted),"NF_META_TOKEN_ENCRYPTION_KEY",expires,now,now,sealed.ciphertext,sealed.nonce,JSON.stringify(tasks)).run();
-   saved.push({id,pageId:String(page.id),pageName:String(page.name||""),instagramAccountId:page.instagram_business_account?.id?String(page.instagram_business_account.id):null,status:"unverified",pageTasks:tasks});
+    .bind(id,String(page.id),String(page.name||""),null,JSON.stringify(granted),"NF_META_TOKEN_ENCRYPTION_KEY",expires,now,now,sealed.ciphertext,sealed.nonce,JSON.stringify(tasks)).run();
+   saved.push({id,pageId:String(page.id),pageName:String(page.name||""),instagramAccountId:null,status:"unverified",pageTasks:tasks});
   }
   if(!saved.length)throw fail("Meta returned Pages without usable Page access tokens",409);
-  await audit(env.DB,session.user.id,"meta.oauth.completed",{pages:saved.map(x=>({id:x.id,pageId:x.pageId,instagramAccountId:x.instagramAccountId})),grantedPermissions:granted,missingPermissions:REQUIRED.filter(x=>!granted.includes(x))});
+  await audit(env.DB,session.user.id,"meta.oauth.completed",{pages:saved.map(x=>({id:x.id,pageId:x.pageId,instagramAccountId:x.instagramAccountId})),grantedPermissions:granted,missingPermissions:FACEBOOK_REQUIRED.filter(x=>!granted.includes(x))});
   return Response.redirect(new URL("/?meta=connected",cfg.redirect).href,303);
  }
  if(path==="/api/meta/connections"&&method==="GET"){
@@ -108,19 +108,12 @@ export async function handleMetaOAuth(request,env,session){
   if(String(page.id)!==String(row.page_id))throw fail("Meta Page identity did not match the stored Page ID",409);
   const tasks=JSON.parse(row.page_tasks_json||"[]");
   if(!tasks.includes("CREATE_CONTENT")&&!tasks.includes("MANAGE"))throw fail("The selected Page token lacks CREATE_CONTENT or MANAGE task access",403);
-  const permissions=JSON.parse(row.granted_permissions_json||"[]"),missing=REQUIRED.filter(x=>!permissions.includes(x));
+  const permissions=JSON.parse(row.granted_permissions_json||"[]"),missing=FACEBOOK_REQUIRED.filter(x=>!permissions.includes(x));
   if(missing.length)throw fail("Required Meta permissions are not granted: "+missing.join(", "),409);
-  let instagramId=null,instagramVerifiedAt=null,instagramProfile=null;
-  const ig=page.instagram_business_account;
-  if(ig?.id){
-   const profile=await metaGraphRead(String(ig.id),token,cfg.version,{fields:"id,username,account_type"});
-   if(String(profile.id)!==String(ig.id)||!["BUSINESS","CREATOR"].includes(String(profile.account_type||"").toUpperCase()))throw fail("Linked Instagram identity is not a verified Business or Creator account",409);
-   instagramId=String(profile.id);instagramVerifiedAt=new Date().toISOString();instagramProfile={id:instagramId,username:profile.username||null,accountType:profile.account_type};
-  }
   const verifiedAt=new Date().toISOString();
-  await env.DB.prepare("UPDATE meta_connections SET page_name=?,instagram_business_account_id=?,status='verified',identity_verified_at=?,permissions_verified_at=?,instagram_identity_verified_at=?,updated_at=? WHERE id=? AND page_id=?").bind(String(page.name||row.page_name||""),instagramId,verifiedAt,verifiedAt,instagramVerifiedAt,verifiedAt,row.id,row.page_id).run();
-  await audit(env.DB,session.user.id,"meta.identity.verified",{connectionId:row.id,pageId:row.page_id,pageName:page.name||null,instagram:instagramProfile,permissions});
-  return json({facebook:{verified:true,pageId:row.page_id,pageName:page.name||null},instagram:{verified:Boolean(instagramProfile),account:instagramProfile},permissionsVerified:true,publishingEnabled:false,dryRun:true,emergencyStop:true});
+  await env.DB.prepare("UPDATE meta_connections SET page_name=?,instagram_business_account_id=NULL,status='verified',identity_verified_at=?,permissions_verified_at=?,instagram_identity_verified_at=NULL,updated_at=? WHERE id=? AND page_id=?").bind(String(page.name||row.page_name||""),verifiedAt,verifiedAt,verifiedAt,row.id,row.page_id).run();
+  await audit(env.DB,session.user.id,"meta.facebook.identity.verified",{connectionId:row.id,pageId:row.page_id,pageName:page.name||null,instagramVerified:false,permissions});
+  return json({facebook:{verified:true,pageId:row.page_id,pageName:page.name||null},instagram:{verified:false,reason:"separate_instagram_login_required"},permissionsVerified:true,publishingEnabled:false,dryRun:true,emergencyStop:true});
  }
  return null;
 }

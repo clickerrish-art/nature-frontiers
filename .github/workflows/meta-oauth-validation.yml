@@ -1,0 +1,34 @@
+name: Nature Frontiers staging Meta OAuth validation
+
+on:
+  push:
+    branches:
+      - codex/nf-durable-publisher-api
+    paths:
+      - "workers/nature-frontiers-staging-recovered/**"
+      - "package.json"
+      - ".github/workflows/meta-oauth-validation.yml"
+  pull_request:
+    branches:
+      - codex/instagram-unified-login-setup
+    paths:
+      - "workers/nature-frontiers-staging-recovered/**"
+      - "package.json"
+      - ".github/workflows/meta-oauth-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  meta-oauth:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Check Worker module syntax
+        run: node --check workers/nature-frontiers-staging-recovered/meta-oauth.js && node --check workers/nature-frontiers-staging-recovered/index.js
+      - name: Test Facebook OAuth scope isolation
+        run: npm run test:meta-oauth
