@@ -54,7 +54,9 @@ async function readContainedFile(requestedPath, allowedRoot) {
     if (!openedStat.isFile()) refuse("NOT_REGULAR_FILE", "Only regular files are accepted.");
     const canonicalPath = await realpath(absolutePath);
     if (!isInside(rootRealPath, canonicalPath)) refuse("SYMLINK_ESCAPE", "Resolved file is outside its permitted directory.");
-    const canonicalStat = await (await open(canonicalPath, fsConstants.O_RDONLY | fsConstants.O_NOFOLLOW)).stat();
+    const canonicalHandle = await open(canonicalPath, fsConstants.O_RDONLY | fsConstants.O_NOFOLLOW);
+    let canonicalStat;
+    try { canonicalStat = await canonicalHandle.stat(); } finally { await canonicalHandle.close(); }
     if (openedStat.dev !== canonicalStat.dev || openedStat.ino !== canonicalStat.ino) {
       refuse("PATH_CHANGED_DURING_OPEN", "File path changed while validating the opened descriptor.");
     }
