@@ -31,3 +31,13 @@ test("Meta dispatch adapter performs no network side effect",async()=>{
  assert.equal(result.ok,false);
  assert.equal(result.dispatchExecuted,false);
 });
+
+test("signed approval receipt must match the exact content, media and platform binding",async()=>{
+ const receipt={id:"receipt-1",contentId:"content-1",platform:"facebook",decision:"approved",reviewerId:"owner",revision:2,payloadSha256:"a".repeat(64),mediaSha256:"b".repeat(64),rightsEvidenceSha256:"c".repeat(64),approvedAt:"2026-11-25T10:00:00.000Z",expiresAt:"2026-12-02T10:00:00.000Z",policyVersion:"nf-media-release-v1"};
+ const key=await crypto.subtle.importKey("raw",new TextEncoder().encode("test-session-secret"),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const signature=[...new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(JSON.stringify(receipt))))].map(x=>x.toString(16).padStart(2,"0")).join("");
+ const raw=JSON.stringify({...receipt,signature});
+ assert.equal(await verifySignedApprovalReceipt(raw,"test-session-secret",receipt),true);
+ assert.equal(await verifySignedApprovalReceipt(raw,"test-session-secret",{...receipt,mediaSha256:"d".repeat(64)}),false);
+ assert.equal(await verifySignedApprovalReceipt(raw,"wrong-secret",receipt),false);
+});
