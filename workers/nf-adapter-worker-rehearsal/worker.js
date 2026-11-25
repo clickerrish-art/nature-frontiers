@@ -98,9 +98,9 @@ async function selfTestConcurrency(env) {
     lockRetainedAfterWrongOwner:afterWrong?.run_id===winner.runId,
     correctOwnerReleaseSucceeded:ownerRelease.released===true,
     lockAbsentAfterOwnerRelease:winnerInspect.lock===null,
-    winnerFinalState:winnerInspect.run?.state,
+    winnerFinalState:winnerInspect.run?.run?.state,
     winnerLockEvents:winnerInspect.lockEvents,
-    loserFinalState:loserInspect.run?.state
+    loserFinalState:loserInspect.run?.run?.state
   };
 }
 
@@ -120,17 +120,34 @@ export default {
     if (request.method==="GET" && url.pathname==="/__selftest/interrupt") {
       if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
       try {
-        const runId=crypto.randomUUID(),at=new Date().toISOString();
-        await dispatch({action:"recordPlan",runId,planSha256:"c".repeat(64),manifestSha256:"d".repeat(64),actor:"job4a-interruption-planner",at},env);
-        await dispatch({action:"approve",runId,actor:"job4a-interruption-owner",approvalId:"job4a-interruption-approval",at:new Date().toISOString()},env);
-        const acquired=await dispatch({action:"acquire",runId,ownerToken:interruptedOwnerToken,at:new Date().toISOString()},env);
-        return json({acquired:acquired.acquired,runId,runState:(await services(env).store.get(runId))?.state,lock:acquired.lock});
+        const runId=url.searchParams.get("runId") || crypto.randomUUID();
+        let run=await services(env).store.get(runId);
+        if (!run) {
+          const at=new Date().toISOString();
+          await dispatch({action:"recordPlan",runId,planSha256:"c".repeat(64),manifestSha256:"d".repeat(64),actor:"job4a-interruption-planner",at},env);
+          await dispatch({action:"approve",runId,actor:"job4a-interruption-owner",approvalId:"job4a-interruption-approval",at:new Date().toISOString()},env);
+          run=await services(env).store.get(runId);
+        }
+        let acquired=false;
+        if (run.state==="APPROVED") {
+          const result=await dispatch({action:"acquire",runId,ownerToken:interruptedOwnerToken,at:new Date().toISOString()},env);
+          acquired=result.acquired===true;
+        } else if (run.state==="LOCKED") {
+          const lock=await services(env).locks.read();
+          acquired=lock?.run_id===runId;
+        }
+        run=await services(env).store.get(runId);
+        return json({acquired,runId,runState:run?.state,lock:await services(env).locks.read()});
       } catch(error) { return json({error:error.code||"INTERRUPTION_SETUP_FAILED",message:error.message},500); }
     }
     if (request.method==="GET" && url.pathname==="/__selftest/recover") {
       if (!env.AUTH_TOKEN || url.searchParams.get("key")!==env.AUTH_TOKEN) return json({error:"UNAUTHORIZED"},401);
       try {
         const runId=url.searchParams.get("runId");
+        const run=await services(env).store.get(runId);
+        if (run?.state==="AMBIGUOUS") {
+          return json({recovered:false,alreadyRecovered:true,run,events:await services(env).store.listEvents(runId),lockEvents:await services(env).locks.listEvents(runId)});
+        }
         const recovered=await dispatch({
           action:"recover",runId,ownerToken:interruptedOwnerToken,
           processTerminationConfirmed:true,approvalId:"job4a-recovery-approval",
