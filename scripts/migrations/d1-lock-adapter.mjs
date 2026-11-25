@@ -110,13 +110,14 @@ export class D1MigrationLockStore {
     return { released: changes(results[1]) === 1 };
   }
 
-  async recoverStale({ runId, ownerTokenHash, processTerminationConfirmed, approvalId, at = new Date().toISOString() }) {
+  async recoverStale({ runId, ownerTokenHash, processTerminationConfirmed, approvalId, actor, at = new Date().toISOString() }) {
     if (!UUID.test(runId ?? "")) fail("INVALID_RUN_ID", "runId must be a UUID.");
     assertHash(ownerTokenHash, "ownerTokenHash");
     assertIso(at, "recoveredAt");
     if (processTerminationConfirmed !== true) fail("PROCESS_MAY_RESUME", "Stale-lock recovery requires confirmation the original process cannot resume.");
     if (typeof approvalId !== "string" || !approvalId.trim() || approvalId.length > 200) fail("RECOVERY_APPROVAL_REQUIRED", "A bounded, explicit recovery approval reference is required.");
     const approval = approvalId.trim();
+    if (typeof actor !== "string" || !actor.trim() || actor.length > 200) fail("INVALID_ACTOR", "An auditable recovery operator identity is required.");
     const eventKey = `${runId}:STALE_RECOVERED:${ownerTokenHash}:${approval}`;
     const results = await this.db.batch([
       statement(this.db, `UPDATE nf_migration_lock SET recovery_approval_id=?
@@ -133,8 +134,8 @@ export class D1MigrationLockStore {
         AND EXISTS(SELECT 1 FROM nf_migration_lock_events WHERE event_key=? AND event_type='STALE_RECOVERED' AND approval_id=?)`,
         at, runId, eventKey, approval),
       statement(this.db, `INSERT OR IGNORE INTO nf_migration_run_events(run_id,revision,state,occurred_at,actor,reason,approval_id)
-        SELECT run_id,revision,state,updated_at,actor,reason,approval_id FROM nf_migration_runs WHERE run_id=? AND state='AMBIGUOUS' AND updated_at=?`,
-        runId, at)
+        SELECT run_id,revision,state,updated_at,?,reason,approval_id FROM nf_migration_runs WHERE run_id=? AND state='AMBIGUOUS' AND updated_at=?`,
+        actor.trim(), runId, at)
     ]);
     return { recovered: changes(results[2]) === 1 };
   }
