@@ -25,6 +25,8 @@ test("runner SQL column contract matches the recovered schema snapshot",()=>{
  hasColumns("publication_attempts",["id","idempotency_key","state","started_at","finished_at","error_code"]);
  hasColumns("audit_events",["id","event_type","content_id","actor","details_json","created_at"]);
  hasColumns("content_items",["id","media_sha256","status"]);
+ hasColumns("content_targets",["content_id","platform","account_id","status"]);
+ hasColumns("meta_connections",["id","provider","page_id","instagram_business_account_id","status","identity_verified_at","permissions_verified_at","instagram_identity_verified_at","token_expires_at"]);
  hasColumns("content_revisions",["content_id","revision","payload_sha256"]);
  hasColumns("media_assets",["media_sha256","validation_status"]);
  hasColumns("media_rights_evidence",["id","media_sha256","rights_status","evidence_sha256","permitted_platforms_json","permitted_uses_json","expires_at","revoked_at","created_at"]);
