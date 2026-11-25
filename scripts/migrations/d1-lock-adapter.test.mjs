@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { D1MigrationLockStore, D1MigrationLockError, sha256Hex, stagingLockTarget } from "./d1-lock-adapter.mjs";
+import { D1MigrationLockStore, D1MigrationLockError, sha256Hex, stagingLockTarget, rehearsalLockTarget } from "./d1-lock-adapter.mjs";
 
 const hash="a".repeat(64), owner="b".repeat(64);
 const run={runId:"123e4567-e89b-42d3-a456-426614174000",planSha256:hash,manifestSha256:hash,target:stagingLockTarget,state:"APPROVED"};
@@ -26,7 +26,7 @@ test("owner tokens are SHA-256 hashed and raw token is not returned",async()=>{
 test("constructor requires a real D1 binding contract",()=>{
   assert.throws(()=>new D1MigrationLockStore({prepare(){}}),{code:"INVALID_D1_BINDING"});
 });
-test("acquire is staging-only and issues a conditional singleton insert inside D1 batch",async()=>{
+test("acquire is allowlist-only and issues a conditional singleton insert inside D1 batch",async()=>{
   const db=new FakeD1([[result(1),result(1),result(1),result(1)]]);
   db.row={run_id:run.runId,owner_token_hash:owner};
   const store=new D1MigrationLockStore(db);
@@ -65,4 +65,14 @@ test("no lock statement uses a lease or time-based expiry",()=>{
   const source=String(D1MigrationLockStore.prototype.acquire);
   assert.doesNotMatch(source,/expires_at\s*[<>=]/i);
   assert.match(source,/NULL,NULL/);
+});
+
+test("disposable rehearsal target is exact and staging target remains separately pinned",async()=>{
+ const db=new FakeD1([[result(1),result(1),result(1),result(1)]]);
+ db.row={run_id:run.runId,owner_token_hash:owner};
+ const store=new D1MigrationLockStore(db);
+ const rehearsalRun={...run,target:rehearsalLockTarget};
+ const answer=await store.acquire({run:rehearsalRun,target:rehearsalLockTarget,ownerTokenHash:owner,at:"2026-11-25T12:04:00.000Z"});
+ assert.equal(answer.acquired,true);
+ await assert.rejects(()=>store.acquire({run:rehearsalRun,target:{...rehearsalLockTarget,worker:"nature-frontiers-staging"},ownerTokenHash:owner}),{code:"TARGET_DENIED"});
 });
