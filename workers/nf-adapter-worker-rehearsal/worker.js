@@ -138,6 +138,8 @@ export default {
   if(request.method==="GET"&&url.pathname==="/__selftest/recover"){
    try{
     const runId=url.searchParams.get("runId"),runner=services(env);
+    const existing=await runner.inspect(runId);
+    if(existing?.run?.state==="AMBIGUOUS")return json({recovered:false,alreadyRecovered:true,...existing});
     const ownerTokenHash=await (await import("./d1-lock-adapter.mjs")).sha256Hex(interruptedOwnerToken);
     const result=await runner.recoverInterrupted({runId,ownerTokenHash,processTerminationConfirmed:true,
       approvalId:"job4b-recovery-approval",actor:"job4b-recovery-operator",at:now()});
