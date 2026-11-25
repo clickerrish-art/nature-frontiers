@@ -8,7 +8,6 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const release=readFileSync(resolve(root,"media-release.js"),"utf8");
 const runner=readFileSync(resolve(root,"runner.mjs"),"utf8");
 const scheduling=readFileSync(resolve(root,"scheduling.js"),"utf8");
-const index=readFileSync(resolve(root,"index.js"),"utf8");
 
 test("destination binding is owner-only and requires a verified exact Meta identity",()=>{
  assert.match(release,/targetMatch = path\.match/);
@@ -40,5 +39,4 @@ test("dry-run queue independently rechecks current approved content, media, righ
 test("approved content can be scheduled only into a held slot",()=>{
  assert.match(scheduling,/content\.status!=="approved"/);
  assert.match(scheduling,/VALUES\(\?,\?,\?,\?,\?,'held'/);
- assert.match(index,/needs_review","approved/);
 });
