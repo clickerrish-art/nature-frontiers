@@ -4,7 +4,7 @@ import { D1MigrationRunStore } from "./d1-run-store.mjs";
 import { stagingLockTarget } from "./d1-lock-adapter.mjs";
 const hash="a".repeat(64), otherHash="b".repeat(64), runId="123e4567-e89b-42d3-a456-426614174099";
 class Statement {constructor(db,sql,params=[]){this.db=db;this.sql=sql;this.params=params;}bind(...p){return new Statement(this.db,this.sql,p);}async first(){return this.db.row??null;}async all(){return {results:this.db.events??[]};}}
-class DB {constructor(results=[]){this.results=results;this.calls=[];this.row=null;this.events=[];}prepare(sql){return new Statement(this,sql);}async batch(s){this.calls.push(s);return this.results.shift()??s.map(()=>({meta:{changes:0}}));}}
+class DB {constructor(results=[]){this.results=results;this.calls=[];this.prepared=[];this.row=null;this.events=[];}prepare(sql){this.prepared.push(sql);return new Statement(this,sql);}async batch(s){this.calls.push(s);return this.results.shift()??s.map(()=>({meta:{changes:0}}));}}
 const r=n=>({meta:{changes:n}});
 const base={runId,planSha256:hash,manifestSha256:otherHash,target:stagingLockTarget,actor:"plan-author",at:"2026-11-25T12:00:00.000Z"};
 test("run store persists a planned record and initial event atomically",async()=>{
@@ -53,5 +53,5 @@ test("event history is ordered by revision and scoped to one run",async()=>{
  db.events=[{revision:0,state:"PLANNED"},{revision:1,state:"APPROVED"}];
  const events=await store.listEvents(runId);
  assert.equal(events.length,2);
- assert.match(db.calls?.[0]?.[0]?.sql??"",/ORDER BY revision/);
+ assert.match(db.prepared[0],/ORDER BY revision/);
 });
