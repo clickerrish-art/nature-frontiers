@@ -37,7 +37,7 @@ test("verifies exact bytes, length, manifest bytes and declared artifact set",()
   assert.throws(()=>plan(manifest(),new Map([[entry.path,bytes],["extra.sql",bytes]])),{code:"UNREFERENCED_ARTIFACT"});
 });
 test("rejects unsafe targets, path traversal and missing dependencies",()=>{
-  assert.throws(()=>plan(manifest(),new Map([[entry.path,bytes]]),{...stagingTarget,databaseId:"wrong"}),{code:"UNKNOWN_DATABASE_DENIED"});
+  assert.throws(()=>plan(manifest(),new Map([[entry.path,bytes]]),{...stagingTarget,databaseId:"wrong"}),{code:"UNKNOWN_TARGET_DENIED"});
   assert.throws(()=>plan(manifest([{...entry,path:"../escape.sql"}])),{code:"PATH_TRAVERSAL"});
   assert.throws(()=>plan(manifest([{...entry,requires:["forward.missing"]}])),{code:"MISSING_DEPENDENCY"});
 });

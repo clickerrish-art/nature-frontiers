@@ -1,5 +1,5 @@
 import { MigrationRunLifecycle } from "./migration-runner.mjs";
-import { rehearsalLockTarget } from "./d1-lock-adapter.mjs";
+import { rehearsalLockTarget, sha256Hex } from "./d1-lock-adapter.mjs";
 
 const json=(value,status=200)=>new Response(JSON.stringify(value),{
   status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}
@@ -83,9 +83,12 @@ export default {
    try{
     const runId=url.searchParams.get("runId"),runner=services(env),run=await runner.runStore.get(runId);
     if(!run)return json({error:"RUN_NOT_FOUND"},404);
-    if(run.state==="LOCKED")return json({acquired:false,alreadyOwned:false,lock:await runner.lockStore.read()});
-    if(run.state!=="APPROVED")return json({acquired:false,state:run.state,lock:await runner.lockStore.read()});
     const ownerToken="job4b-race-owner-token-"+runId+"-0123456789abcdef";
+    if(run.state==="LOCKED"){
+      const ownerTokenHash=await sha256Hex(ownerToken),lock=await runner.lockStore.read();
+      return json({acquired:false,alreadyOwned:lock?.run_id===runId&&lock?.owner_token_hash===ownerTokenHash,lock});
+    }
+    if(run.state!=="APPROVED")return json({acquired:false,state:run.state,lock:await runner.lockStore.read()});
     return json(await runner.acquire({runId,ownerToken,actor:"job4b-race-lock-owner",at:now()}));
    }catch(error){return json({error:error.code||"RACE_ACQUIRE_FAILED",message:error.message},500);}
   }
