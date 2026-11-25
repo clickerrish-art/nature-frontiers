@@ -70,7 +70,7 @@ export async function dispatchOperatorAction(runner,input,{hashOwnerToken}={}){
   case "release":{
    assertKeys(input,["action","runId","ownerToken","actor"]);
    return runner.release({runId:requiredString(input.runId,"run ID",36),
-    ownerToken:requiredString(input.ownerToken,"owner token",512),actor:requiredString(input.actor,"actor"),at:at()});
+    ownerToken:requiredOwnerToken(input.ownerToken),actor:requiredString(input.actor,"actor"),at:at()});
   }
   case "inspect":{
    assertKeys(input,["action","runId"]);
@@ -81,9 +81,10 @@ export async function dispatchOperatorAction(runner,input,{hashOwnerToken}={}){
   case "recover":{
    assertKeys(input,["action","runId","ownerToken","processTerminationConfirmed","approvalId","actor"]);
    if(input.processTerminationConfirmed!==true)fail("PROCESS_MAY_RESUME","Confirm that the original process cannot resume before recovery.");
-   const ownerToken=requiredString(input.ownerToken,"owner token",512);
+   const ownerToken=requiredOwnerToken(input.ownerToken);
+   if(typeof hashOwnerToken!=="function")fail("RECOVERY_HASHER_REQUIRED","Recovery owner-token hashing is unavailable.");
    return runner.recoverInterrupted({runId:requiredString(input.runId,"run ID",36),
-    ownerTokenHash:await (await import("./d1-lock-adapter.mjs")).sha256Hex(ownerToken),
+    ownerTokenHash:await hashOwnerToken(ownerToken),
     processTerminationConfirmed:true,approvalId:requiredString(input.approvalId,"recovery approval ID"),
     actor:requiredString(input.actor,"actor"),at:at()});
   }
