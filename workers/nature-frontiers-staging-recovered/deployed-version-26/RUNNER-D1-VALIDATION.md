@@ -30,3 +30,18 @@ These checks validate the SQL patterns against actual D1 and synthetic rows. The
 ## Result
 
 The tested D1 lease exclusion, owner-hash completion, and ambiguous-attempt recovery SQL behaved as expected in the disposable database. This is an integration checkpoint, not a release approval or a claim that the full automation system is complete.
+
+
+## Verified destination and approval-to-schedule D1 check
+
+A second disposable D1 database was used after adding the destination-binding flow:
+
+- Database: `nf-release-validation-20261125`
+- Database ID: `1a37e942-73d9-48ef-bf26-8c4b041b3b4c`
+- The same recovered schema snapshot was applied only to this temporary database.
+- Synthetic rows represented a verified Meta Page connection, current media and rights evidence, a content revision, a held platform target, and a matching approval receipt.
+- The target and content were advanced to `approved`, then a `ready` schedule slot was inserted. The database's `schedule_requires_approval_insert` trigger accepted the exact verified target/approval/rights combination.
+- A read-only verification query returned `content_status=approved`, `target_status=approved`, `meta_status=verified`, `decision=approved`, and `schedule_state=ready`.
+- The second disposable database was deleted successfully.
+
+This validates the database-side destination/approval/scheduling relationship with synthetic fixtures. It does not validate the Worker HMAC route or any real Meta account.
