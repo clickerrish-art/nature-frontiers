@@ -64,7 +64,7 @@ Adapter invariants:
 
 - Direct D1 API execution validated the SQL and D1 transaction semantics; the JS adapter itself has not been executed in a deployed Worker with a real D1 binding.
 - GitHub CI validates the JavaScript contract tests and syntax, not a Worker binding.
-- Both disposable databases must be deleted after evidence capture.
+- Both disposable D1 databases were deleted after evidence capture. The final account listing returned only the four pre-existing databases; neither disposable ID remained.
 - No migration DDL was executed against Nature Frontiers staging or production.
 
 ## CI verification
