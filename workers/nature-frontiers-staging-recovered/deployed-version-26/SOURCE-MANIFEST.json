@@ -1,0 +1,55 @@
+{
+  "artifact": "Nature Frontiers staging deployed Worker source snapshot",
+  "worker": "nature-frontiers-staging",
+  "workerVersion": 26,
+  "versionId": "c83f8f39-1957-4319-a41f-e474b9868be2",
+  "deploymentId": "dd7fd5a3-b20d-4cc0-aecb-92927a461ce9",
+  "retrievedAt": "2026-11-25T11:29:20.049757Z",
+  "retrieval": "Cloudflare Workers script content API; exact deployed module text extracted from multipart response",
+  "sourceCommitAnnotation": null,
+  "note": "Authentic deployed-source snapshot only; not proof of original source-control lineage and not a substitute for unrecovered original migrations 0005–0009.",
+  "modules": [
+    {
+      "name": "index.js",
+      "contentType": "application/javascript+module",
+      "byteLength": 79492,
+      "sha256": "a5e7b8603410ead885ca44261587b70f9a812027b720392976b2b8b27e25ee63"
+    },
+    {
+      "name": "media-release.js",
+      "contentType": "application/javascript+module",
+      "byteLength": 18902,
+      "sha256": "edbd79a1904f5c572cbb852e76f8034d5014c0f8bfde6b7b9d6e725d36ae29ff"
+    },
+    {
+      "name": "meta-oauth.js",
+      "contentType": "application/javascript+module",
+      "byteLength": 14275,
+      "sha256": "ae47e8d4cb98d72a47fcb023be9e4496f567b4f514429a41c6f7948fb845b744"
+    },
+    {
+      "name": "meta-webhooks.js",
+      "contentType": "application/javascript+module",
+      "byteLength": 4284,
+      "sha256": "3256fcfeac584c2beaa3f1e3438bb405652ae2ba4711256df3e57eb0d5792df1"
+    },
+    {
+      "name": "scheduling.js",
+      "contentType": "application/javascript+module",
+      "byteLength": 5837,
+      "sha256": "20a3d7f865240143f38041f8814ae2e219ed209bfe384a4c9a7915e34fec6379"
+    },
+    {
+      "name": "analytics.js",
+      "contentType": "application/javascript+module",
+      "byteLength": 3878,
+      "sha256": "9669bcf87567e6d07072ce52f3a55b9ab883e33d5a9725f0d0f753fd087eabf6"
+    },
+    {
+      "name": "backups.js",
+      "contentType": "application/javascript+module",
+      "byteLength": 14359,
+      "sha256": "b1155256b7a675b64ad4e103b97be5fa20897f8f3fd995ba0666b37f8b5e2709"
+    }
+  ]
+}
