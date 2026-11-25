@@ -8,7 +8,7 @@ const schema=readFileSync(resolve(dirname(fileURLToPath(import.meta.url)),"../..
 function table(name){
  const start=schema.indexOf(`CREATE TABLE ${name} (`);
  assert.notEqual(start,-1,`schema snapshot is missing table ${name}`);
- const end=schema.indexOf("\n);",start);
+ const end=schema.indexOf(");",start);
  assert.notEqual(end,-1,`table ${name} has no closing declaration`);
  return schema.slice(start,end);
 }
