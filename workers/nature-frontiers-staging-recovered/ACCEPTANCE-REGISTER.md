@@ -80,3 +80,10 @@ Captured: 2026-11-25 (UTC)
 - Added the seven live Worker modules and deployment provenance under `workers/nature-frontiers-staging-recovered/`.
 - Added `schema.snapshot.sql`, verified byte-for-byte against live D1 DDL.
 - This recovery is source preservation and schema evidence only. It is not a staging deployment, migration application, authentication PASS, draft persistence PASS, or release acceptance.
+
+## Pull-request state observed
+
+- PR #1: already `closed` and `merged=true` before this recovery; head ref `youtube-auto-poster-multiplatform-6a37b`, head SHA `36dc0972b700d0d0a9c8cc02b9da5b84dac42405`. No action taken. This is inconsistent with the requested keep-open/draft/unmerged condition, but reopening or altering it was not attempted.
+- PR #26: `open`, `draft=true`, `merged=false`; head ref `codex/instagram-unified-login-setup`, head SHA `dec6a1075c01b5b20a87f47cfec130c4a972123e`. No action taken.
+- PR #28: `open`, `draft=true`, `merged=false`; head ref `codex/nf-licensed-stock-policy-fix`, head SHA `98c4bf2bf4eadc1bd7a982a9f216bcdd03c912ac`. No action taken.
+- Neither PR #26 nor PR #28 points at the recovery branch `codex/nf-durable-publisher-api`; the recovery commits are confined to that existing implementation branch.
