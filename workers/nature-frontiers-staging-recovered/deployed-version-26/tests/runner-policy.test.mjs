@@ -17,6 +17,7 @@ test("interrupted provider reservations become ambiguous and are never retried",
  assert.equal(classifyInterruptedAttempt({state:"confirmed"}),"ambiguous_no_retry");
  assert.equal(classifyInterruptedAttempt({state:"ambiguous"}),"ambiguous_no_retry");
  assert.equal(classifyInterruptedAttempt(null),"safe_to_hold");
+ assert.equal(classifyInterruptedAttempt(null,"publishing"),"ambiguous_no_retry");
  assert.equal(classifyInterruptedAttempt({state:"failed"}),"safe_to_hold");
 });
 test("Meta dispatch fails closed with missing authorization and evidence",()=>{
