@@ -39,7 +39,7 @@ jobs:
       - name: Test read-only migration planner (no D1 binding or credentials)
         run: npm run test:migrations
       - name: Check migration planner syntax
-        run: node --check scripts/migrations/planner.mjs && node --check scripts/migrations/plan.mjs
+        run: node --check scripts/migrations/planner.mjs && node --check scripts/migrations/plan.mjs && node --check scripts/migrations/d1-lock-adapter.mjs
       - name: Check Worker syntax
         run: node --check workers/nature-frontiers-publisher/worker.js
       - name: Test health, media and signed Meta webhook routes

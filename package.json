@@ -18,6 +18,7 @@
     "migration:plan": "node scripts/migrations/plan.mjs",
     "test:migration-planner": "node --test scripts/migrations/planner.test.mjs",
     "test:migration-lock-state": "node --test scripts/migrations/lock-state.test.mjs",
-    "test:migrations": "node --test scripts/migrations/*.test.mjs"
+    "test:migrations": "node --test scripts/migrations/*.test.mjs",
+    "test:migration-d1-lock": "node --test scripts/migrations/d1-lock-adapter.test.mjs"
   }
 }
