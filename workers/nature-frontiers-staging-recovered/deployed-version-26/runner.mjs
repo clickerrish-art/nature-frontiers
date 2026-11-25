@@ -60,14 +60,16 @@ export async function handleRunner(request,env,session){
   const slot=await db.prepare("SELECT id,content_id,platform,state FROM schedule_slots WHERE id=?").bind(input.scheduleId).first();
   if(!slot)return json({error:"Schedule slot not found"},404);
   if(slot.state!=="held")return json({error:"Only held schedule slots can enter the dry-run queue",state:slot.state},409);
-  const [content,asset,rights,receipt]=await Promise.all([
-   db.prepare("SELECT ci.id,ci.media_sha256,cr.revision,cr.payload_sha256 FROM content_items ci JOIN content_revisions cr ON cr.content_id=ci.id AND cr.revision=(SELECT MAX(revision) FROM content_revisions WHERE content_id=ci.id) WHERE ci.id=?").bind(slot.content_id).first(),
+  const now=new Date().toISOString();
+  const [content,asset,rights,receipt,target]=await Promise.all([
+   db.prepare("SELECT ci.id,ci.media_sha256,ci.status,cr.revision,cr.payload_sha256,cr.media_sha256 AS revision_media_sha256 FROM content_items ci JOIN content_revisions cr ON cr.content_id=ci.id AND cr.revision=(SELECT MAX(revision) FROM content_revisions WHERE content_id=ci.id) WHERE ci.id=?").bind(slot.content_id).first(),
    db.prepare("SELECT validation_status FROM media_assets WHERE media_sha256=(SELECT media_sha256 FROM content_items WHERE id=?)").bind(slot.content_id).first(),
    db.prepare("SELECT id,rights_status,evidence_sha256,permitted_platforms_json,permitted_uses_json,expires_at,revoked_at FROM media_rights_evidence WHERE media_sha256=(SELECT media_sha256 FROM content_items WHERE id=?) ORDER BY created_at DESC LIMIT 20").bind(slot.content_id).all(),
-   db.prepare("SELECT id,reviewer_id,payload_sha256,rights_evidence_sha256,policy_version,signed_receipt,approved_at,expires_at,revoked_at FROM approval_receipts WHERE content_id=? AND platform=? AND decision='approved' ORDER BY created_at DESC LIMIT 20").bind(slot.content_id,slot.platform).all()
+   db.prepare("SELECT id,reviewer_id,payload_sha256,rights_evidence_sha256,policy_version,signed_receipt,approved_at,expires_at,revoked_at FROM approval_receipts WHERE content_id=? AND platform=? AND decision='approved' ORDER BY created_at DESC LIMIT 20").bind(slot.content_id,slot.platform).all(),
+   db.prepare("SELECT ct.account_id,ct.status,mc.id AS connection_id,mc.token_expires_at FROM content_targets ct JOIN meta_connections mc ON mc.provider='meta' AND mc.status='verified' AND mc.identity_verified_at IS NOT NULL AND mc.permissions_verified_at IS NOT NULL AND ((ct.platform='facebook' AND mc.page_id=ct.account_id) OR (ct.platform='instagram' AND mc.instagram_business_account_id=ct.account_id AND mc.instagram_identity_verified_at IS NOT NULL)) WHERE ct.content_id=? AND ct.platform=? AND ct.status='approved' AND (mc.token_expires_at IS NULL OR mc.token_expires_at>?)").bind(slot.content_id,slot.platform,now).first()
   ]);
-  if(!content||asset?.validation_status!=="passed")return json({error:"Current media bytes have not passed validation"},409);
-  const now=new Date().toISOString();
+  if(!content||!["approved","scheduled"].includes(content.status)||content.revision_media_sha256!==content.media_sha256||asset?.validation_status!=="passed")return json({error:"Current content revision and media bytes are not approved and validated"},409);
+  if(!target)return json({error:"No approved target is bound to a currently verified Meta destination"},409);
   const matchingRights=(rights.results||[]).find(x=>{try{return Boolean(x.evidence_sha256)&&(x.rights_status==="owned"||x.rights_status==="licensed"||x.rights_status==="public_domain")&&!x.revoked_at&&(!x.expires_at||x.expires_at>now)&&Array.isArray(JSON.parse(x.permitted_platforms_json||"[]"))&&JSON.parse(x.permitted_platforms_json||"[]").includes(slot.platform)&&Array.isArray(JSON.parse(x.permitted_uses_json||"[]"))&&JSON.parse(x.permitted_uses_json||"[]").includes("social_media")}catch{return false}});
   if(!matchingRights)return json({error:"No current rights evidence permits this destination and social-media use"},409);
   const matchingReceipt=(receipt.results||[]).find(x=>x.rights_evidence_sha256===matchingRights.evidence_sha256&&x.policy_version==="nf-media-release-v1"&&!x.revoked_at&&(!x.expires_at||x.expires_at>now)&&x.payload_sha256===content.payload_sha256);
