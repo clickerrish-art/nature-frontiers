@@ -105,3 +105,17 @@ CI unit/contract tests are in `d1-run-store.test.mjs`, `run-orchestrator.test.mj
 The runner exposes no migration SQL executor, DDL executor, schema mutator, or Worker deployment method. Its capability declaration explicitly keeps those operations false. The original `run-plan.mjs` CLI remains an offline staging-only command: it does not connect to D1, persist approvals, acquire locks, or execute SQL. The planner's in-process target validator now accepts only the exact staging pair or the exact disposable rehearsal pair; the staging CLI continues to pin staging and cannot be redirected to rehearsal or production.
 
 Live lifecycle integration is restricted to `nf-adapter-worker-rehearsal` and its disposable D1 binding. The Worker harness imports the checked-in runner, planner, orchestrator, run-store and lock-adapter modules. No staging or production database is read or written by the rehearsal. No migration SQL or DDL is executed by Job 4B.
+
+
+### Job 4C — authenticated operator interface
+
+The rehearsal Worker serves a minimal operator page at `/operator` and accepts authenticated JSON POST actions only at `/api/operator`. The page keeps the bearer token and owner tokens in memory only (no localStorage, sessionStorage, or IndexedDB); it uses same-origin requests, no-store response headers, a restrictive nonce-based CSP, and no URL credentials. The API requires the `AUTH_TOKEN` Worker secret in the Authorization Bearer header. Temporary Job 4A/4B query-string self-test routes have been removed.
+
+Supported operations:
+- `createPlan`: accepts exact UTF-8 manifest text and a path-to-base64 map of exact artifact bytes, validates the pinned rehearsal target, creates a read-only plan and persists its `PLANNED` run record.
+- `approve`: requires the operator to submit both exact displayed plan and manifest SHA-256 values, plus a named approver and explicit approval reference. The server does not silently substitute stored hashes.
+- `acquire` / `release`: require the run ID, raw owner token (never persisted), and named actor; the adapter persists only the SHA-256 owner-token digest and rejects non-owner release.
+- `inspect`: returns the persisted run, revision-ordered run events, current lock and lock events.
+- `recover`: requires explicit confirmation that the original process cannot resume, the original owner token, a recovery approval reference, and a named recovery operator; successful recovery transitions to `AMBIGUOUS` and never retries work.
+
+Request and artifact sizes are bounded. Unknown action fields are rejected. The operator has no SQL/DDL execution, schema mutation, or Worker deployment action. The API is not a generic SQL interface. Live Job 4C verification must use only the disposable rehearsal Worker/D1 pair. The UI itself is intentionally not public authorization: an operator must possess the rehearsal-only bearer secret to mutate state.
