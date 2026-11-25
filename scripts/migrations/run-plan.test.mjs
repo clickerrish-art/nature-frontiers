@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync, readFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,11 +19,13 @@ const TARGET_ARGS = [
 ];
 
 function runCli(args) {
+  const env = { ...process.env };
+  delete env.GITHUB_SHA;
   return spawnSync(process.execPath, [CLI, ...args], {
     cwd: REPO_ROOT,
     encoding: "utf8",
     timeout: 10_000,
-    env: { ...process.env, GITHUB_SHA: "" }
+    env
   });
 }
 function writeManifest(name, value) {
