@@ -1,5 +1,5 @@
 import { MigrationRunLifecycle } from "./migration-runner.mjs";
-import { rehearsalLockTarget } from "./d1-lock-adapter.mjs";
+import { rehearsalLockTarget, sha256Hex } from "./d1-lock-adapter.mjs";
 import { dispatchOperatorAction, operatorHtml, operatorLimits } from "./operator-interface.mjs";
 
 const securityHeaders={
@@ -42,7 +42,7 @@ export default {
   try{raw=await request.text();}catch{return json({error:"INVALID_BODY"},400);}
   if(new TextEncoder().encode(raw).byteLength>operatorLimits.bodyBytes)return json({error:"REQUEST_TOO_LARGE"},413);
   let input;try{input=JSON.parse(raw);}catch{return json({error:"INVALID_JSON"},400);}
-  try{return json(await dispatchOperatorAction(services(env),input));}
+  try{return json(await dispatchOperatorAction(services(env),input,{hashOwnerToken:sha256Hex}));}
   catch(error){return json({error:error.code||"OPERATOR_ERROR",message:error.message},400);}
  }
 };

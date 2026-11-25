@@ -9,7 +9,7 @@ function requiredString(value,label,max=200){
  if(typeof value!=="string"||!value.trim()||value.length>max)fail("INVALID_"+label.toUpperCase().replaceAll(" ","_"),label+" is required and must be at most "+max+" characters.");
  return value.trim();
 }
-function requiredHash(value,label){
+function requiredOwnerToken(value){\n const token=requiredString(value,"owner token",512);\n if(token.length<32)fail("INVALID_OWNER_TOKEN","Owner token must contain at least 32 characters.");\n return token;\n}\nfunction requiredHash(value,label){
  if(typeof value!=="string"||!SHA256.test(value))fail("INVALID_HASH",label+" must be the exact lowercase SHA-256 hash displayed for this plan.");
  return value;
 }
@@ -23,7 +23,7 @@ function assertKeys(input,allowed){
 }
 const at=()=>new Date().toISOString();
 
-export async function dispatchOperatorAction(runner,input){
+export async function dispatchOperatorAction(runner,input,{hashOwnerToken}={}){
  if(!input||typeof input!=="object"||Array.isArray(input))fail("INVALID_INPUT","Request body must be a JSON object.");
  const action=requiredString(input.action,"action",40);
  switch(action){
@@ -60,7 +60,7 @@ export async function dispatchOperatorAction(runner,input){
   case "acquire":{
    assertKeys(input,["action","runId","ownerToken","actor"]);
    return runner.acquire({runId:requiredString(input.runId,"run ID",36),
-    ownerToken:requiredString(input.ownerToken,"owner token",512),actor:requiredString(input.actor,"actor"),at:at()});
+    ownerToken:requiredOwnerToken(input.ownerToken),actor:requiredString(input.actor,"actor"),at:at()});
   }
   case "release":{
    assertKeys(input,["action","runId","ownerToken","actor"]);

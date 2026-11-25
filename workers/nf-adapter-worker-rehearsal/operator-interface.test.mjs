@@ -34,9 +34,9 @@ test("approval rejects absent or malformed hashes before calling runner",async()
 });
 test("recovery requires explicit process termination confirmation and approval",async()=>{
  const runner=fakeRunner(),ownerToken="x".repeat(40);
- await assert.rejects(()=>dispatchOperatorAction(runner,{action:"recover",runId,ownerToken,processTerminationConfirmed:false,approvalId:"recovery-1",actor:"operator"}),{code:"PROCESS_MAY_RESUME"});
+ await assert.rejects(()=>dispatchOperatorAction(runner,{action:"recover",runId,ownerToken,processTerminationConfirmed:false,approvalId:"recovery-1",actor:"operator"},{hashOwnerToken:async()=> "c".repeat(64)}),{code:"PROCESS_MAY_RESUME"});
  assert.equal(runner.calls.length,0);
- const result=await dispatchOperatorAction(runner,{action:"recover",runId,ownerToken,processTerminationConfirmed:true,approvalId:"recovery-1",actor:"operator"});
+ const result=await dispatchOperatorAction(runner,{action:"recover",runId,ownerToken,processTerminationConfirmed:true,approvalId:"recovery-1",actor:"operator"},{hashOwnerToken:async()=> "c".repeat(64)});
  assert.equal(result.recovered,true);assert.equal(runner.calls[0][0],"recover");assert.equal(runner.calls[0][1].processTerminationConfirmed,true);
 });
 test("owner operations require caller-supplied owner token and named actor",async()=>{
