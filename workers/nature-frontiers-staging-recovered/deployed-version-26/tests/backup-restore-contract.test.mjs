@@ -7,8 +7,8 @@ import {dirname,resolve} from "node:path";
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const backup=readFileSync(resolve(root,"backups.js"),"utf8");
 const schema=readFileSync(resolve(root,"../../schema.snapshot.sql"),"utf8");
-const tables=[...schema.matchAll(/CREATE TABLE(?: IF NOT EXISTS)?\\s+([a-z_][a-z0-9_]*)/gi)].map(x=>x[1]);
-const backupTables=backup.match(/const TABLES=\\[(.*?)\\];/s)[1].replace(/"/g,"").split(",").map(x=>x.trim());
+const tables=[...schema.matchAll(/CREATE TABLE(?: IF NOT EXISTS)?\s+([a-z_][a-z0-9_]*)/gi)].map(x=>x[1]);
+const backupTables=backup.match(/const TABLES=\[(.*?)\];/s)[1].replace(/"/g,"").split(",").map(x=>x.trim());
 
 test("backup table manifest matches the recovered schema and excludes ephemeral sessions",()=>{
  for(const name of backupTables)assert.ok(tables.includes(name),`backup table ${name} is absent from schema snapshot`);
@@ -22,8 +22,8 @@ test("restore preserves published history and never revives active schedule leas
  assert.match(backup,/row\.state==="published"\?"published"/);
  assert.match(backup,/row\.state==="cancelled"\?"cancelled"/);
  assert.match(backup,/row\.state==="dead_letter"\?"dead_letter"/);
- assert.match(backup,/state='dead_letter'.*state IN \\('held','ready','leased','publishing'\\)/s);
- assert.match(backup,/state='held'.*state IN \\('ready','leased','publishing'\\)/s);
+ assert.match(backup,/state='dead_letter'.*state IN \('held','ready','leased','publishing'\)/s);
+ assert.match(backup,/state='held'.*state IN \('ready','leased','publishing'\)/s);
  assert.match(backup,/UPDATE worker_runs SET state='abandoned'/);
 });
 
