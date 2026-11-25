@@ -81,3 +81,18 @@ No existing Nature Frontiers staging, production, or backup D1 was modified. No 
 ## Next concrete action
 
 The next engineering change, once separately authorized, is to implement the runner's plan-only orchestration and test harness on this branch, without deploying it or executing DDL. The live Worker-binding test remains an explicit validation gap and must not be represented as passed.
+
+
+## 2026-11-25 implementation update
+
+The plan-only orchestration milestone described above has now been implemented on this feature branch.
+
+- Pure orchestration: `scripts/migrations/plan-only-runner.mjs`
+- Offline CLI: `scripts/migrations/run-plan.mjs`
+- Test harness: `scripts/migrations/plan-only-runner.test.mjs`
+- Command: `npm run migration:run-plan`
+- Test inclusion: the existing `npm run test:migrations` glob includes the new test file.
+- Implementation commit containing the complete milestone: `2af31ead01e691ecf63ae39c6120cc44794ff0a1`
+- CI run: [45620760460](https://github.com/clickerrish-art/Nature-Frontiers/actions/runs/45620760460), completed successfully. The migration planner and D1 adapter contract test step, migration syntax check, Worker syntax check, and all other required job steps passed.
+
+This completes **offline plan-only orchestration and its automated test harness only**. It does not implement D1 run persistence, lock acquisition, ledger inspection, prechecks, SQL execution, a DDL runner, or a Worker deployment. The live Worker-binding runtime test remains NOT_TESTED; original staging migration 0005–0009 provenance remains BLOCKED; the forward manifest remains empty; staging and production execution remain unauthorized.
