@@ -28,8 +28,8 @@ CREATE TABLE nf_migration_run_events (
 
 CREATE TABLE nf_migration_lock (
   lock_key TEXT PRIMARY KEY CHECK(lock_key='global'),
-  target_database_id TEXT NOT NULL CHECK(target_database_id='89be73af-ebaf-4c19-b75a-9871adb8ba3c'),
-  worker_name TEXT NOT NULL CHECK(worker_name='nature-frontiers-staging'),
+  target_database_id TEXT NOT NULL CHECK(target_database_id IN ('89be73af-ebaf-4c19-b75a-9871adb8ba3c','a12fb838-1bd1-4811-9cf1-2ad5b21089d4')),
+  worker_name TEXT NOT NULL CHECK((target_database_id='89be73af-ebaf-4c19-b75a-9871adb8ba3c' AND worker_name='nature-frontiers-staging') OR (target_database_id='a12fb838-1bd1-4811-9cf1-2ad5b21089d4' AND worker_name='nf-adapter-worker-rehearsal')),
   run_id TEXT NOT NULL REFERENCES nf_migration_runs(run_id),
   plan_sha256 TEXT NOT NULL CHECK(length(plan_sha256)=64),
   manifest_sha256 TEXT NOT NULL CHECK(length(manifest_sha256)=64),
