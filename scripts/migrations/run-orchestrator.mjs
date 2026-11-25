@@ -4,14 +4,14 @@ export class MigrationRunOrchestrationError extends Error {
   constructor(code,message){super(message);this.name="MigrationRunOrchestrationError";this.code=code;}
 }
 function fail(code,message){throw new MigrationRunOrchestrationError(code,message);}
-function assertPlanResult(result){
+function assertPlanResult(result,target){
   if(!result||result.mode!=="PLAN_ONLY"||result.executionEnabled!==false||!result.plan) fail("NON_DRY_RUN_PLAN","Only a plan-only result may be persisted as a migration run.");
   const flags=result.sideEffects;
   const requiredFlags=["d1Reads","d1Writes","lockAcquired","sqlExecuted","workerDeployed"];
   if(!flags||Object.keys(flags).length!==requiredFlags.length||requiredFlags.some(key=>flags[key]!==false)) fail("SIDE_EFFECT_CAPABILITY_DENIED","Persisting a run requires the exact, all-false plan side-effect capability set.");
   const plan=result.plan;
   if(plan.mode!=="READ_ONLY_DRY_RUN"||plan.executionEnabled!==false) fail("EXECUTABLE_PLAN_DENIED","Plan payload is not an explicitly non-executable dry-run.");
-  if(plan.target?.environment!==stagingLockTarget.environment||plan.target?.databaseId!==stagingLockTarget.databaseId||plan.target?.worker!==stagingLockTarget.worker) fail("TARGET_DENIED","Plan target is not the pinned Nature Frontiers staging target.");
+  if(plan.target?.environment!==target.environment||plan.target?.databaseId!==target.databaseId||plan.target?.worker!==target.worker) fail("TARGET_DENIED","Plan target does not match the orchestrator exact pinned target.");
   if(!/^[a-f0-9]{64}$/.test(plan.planSha256??"")||!/^[a-f0-9]{64}$/.test(plan.manifestSha256??"")) fail("INVALID_PLAN_HASH","Plan and manifest SHA-256 values are required.");
   return plan;
 }
@@ -23,14 +23,15 @@ function assertPlanResult(result){
  * confirmation plus a recovery approval reference and named operator.
  */
 export class D1MigrationRunOrchestrator {
-  constructor({runStore,lockStore=null}){
+  constructor({runStore,lockStore=null,target=stagingLockTarget}){
     if(!runStore||typeof runStore.create!=="function"||typeof runStore.approve!=="function"||typeof runStore.reject!=="function"||typeof runStore.get!=="function"||typeof runStore.listEvents!=="function") fail("INVALID_RUN_STORE","A complete D1MigrationRunStore adapter is required.");
     if(lockStore!==null&&typeof lockStore.recoverStale!=="function") fail("INVALID_LOCK_STORE","Optional lock store must expose recoverStale().");
-    this.runStore=runStore;this.lockStore=lockStore;
+    if(!target || !((target.environment==="staging"&&target.databaseId===stagingLockTarget.databaseId&&target.worker===stagingLockTarget.worker)||(target.environment==="rehearsal"&&target.databaseId==="a12fb838-1bd1-4811-9cf1-2ad5b21089d4"&&target.worker==="nf-adapter-worker-rehearsal"))) fail("TARGET_DENIED","Orchestrator target is not explicitly allowlisted.");
+    this.runStore=runStore;this.lockStore=lockStore;this.target=Object.freeze({...target});
   }
 
   async recordPlan({planResult,runId,actor,at,reason}){
-    const plan=assertPlanResult(planResult);
+    const plan=assertPlanResult(planResult,this.target);
     const result=await this.runStore.create({
       runId,planSha256:plan.planSha256,manifestSha256:plan.manifestSha256,
       target:plan.target,actor,at,reason
@@ -41,7 +42,7 @@ export class D1MigrationRunOrchestrator {
 
   async approve({runId,expectedPlanSha256,expectedManifestSha256,actor,approvalId,at,reason}){
     const result=await this.runStore.approve({
-      runId,expectedPlanSha256,expectedManifestSha256,target:stagingLockTarget,
+      runId,expectedPlanSha256,expectedManifestSha256,target:this.target,
       actor,approvalId,at,reason
     });
     const run=await this.runStore.get(runId);
