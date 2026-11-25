@@ -29,7 +29,7 @@ The forward-stream manifest remains empty because original staging 0005–0009 p
 - manual stale-lock recovery requiring confirmed process termination and approval;
 - no APPLYING/APPLIED transition and no DDL capability.
 
-`InMemoryAtomicLockStore` is a test reference implementation only. It is process-local and is **not** a cross-process lock. No D1 adapter is included. A future D1 adapter must implement the atomic adapter contract and pass disposable-D1 concurrency/failure rehearsal before use.
+`InMemoryAtomicLockStore` is a test reference implementation only. It is process-local and is **not** a cross-process lock. `D1MigrationLockStore` is the persistent adapter; its SQL batch behavior must be verified against the isolated disposable Worker/D1 rehearsal before runner integration.
 
 ## Tests
 
@@ -39,9 +39,19 @@ npm run test:migrations
 
 This runs planner adversarial tests and lock/run-state tests, including simultaneous acquisition, owner mismatch, stale-lock hold, manual recovery, invalid target and refusal to represent DDL as applied.
 
+## Target allowlist and disposable rehearsal
+
+The adapter and run store accept two exact target tuples only:
+- Existing staging: `staging / 89be73af-ebaf-4c19-b75a-9871adb8ba3c / nature-frontiers-staging`.
+- Isolated rehearsal: `rehearsal / a12fb838-1bd1-4811-9cf1-2ad5b21089d4 / nf-adapter-worker-rehearsal`.
+
+The rehearsal tuple is a second explicit allowlist entry, not an environment override. A mixed database/Worker pair is rejected. The orchestrator defaults to the staging tuple; rehearsal requires explicit constructor injection of `rehearsalLockTarget`. The SQL schema enforces the same two exact database/Worker pairs. Never copy the rehearsal target into a production configuration.
+
+The disposable harness is `workers/nf-adapter-worker-rehearsal/worker.js`. It imports the checked-in adapter, run-store, and orchestrator modules as separate Worker modules and requires an `AUTH_TOKEN` secret plus the `DB` D1 binding. Its read-only `GET /health` endpoint reports only the pinned rehearsal target and number of control tables. Mutating operations are authenticated POST actions: `recordPlan`, `approve`, `acquire`, `release`, `recover`, and `inspect`.
+
 ## Hard boundary
 
-No D1 connection, lock table, ledger inspection, lock acquisition against staging, DDL, migration execution, deployment, or production action occurs in this milestone. DDL execution remains gated by the separate disposable-D1 semantics rehearsal, backup/restore proof, independent review, and exact owner approval.
+The control schema and Worker harness are deployed only to the disposable rehearsal database/Worker. Existing staging, production, backup databases, and publisher Worker are not changed. The harness has no DDL or publisher capability. No migration SQL is executed. Runner integration remains blocked until real Worker-bound D1 requests prove acquisition, simultaneous-run exclusion, owner-only release, interrupted-run recovery, stale-lock protection, and independently read-back persisted event history.
 
 ## Plan-only runner orchestration
 
