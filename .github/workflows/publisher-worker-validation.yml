@@ -6,6 +6,7 @@ on:
       - codex/nf-durable-publisher-api
     paths:
       - "workers/nature-frontiers-publisher/**"
+      - "workers/nf-adapter-worker-rehearsal/**"
       - "scripts/**"
       - "package.json"
       - ".github/workflows/publisher-worker-validation.yml"
@@ -41,7 +42,7 @@ jobs:
       - name: Check migration planner syntax
         run: node --check scripts/migrations/planner.mjs && node --check scripts/migrations/plan.mjs && node --check scripts/migrations/d1-lock-adapter.mjs && node --check scripts/migrations/d1-run-store.mjs
       - name: Check Worker syntax
-        run: node --check workers/nature-frontiers-publisher/worker.js
+        run: node --check workers/nature-frontiers-publisher/worker.js && node --check workers/nf-adapter-worker-rehearsal/worker.js
       - name: Test health, media and signed Meta webhook routes
         run: node workers/nature-frontiers-publisher/worker.test.mjs
       - name: Test SQLite-backed content, rights, approvals and durable reservation API
