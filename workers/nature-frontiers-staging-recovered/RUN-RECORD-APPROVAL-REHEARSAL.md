@@ -62,3 +62,12 @@ A subsequent guard was added so orchestration refuses to report recovery unless 
 - Migration SQL execution: NOT_IMPLEMENTED / NOT_AUTHORIZED.
 
 This milestone does not authorize schema bootstrap on existing staging, DDL execution, Worker deployment, or production activity.
+
+
+## Final CI verification
+
+Latest code commit: dc1d9edb2d4c9d113bdf0f34f1b656a9e242442f.
+
+GitHub Actions run 45624636884 completed successfully for that exact code SHA. The migration test glob reported **53 passed, 0 failed, 0 skipped**, including the added guard that refuses to report recovery unless a read-back confirms the persisted AMBIGUOUS state. The full worker-and-platform-safety job completed successfully. The companion gated-publishing workflow also completed successfully without enabling publication.
+
+The rehearsal report itself was committed afterward as documentation only; no source code changed after the verified code SHA.
