@@ -6,7 +6,7 @@ import {dirname,resolve} from "node:path";
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const backup=readFileSync(resolve(root,"backups.js"),"utf8");
-const schema=readFileSync(resolve(root,"../../schema.snapshot.sql"),"utf8");
+const schema=readFileSync(resolve(root,"../schema.snapshot.sql"),"utf8");
 const tables=[...schema.matchAll(/CREATE TABLE(?: IF NOT EXISTS)?\s+([a-z_][a-z0-9_]*)/gi)].map(x=>x[1]);
 const backupTables=backup.match(/const TABLES=\[(.*?)\];/s)[1].replace(/"/g,"").split(",").map(x=>x.trim());
 
