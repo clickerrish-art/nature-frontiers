@@ -156,7 +156,7 @@ export async function handleMediaRelease(request, env, session) {
     const body = await parseBody(request);
     const platform = body.platform;
     const accountId = String(body.accountId||"");
-    if (!PLATFORMS.has(platform) || !/^\\d{5,30}$/.test(accountId) ||
+    if (!PLATFORMS.has(platform) || !/^[0-9]{5,30}$/.test(accountId) ||
         body.confirmation !== "BIND NATURE FRONTIERS " + platform.toUpperCase() + " DESTINATION") {
       throw fail("Platform, exact numeric destination ID and explicit destination-binding confirmation are required",403);
     }
