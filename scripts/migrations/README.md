@@ -1,14 +1,10 @@
-# Offline migration planner
+# Offline migration planner and lock-state protocol
 
-This milestone is deliberately offline. It does not import a D1 client, open a network connection, inspect the database ledger, acquire a lock, execute SQL, or deploy a Worker.
+Both components are offline. They do not import a D1 client, open a network connection, inspect a database ledger, execute SQL, or deploy a Worker.
 
-## Current manifest
+## Read-only planner
 
-`workers/nature-frontiers-staging-recovered/migrations/manifest.json` is an empty forward-stream manifest. This is intentional: no historical 0005–0009 migration source has been recovered, and no new repair migration has been approved or authored. An empty manifest must not be interpreted as schema parity or as confirmation that staging is current.
-
-## Read-only plan command
-
-Run from the repository root:
+Run from repository root:
 
 ```sh
 node scripts/migrations/plan.mjs \
@@ -18,23 +14,31 @@ node scripts/migrations/plan.mjs \
   --worker nature-frontiers-staging
 ```
 
-The command validates the staging allowlist before reading the manifest or artifacts. It outputs a deterministic plan hash, exact manifest/artifact SHA-256 values, manifest order, and explicit `NOT_INSPECTED_NO_D1_CONNECTION` states for the ledger and schema. It never connects to D1.
+The planner validates exact schema keys, deterministic sequence, dependencies, path confinement, raw manifest bytes, artifact byte lengths and SHA-256 values. It rejects unknown targets before reading the manifest.
+
+The forward-stream manifest remains empty because original staging 0005–0009 provenance is not recovered and no new repair migration is approved. Empty means no plan entries—not schema parity.
+
+## Lock and run-state protocol
+
+`lock-state.mjs` defines:
+- run states and legal transitions;
+- explicit approval reference before APPROVED;
+- exact staging-target enforcement;
+- atomic-store adapter contract;
+- hashed owner tokens, non-expiring locks and conditional release;
+- manual stale-lock recovery requiring confirmed process termination and approval;
+- no APPLYING/APPLIED transition and no DDL capability.
+
+`InMemoryAtomicLockStore` is a test reference implementation only. It is process-local and is **not** a cross-process lock. No D1 adapter is included. A future D1 adapter must implement the atomic adapter contract and pass disposable-D1 concurrency/failure rehearsal before use.
 
 ## Tests
 
 ```sh
-npm run test:migration-planner
+npm run test:migrations
 ```
 
-The test suite covers duplicate JSON keys, strict parsing, deterministic ordering, sequence gaps/duplicates, SHA-256 and byte-length mismatch, path traversal, missing dependencies, wrong/production targets, and empty-manifest semantics.
+This runs planner adversarial tests and lock/run-state tests, including simultaneous acquisition, owner mismatch, stale-lock hold, manual recovery, invalid target and refusal to represent DDL as applied.
 
-## Explicit limitations
+## Hard boundary
 
-- No migration SQL is currently declared.
-- No schema or ledger inspection is performed.
-- No lock or concurrency operation exists yet.
-- No SQL parsing or statement splitting is performed.
-- No migration execution, retries, rollback, or recovery are implemented.
-- A plan is not evidence that D1 is ready or that a migration has run.
-
-DDL execution remains separately gated by the disposable-D1 failure-semantics rehearsal, independent review, backup/restore proof, and separate explicit owner approval for the exact staging operation.
+No D1 connection, lock table, ledger inspection, lock acquisition against staging, DDL, migration execution, deployment, or production action occurs in this milestone. DDL execution remains gated by the separate disposable-D1 semantics rehearsal, backup/restore proof, independent review, and exact owner approval.

@@ -16,6 +16,8 @@
     "test:instagram-media": "node scripts/test-check-instagram-media.mjs",
     "test:instagram-live-readiness": "node scripts/test-check-instagram-live-readiness.mjs",
     "migration:plan": "node scripts/migrations/plan.mjs",
-    "test:migration-planner": "node --test scripts/migrations/planner.test.mjs"
+    "test:migration-planner": "node --test scripts/migrations/planner.test.mjs",
+    "test:migration-lock-state": "node --test scripts/migrations/lock-state.test.mjs",
+    "test:migrations": "node --test scripts/migrations/*.test.mjs"
   }
 }

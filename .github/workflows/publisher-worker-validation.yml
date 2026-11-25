@@ -37,7 +37,7 @@ jobs:
       - name: Validate catalogue
         run: node scripts/validate-campaign.mjs
       - name: Test read-only migration planner (no D1 binding or credentials)
-        run: npm run test:migration-planner
+        run: npm run test:migrations
       - name: Check migration planner syntax
         run: node --check scripts/migrations/planner.mjs && node --check scripts/migrations/plan.mjs
       - name: Check Worker syntax
