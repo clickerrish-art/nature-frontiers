@@ -67,6 +67,13 @@ Adapter invariants:
 - Both disposable databases must be deleted after evidence capture.
 - No migration DDL was executed against Nature Frontiers staging or production.
 
+## CI verification
+
+GitHub Actions completed successfully for implementation commit `5098df7d8a2760d0d9c50af0e7c6f0075ff95c1b`:
+https://github.com/clickerrish-art/nature-frontiers/actions/runs/45614508832
+
+The workflow passed the migration planner and D1 adapter contract tests, syntax checks for both adapter modules, and the existing Worker/publishing safety tests. It did not run against a live D1 binding.
+
 ## Disposition
 
 **DISPOSABLE D1 SQL SEMANTICS: PASS FOR ACQUIRE, OWNER RELEASE, CONCURRENCY, INTERRUPTION PERSISTENCE, MANUAL RECOVERY AND BATCH ROLLBACK. PERSISTENT D1 ADAPTER AND RUN STORE IMPLEMENTED. WORKER-BINDING RUNTIME: NOT_TESTED. RUNNER INTEGRATION: NOT AUTHORIZED/NOT DONE.**
