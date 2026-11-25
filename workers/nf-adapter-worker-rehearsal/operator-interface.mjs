@@ -9,7 +9,12 @@ function requiredString(value,label,max=200){
  if(typeof value!=="string"||!value.trim()||value.length>max)fail("INVALID_"+label.toUpperCase().replaceAll(" ","_"),label+" is required and must be at most "+max+" characters.");
  return value.trim();
 }
-function requiredOwnerToken(value){\n const token=requiredString(value,"owner token",512);\n if(token.length<32)fail("INVALID_OWNER_TOKEN","Owner token must contain at least 32 characters.");\n return token;\n}\nfunction requiredHash(value,label){
+function requiredOwnerToken(value){
+ const token=requiredString(value,"owner token",512);
+ if(token.length<32)fail("INVALID_OWNER_TOKEN","Owner token must contain at least 32 characters.");
+ return token;
+}
+function requiredHash(value,label){
  if(typeof value!=="string"||!SHA256.test(value))fail("INVALID_HASH",label+" must be the exact lowercase SHA-256 hash displayed for this plan.");
  return value;
 }
