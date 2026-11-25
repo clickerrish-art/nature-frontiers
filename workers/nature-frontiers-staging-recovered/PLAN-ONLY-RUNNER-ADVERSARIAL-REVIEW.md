@@ -90,3 +90,23 @@ Implementation commits:
 - `37cdc53613f6329cb2a245c7063cedae646ee9bb` — documentation
 
 **Acceptance remains pending CI.** Source changes and test inclusion are implemented, but none of R1–R3 will be marked PASS until the migration test job runs on the resulting exact branch SHA and passes. No D1 operations, deployment, DDL execution, or changes to `main` were made.
+
+
+## Final verification — PASS
+
+The deep-freeze wiring was corrected after the first CI run exposed that the helper had not yet been applied to the returned plan. The corrected implementation was tested at exact source commit `cd165846dc74e26b82af78b30d54f8808431e158`.
+
+GitHub Actions run [45622718699](https://github.com/clickerrish-art/Nature-Frontiers/actions/runs/45622718699) completed successfully for that exact head SHA. The `test:migrations` step ran **41 tests: 41 passed, 0 failed, 0 skipped**, including:
+- deep-freeze mutation attempts against the plan, target, migrations array, migration record, and dependency array;
+- CLI subprocess success for empty and synthetic non-empty manifests;
+- argument validation and early target refusal;
+- manifest/artifact path traversal and external symlink rejection;
+- duplicate-key and malformed UTF-8 rejection before artifact access;
+- missing artifact and byte-length/checksum mismatch rejection;
+- no partial JSON output on refusal.
+
+The remaining steps in `worker-and-platform-safety` also completed successfully, including planner syntax, Worker syntax, route/API tests, Meta/Instagram tests, prepublish gates, and credential-exposure checks.
+
+**R1: PASS. R2: PASS. R3: PASS.** The review findings are closed for the plan-only implementation.
+
+Scope remains unchanged: this is offline plan-only code. No D1 operation, staging/production mutation, DDL execution, or Worker deployment was performed. Historical migration provenance and live Worker D1-binding validation remain separate blockers; the actual DDL runner is not implemented or authorized.
