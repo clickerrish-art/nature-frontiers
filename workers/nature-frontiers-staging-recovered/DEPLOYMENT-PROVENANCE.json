@@ -71,5 +71,40 @@
     "media_release_js": "c657058daffefb49c617524ecfc776643618cde1",
     "initial_schema_snapshot": "345c335eb4b745ec31d4c43ed8ea137468c63f1f",
     "corrected_schema_snapshot": "514bdd8e488958d8a91240adb5af2d33a32b642b"
+  },
+  "source_lineage": {
+    "cloudflare_version_count": 25,
+    "active_version": 25,
+    "previous_source_version": 24,
+    "versions_24_25_script_etag": "7082c1cdf2d27f5a663039af78539ba3a5be42bc8272fd5ce109099dd9469d1f",
+    "version_25_change": "Secret-triggered version; same script ETag as version 24.",
+    "annotated_commit_shas_checked": [
+      "13cb5743ab8a01112e510de7dd0bdc381799b609",
+      "53cbae949bf125049e5f48d44407d34c7aa2c890",
+      "89fe441dbda0bed9755529844f915f6062aabcc0",
+      "5ab8561cc1bad9474665a3250ce74db1c38cf01e",
+      "60966aada116d6bba504fe32811d180a9bd3d523",
+      "6a628cb6bc8e6cef62d2ba006900c0c25e6f90b6",
+      "1da2803ea82a42d0fa2846264b4120a0e075fecd",
+      "a69d5a5ef44cd2737c023d26deaeb5547cc8c9ed"
+    ],
+    "git_resolution": "All eight annotated source commit SHAs were queried against clickerrish-art/nature-frontiers and each returned GitHub API 422 (No commit found). Global GitHub commit search also returned no matches for the version 24 SHA.",
+    "conclusion": "Cloudflare version annotations are not traceable to commits in the accessible project repository. The deployed source modules have been preserved in this branch as a new verified recovery snapshot; this restores source availability but does not retroactively establish original Git provenance."
+  },
+  "scheduling_runtime": {
+    "deployed_event_handlers": [
+      "fetch"
+    ],
+    "scheduled_handler_present": false,
+    "schedule_api_dispatch_enabled": false,
+    "evidence": "Version 25 resource metadata lists only fetch. Deployed scheduling.js returns dispatchEnabled:false and contains no scheduled handler or cron/retry worker implementation."
+  },
+  "provider_runtime": {
+    "meta_graph_read_helper": "GET only",
+    "meta_publish_adapter_present": false,
+    "webhook_post_requires": "NF_META_APP_SECRET",
+    "webhook_app_secret_configured": false,
+    "media_upload_or_r2_binding_present": false,
+    "evidence": "Deployed source inspection: Meta OAuth module uses GET-only Graph reads; no media_publish or Page publishing POST adapter; webhook POST returns 503 without NF_META_APP_SECRET; media verification fetches external URLs and writes D1 evidence but no upload/R2 binding exists."
   }
 }
