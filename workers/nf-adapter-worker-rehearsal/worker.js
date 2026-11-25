@@ -1,5 +1,5 @@
-import { MigrationRunLifecycle } from "./migration-runner.mjs";
-import { rehearsalLockTarget, sha256Hex } from "./d1-lock-adapter.mjs";
+import { MigrationRunLifecycle } from "../../scripts/migrations/migration-runner.mjs";
+import { rehearsalLockTarget, sha256Hex } from "../../scripts/migrations/d1-lock-adapter.mjs";
 import { dispatchOperatorAction, isOperatorAuthorized, operatorHtml, operatorLimits } from "./operator-interface.mjs";
 
 const securityHeaders={
