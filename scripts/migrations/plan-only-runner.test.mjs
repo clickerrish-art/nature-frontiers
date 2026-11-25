@@ -1,4 +1,5 @@
 import test from "node:test";
+import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import { orchestratePlanOnly } from "./plan-only-runner.mjs";
 import { stagingTarget } from "./planner.mjs";
@@ -59,4 +60,38 @@ test("orchestrator fails closed for a target mismatch and does not return an exe
     }),
     { code: "UNKNOWN_DATABASE_DENIED" }
   );
+});
+
+
+test("complete plan and nested migration data are deeply immutable", () => {
+  const sql = Buffer.from("-- synthetic offline fixture\\nSELECT 1;\\n");
+  const manifestWithMigration = {
+    schemaVersion: 1,
+    streamId: "nature-frontiers.staging.forward-v1",
+    target: { ...stagingTarget },
+    migrations: [{
+      sequence: 1,
+      migrationId: "synthetic-check",
+      path: "0001_synthetic_check.sql",
+      sha256: createHash("sha256").update(sql).digest("hex"),
+      byteLength: sql.byteLength,
+      kind: "sql",
+      requires: []
+    }]
+  };
+  const result = orchestratePlanOnly({
+    manifestBytes: Buffer.from(JSON.stringify(manifestWithMigration)),
+    artifacts: new Map([["0001_synthetic_check.sql", sql]]),
+    target: stagingTarget
+  });
+  assert.equal(Object.isFrozen(result.plan), true);
+  assert.equal(Object.isFrozen(result.plan.target), true);
+  assert.equal(Object.isFrozen(result.plan.migrations), true);
+  assert.equal(Object.isFrozen(result.plan.migrations[0]), true);
+  assert.equal(Object.isFrozen(result.plan.migrations[0].requires), true);
+  assert.throws(() => { result.plan.streamId = "tampered"; }, TypeError);
+  assert.throws(() => { result.plan.target.databaseId = "wrong"; }, TypeError);
+  assert.throws(() => { result.plan.migrations.push({}); }, TypeError);
+  assert.throws(() => { result.plan.migrations[0].migrationId = "tampered"; }, TypeError);
+  assert.throws(() => { result.plan.migrations[0].requires.push("injected"); }, TypeError);
 });
