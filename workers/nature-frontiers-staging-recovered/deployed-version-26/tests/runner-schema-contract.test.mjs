@@ -8,13 +8,14 @@ const schema=readFileSync(resolve(dirname(fileURLToPath(import.meta.url)),"../..
 function table(name){
  const start=schema.indexOf(`CREATE TABLE ${name} (`);
  assert.notEqual(start,-1,`schema snapshot is missing table ${name}`);
- const end=schema.indexOf("\\n);",start);
+ const end=schema.indexOf("\n);",start);
  assert.notEqual(end,-1,`table ${name} has no closing declaration`);
  return schema.slice(start,end);
 }
 function hasColumns(name,columns){
  const sql=table(name);
- for(const column of columns)assert.match(sql,new RegExp(`\\\\b${column}\\\\s`, "i"),`${name} is missing column ${column}`);
+ const declared=new Set(sql.split("\n").slice(1).map(line=>line.trim().match(/^([a-z_][a-z0-9_]*)\s+(?:TEXT|INTEGER)/i)?.[1]).filter(Boolean));
+ for(const column of columns)assert.ok(declared.has(column),`${name} is missing column ${column}`);
 }
 
 test("runner SQL column contract matches the recovered schema snapshot",()=>{
@@ -31,8 +32,8 @@ test("runner SQL column contract matches the recovered schema snapshot",()=>{
 });
 
 test("runner-required state and platform values are permitted by schema checks",()=>{
- assert.match(table("schedule_slots"),/CHECK \\(state IN \\('held','ready','leased','publishing','published','failed','cancelled','dead_letter'\\)\\)/);
- assert.match(table("schedule_slots"),/CHECK \\(platform IN \\('facebook','instagram'\\)\\)/);
- assert.match(table("publication_attempts"),/CHECK \\(state IN \\('reserved','confirmed','ambiguous','failed'\\)\\)/);
- assert.match(table("worker_runs"),/CHECK \\(state IN \\('started','heartbeat','completed','failed','abandoned'\\)\\)/);
+ assert.ok(table("schedule_slots").includes("CHECK (state IN ('held','ready','leased','publishing','published','failed','cancelled','dead_letter'))"));
+ assert.ok(table("schedule_slots").includes("CHECK (platform IN ('facebook','instagram'))"));
+ assert.ok(table("publication_attempts").includes("CHECK (state IN ('reserved','confirmed','ambiguous','failed'))"));
+ assert.ok(table("worker_runs").includes("CHECK (state IN ('started','heartbeat','completed','failed','abandoned'))"));
 });
