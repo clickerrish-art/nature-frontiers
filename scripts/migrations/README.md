@@ -42,3 +42,21 @@ This runs planner adversarial tests and lock/run-state tests, including simultan
 ## Hard boundary
 
 No D1 connection, lock table, ledger inspection, lock acquisition against staging, DDL, migration execution, deployment, or production action occurs in this milestone. DDL execution remains gated by the separate disposable-D1 semantics rehearsal, backup/restore proof, independent review, and exact owner approval.
+
+## Plan-only runner orchestration
+
+The pure orchestration boundary is `plan-only-runner.mjs`. It accepts exact manifest bytes, an artifact-byte map, and the pinned staging target, then returns a non-executable envelope. Its interface has no D1, lock, Worker, network, filesystem, or SQL capability. It explicitly reports that D1 reads/writes, lock acquisition, SQL execution, and Worker deployment did not occur.
+
+Run the end-to-end offline plan-only command:
+
+```sh
+npm run migration:run-plan -- \
+  --manifest workers/nature-frontiers-staging-recovered/migrations/manifest.json \
+  --environment staging \
+  --database-id 89be73af-ebaf-4c19-b75a-9871adb8ba3c \
+  --worker nature-frontiers-staging
+```
+
+The command loads manifest and artifact bytes from within the repository, rejects path/symlink escapes, validates the exact target before reading files, and emits a JSON result. It does not persist a run record: creating a D1 run record would itself be a write and is outside plan-only mode.
+
+The plan-only orchestration tests are included automatically by `npm run test:migrations`. They cover deterministic output, explicit no-side-effect flags, capability/input rejection, malformed UTF-8, and target refusal. These are offline Node tests, not live D1 or Worker-runtime evidence.
