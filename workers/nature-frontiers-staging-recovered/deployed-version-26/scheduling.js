@@ -20,7 +20,7 @@ export async function handleScheduling(request,env,session){
   if(at.getTime()-now.getTime()>180*86400000)throw fail("Schedule time cannot be more than 180 days ahead");
   const content=await env.DB.prepare("SELECT id,status FROM content_items WHERE id=?").bind(body.contentId).first();
   if(!content)return json({error:"Content not found"},404);
-  if(content.status!=="draft"&&content.status!=="needs_review")throw fail("Only internal draft or review content can be placed on the held schedule",409);
+  if(content.status!=="draft"&&content.status!=="needs_review"&&content.status!=="approved")throw fail("Only draft, review or approved content can be placed on the held schedule",409);
   const id=crypto.randomUUID(),createdAt=now.toISOString(),scheduledAt=at.toISOString(),key=await sha(["nf-held-schedule-v1",body.contentId,body.platform,scheduledAt].join(":"));
   try{
    await env.DB.prepare("INSERT INTO schedule_slots(id,content_id,platform,scheduled_at,timezone,state,idempotency_key,attempt_count,max_attempts,created_at,updated_at) VALUES(?,?,?,?,?,'held',?,0,3,?,?)").bind(id,body.contentId,body.platform,scheduledAt,"Africa/Johannesburg",key,createdAt,createdAt).run();
