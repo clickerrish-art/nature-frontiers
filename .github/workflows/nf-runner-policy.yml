@@ -20,4 +20,4 @@ jobs:
           node --check workers/nature-frontiers-staging-recovered/deployed-version-26/meta-dispatch.mjs
           node --experimental-default-type=module --check workers/nature-frontiers-staging-recovered/deployed-version-26/index.js
       - name: Execute runner safety tests
-        run: node --test workers/nature-frontiers-staging-recovered/deployed-version-26/tests/runner-policy.test.mjs
+        run: node --test workers/nature-frontiers-staging-recovered/deployed-version-26/tests/*.test.mjs
