@@ -106,6 +106,6 @@ async function main() {
 }
 
 main().catch(error => {
-  process.stderr.write(`REFUSED: ${error.code ? `[${error.code}] ` : ""}${error.message}\\n`);
+  process.stderr.write(`REFUSED: ${error.code ? `[${error.code}] ` : ""}${error.message}\n`);
   process.exitCode = 2;
 });
