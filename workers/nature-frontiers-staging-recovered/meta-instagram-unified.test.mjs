@@ -92,3 +92,58 @@ test("Identity verification rejects any username other than the configured Natur
   );
   assert.equal(reads, 0);
 });
+
+test("Unified Login callback saves only the exact expected account and does not verify it automatically", async () => {
+  const state = "b".repeat(64);
+  const stateHash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(state)))]
+    .map(value => value.toString(16).padStart(2, "0")).join("");
+  const stateRow = {
+    state_hash: stateHash,
+    expires_at: new Date(Date.now() + 60_000).toISOString(),
+    consumed_at: null,
+    redirect_uri: origin + "/api/meta/oauth/callback",
+    initiating_subject: owner,
+    config_id: configId
+  };
+  const writes = [];
+  const db = {
+    prepare(sql) {
+      return {
+        values: [],
+        bind(...values) { this.values = values; return this; },
+        async first() { return sql.includes("meta_instagram_unified_states") ? stateRow : null; },
+        async run() {
+          writes.push({ sql, values: this.values });
+          if (sql.startsWith("UPDATE meta_instagram_unified_states")) stateRow.consumed_at = this.values[0];
+          return { meta: { changes: 1 } };
+        }
+      };
+    }
+  };
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async (input, init = {}) => {
+    const url = new URL(String(input));
+    requests.push({ url, method: init.method || "GET" });
+    if (url.pathname.endsWith("/oauth/access_token")) return Response.json({ access_token: "test-token", expires_in: 3600 });
+    if (url.pathname.endsWith("/me")) return Response.json({ client_business_id: "987654321" });
+    if (url.pathname.endsWith("/me/assigned_instagram_accounts")) return Response.json({ data: [
+      { id: "111111111111111", username: "naturefrontieers2026" },
+      { id: "222222222222222", username: "other_account" }
+    ] });
+    throw new Error("Unexpected Meta request " + url.pathname);
+  };
+  try {
+    const response = await handleMetaInstagramUnified(new Request(origin + "/api/meta/oauth/callback?state=" + state + "&code=test-code"), envFor(db), { user: { id: owner } });
+    assert.equal(response.status, 303);
+    assert.equal(new URL(response.headers.get("Location")).searchParams.get("instagram"), "connected");
+    const insert = writes.find(item => item.sql.includes("INSERT INTO meta_instagram_unified_connections"));
+    assert.ok(insert);
+    assert.equal(insert.values[3], "naturefrontieers2026");
+    assert.ok(insert.sql.includes("VALUES(?,?,?,?,?,?,?,?,?,NULL,?,?)"));
+    assert.equal(requests.every(item => item.method === "GET"), true);
+    assert.equal(requests.some(item => item.url.pathname.includes("media_publish")), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
