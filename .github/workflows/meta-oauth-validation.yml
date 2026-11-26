@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/nf-durable-publisher-api
+      - codex/staging-unified-login-reconciliation
     paths:
       - "workers/nature-frontiers-staging-recovered/**"
       - "package.json"
@@ -29,6 +30,6 @@ jobs:
         with:
           node-version: "24"
       - name: Check Worker module syntax
-        run: node --check workers/nature-frontiers-staging-recovered/meta-oauth.js && node --check workers/nature-frontiers-staging-recovered/index.js
+        run: node --check workers/nature-frontiers-staging-recovered/meta-oauth.js && node --check workers/nature-frontiers-staging-recovered/meta-instagram-unified.js && node --check workers/nature-frontiers-staging-recovered/index.js
       - name: Test Facebook OAuth scope isolation
         run: npm run test:meta-oauth
