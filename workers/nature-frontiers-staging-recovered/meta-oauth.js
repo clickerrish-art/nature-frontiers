@@ -2,6 +2,7 @@ const json=(value,status=200)=>new Response(JSON.stringify(value),{status,header
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const FACEBOOK_REQUIRED=["pages_show_list","pages_read_engagement","pages_manage_posts"];
 const GRAPH_VERSION="v27.0";
+function rejectRedirect(response){if(response.status>=300&&response.status<400)throw fail("Meta endpoint returned an unexpected redirect ("+response.status+")",502);}
 const hex=bytes=>[...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,"0")).join("");
 const digest=async value=>hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value)));
 const b64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes)));
@@ -28,7 +29,8 @@ export async function decryptMetaPageToken(ciphertext,nonce,secret,aad){
 export async function metaGraphRead(path,token,version,params={}){
  const url=new URL("https://graph.facebook.com/"+version+"/"+path.replace(/^\/+/, ""));
  for(const [k,v] of Object.entries(params))if(v!==undefined&&v!==null)url.searchParams.set(k,String(v));
- const response=await fetch(url,{method:"GET",redirect:"error",headers:{Authorization:"Bearer "+token,Accept:"application/json"}});
+ const response=await fetch(url,{method:"GET",redirect:"manual",headers:{Authorization:"Bearer "+token,Accept:"application/json"}});
+ rejectRedirect(response);
  const data=await response.json().catch(()=>({}));
  if(!response.ok||data.error)throw fail("Meta verification request failed ("+String(data.error?.code||response.status)+")",502);
  return data;
@@ -67,13 +69,15 @@ export async function handleMetaOAuth(request,env,session){
   try{
   const exchange=new URL("https://graph.facebook.com/"+cfg.version+"/oauth/access_token");
   exchange.searchParams.set("client_id",cfg.appId);exchange.searchParams.set("client_secret",cfg.appSecret);exchange.searchParams.set("redirect_uri",cfg.redirect);exchange.searchParams.set("code",code);
-  const shortResponse=await fetch(exchange,{redirect:"error",headers:{Accept:"application/json"}});
+  const shortResponse=await fetch(exchange,{redirect:"manual",headers:{Accept:"application/json"}});
+  rejectRedirect(shortResponse);
   const shortToken=await shortResponse.json().catch(()=>({}));
   if(!shortResponse.ok||!shortToken.access_token)throw fail("Meta authorization-code exchange failed",502);
   stage="long_lived_token_exchange";
   const longUrl=new URL("https://graph.facebook.com/"+cfg.version+"/oauth/access_token");
   longUrl.searchParams.set("grant_type","fb_exchange_token");longUrl.searchParams.set("client_id",cfg.appId);longUrl.searchParams.set("client_secret",cfg.appSecret);longUrl.searchParams.set("fb_exchange_token",shortToken.access_token);
-  const longResponse=await fetch(longUrl,{redirect:"error",headers:{Accept:"application/json"}});
+  const longResponse=await fetch(longUrl,{redirect:"manual",headers:{Accept:"application/json"}});
+  rejectRedirect(longResponse);
   const longToken=await longResponse.json().catch(()=>({}));
   if(!longResponse.ok||!longToken.access_token)throw fail("Meta long-lived token exchange failed",502);
   stage="permission_verification";
