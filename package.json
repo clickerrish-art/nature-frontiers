@@ -21,6 +21,7 @@
     "test:migration-lock-state": "node --test scripts/migrations/lock-state.test.mjs",
     "test:migrations": "node --test scripts/migrations/*.test.mjs workers/nf-adapter-worker-rehearsal/*.test.mjs",
     "test:migration-d1-lock": "node --test scripts/migrations/d1-lock-adapter.test.mjs",
-    "test:meta-oauth": "node --test workers/nature-frontiers-staging-recovered/meta-oauth.test.mjs workers/nature-frontiers-staging-recovered/auth-session.test.mjs workers/nature-frontiers-staging-recovered/meta-instagram-unified.test.mjs"
+    "test:meta-oauth": "node --test workers/nature-frontiers-staging-recovered/meta-oauth.test.mjs workers/nature-frontiers-staging-recovered/auth-session.test.mjs workers/nature-frontiers-staging-recovered/meta-instagram-unified.test.mjs",
+    "test:instagram-unified": "node --test workers/nature-frontiers-staging-recovered/meta-instagram-unified.test.mjs"
   }
 }
