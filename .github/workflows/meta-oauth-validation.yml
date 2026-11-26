@@ -31,5 +31,5 @@ jobs:
           node-version: "24"
       - name: Check Worker module syntax
         run: node --check workers/nature-frontiers-staging-recovered/meta-oauth.js && node --check workers/nature-frontiers-staging-recovered/meta-instagram-unified.js && node --check workers/nature-frontiers-staging-recovered/index.js
-      - name: Test Facebook OAuth scope isolation
-        run: npm run test:meta-oauth
+      - name: Test Instagram Unified Login state, callback, account selection and identity gates
+        run: npm run test:instagram-unified
