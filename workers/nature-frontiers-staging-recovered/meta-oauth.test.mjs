@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { handleMetaOAuth } from "./meta-oauth.js";
+import { handleMetaOAuth, metaGraphRead } from "./meta-oauth.js";
 
 test("Facebook OAuth requests only Page permissions and leaves Instagram unverified", async () => {
   const db = {
@@ -83,7 +83,8 @@ test("Facebook OAuth callback completes from one-time owner-bound state without 
     DB: db
   };
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async input => {
+  globalThis.fetch = async (input, init = {}) => {
+    assert.equal(init.redirect, "manual", "all Meta OAuth and Graph API requests must handle redirects manually");
     const url = new URL(String(input));
     if (url.pathname.endsWith("/oauth/access_token") && url.searchParams.has("code")) {
       return Response.json({ access_token: "short-lived-test-token", expires_in: 3600 });
@@ -113,6 +114,28 @@ test("Facebook OAuth callback completes from one-time owner-bound state without 
     assert.equal(stateRow.consumed_at !== null, true);
     assert.equal(auditRows.length, 1);
     assert.equal(auditRows[0][2], owner);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+
+test("Meta Graph reads reject unexpected redirects without following them", async () => {
+  const originalFetch = globalThis.fetch;
+  let redirectMode;
+  globalThis.fetch = async (_input, init = {}) => {
+    redirectMode = init.redirect;
+    return new Response(null, {
+      status: 302,
+      headers: { location: "https://unexpected.example.invalid/redirect" }
+    });
+  };
+  try {
+    await assert.rejects(
+      () => metaGraphRead("me/permissions", "test-token", "v27.0"),
+      error => error?.status === 502 && /unexpected redirect/.test(error.message)
+    );
+    assert.equal(redirectMode, "manual");
   } finally {
     globalThis.fetch = originalFetch;
   }
