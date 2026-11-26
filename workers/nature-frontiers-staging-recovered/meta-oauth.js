@@ -63,23 +63,29 @@ export async function handleMetaOAuth(request,env,session){
   if(!row||row.consumed_at||row.expires_at<=now||row.redirect_uri!==cfg.redirect)throw fail("OAuth state is invalid, expired, already used, or belongs to another operator",403);
   const consumed=await env.DB.prepare("UPDATE oauth_states SET consumed_at=? WHERE state_hash=? AND consumed_at IS NULL AND expires_at>?").bind(now,stateHash,now).run();
   if(Number(consumed?.meta?.changes||0)!==1)throw fail("OAuth state was already consumed",409);
+  const requestId=crypto.randomUUID();let stage="authorization_code_exchange";
+  try{
   const exchange=new URL("https://graph.facebook.com/"+cfg.version+"/oauth/access_token");
   exchange.searchParams.set("client_id",cfg.appId);exchange.searchParams.set("client_secret",cfg.appSecret);exchange.searchParams.set("redirect_uri",cfg.redirect);exchange.searchParams.set("code",code);
   const shortResponse=await fetch(exchange,{redirect:"error",headers:{Accept:"application/json"}});
   const shortToken=await shortResponse.json().catch(()=>({}));
   if(!shortResponse.ok||!shortToken.access_token)throw fail("Meta authorization-code exchange failed",502);
+  stage="long_lived_token_exchange";
   const longUrl=new URL("https://graph.facebook.com/"+cfg.version+"/oauth/access_token");
   longUrl.searchParams.set("grant_type","fb_exchange_token");longUrl.searchParams.set("client_id",cfg.appId);longUrl.searchParams.set("client_secret",cfg.appSecret);longUrl.searchParams.set("fb_exchange_token",shortToken.access_token);
   const longResponse=await fetch(longUrl,{redirect:"error",headers:{Accept:"application/json"}});
   const longToken=await longResponse.json().catch(()=>({}));
   if(!longResponse.ok||!longToken.access_token)throw fail("Meta long-lived token exchange failed",502);
+  stage="permission_verification";
   const permissions=await metaGraphRead("me/permissions",longToken.access_token,cfg.version);
   const granted=(permissions.data||[]).filter(x=>x.status==="granted").map(x=>x.permission).sort();
+  stage="page_discovery";
   const pages=await metaGraphRead("me/accounts",longToken.access_token,cfg.version,{fields:"id,name,access_token,tasks",limit:100});
   const list=pages.data||[];
   if(!list.length)throw fail("Meta returned no Pages for this operator; verify Page access in Meta Business Suite",409);
   const expires=Number(longToken.expires_in)>0?new Date(Date.now()+Number(longToken.expires_in)*1000).toISOString():null;
   const saved=[];
+  stage="page_token_encryption_and_persistence";
   for(const page of list){
    if(!page.id||!page.access_token)continue;
    const existing=await env.DB.prepare("SELECT id FROM meta_connections WHERE provider='meta' AND page_id=?").bind(String(page.id)).first();
@@ -90,8 +96,14 @@ export async function handleMetaOAuth(request,env,session){
    saved.push({id,pageId:String(page.id),pageName:String(page.name||""),instagramAccountId:null,status:"unverified",pageTasks:tasks});
   }
   if(!saved.length)throw fail("Meta returned Pages without usable Page access tokens",409);
+  stage="completion_audit";
   await audit(env.DB,row.initiating_subject,"meta.oauth.completed",{pages:saved.map(x=>({id:x.id,pageId:x.pageId,instagramAccountId:x.instagramAccountId})),grantedPermissions:granted,missingPermissions:FACEBOOK_REQUIRED.filter(x=>!granted.includes(x))});
   return Response.redirect(new URL("/?meta=connected",cfg.redirect).href,303);
+  }catch(error){
+   console.error("Meta OAuth callback failed",{requestId,stage,errorName:String(error?.name||"Error")});
+   const status=Number.isInteger(error?.status)?error.status:500;
+   return json({error:"Meta connection failed",stage,requestId,publishingEnabled:false},status);
+  }
  }
  if(path==="/api/meta/connections"&&method==="GET"){
   const rows=await env.DB.prepare("SELECT id,page_id,page_name,instagram_business_account_id,granted_permissions_json,page_tasks_json,status,identity_verified_at,permissions_verified_at,instagram_identity_verified_at,token_expires_at,created_at,updated_at FROM meta_connections WHERE provider='meta' ORDER BY updated_at DESC").all();
