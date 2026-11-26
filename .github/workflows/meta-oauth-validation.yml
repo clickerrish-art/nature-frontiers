@@ -29,7 +29,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "24"
-      - name: Check Worker module syntax
-        run: node --check workers/nature-frontiers-staging-recovered/meta-oauth.js && node --check workers/nature-frontiers-staging-recovered/meta-instagram-unified.js && node --check workers/nature-frontiers-staging-recovered/index.js
-      - name: Test Instagram Unified Login state, callback, account selection and identity gates
-        run: npm run test:instagram-unified
+      - name: Check all staging Worker JavaScript module syntax
+        run: |
+          for file in workers/nature-frontiers-staging-recovered/*.js; do
+            node --check "$file"
+          done
+      - name: Test Facebook OAuth, operator session/CSRF, and Instagram Unified Login
+        run: npm run test:meta-oauth
