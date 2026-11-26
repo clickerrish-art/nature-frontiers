@@ -24,13 +24,24 @@ const fail = (message, status = 400) => Object.assign(new Error(message), {statu
 const sha256 = async bytes => [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))]
   .map(x => x.toString(16).padStart(2,"0")).join("");
 
-function allowedUrl(raw, binding) {
+function isLocalOrIpLiteral(hostname) {
+  const host = String(hostname || "").toLowerCase();
+  if (host.startsWith("[") && host.endsWith("]")) return true;
+  if (host.includes(":") || /^\d+(?:\.\d+){0,3}$/.test(host)) return true;
+  return host === "localhost" || host.endsWith(".localhost") ||
+    host.endsWith(".local") || host.endsWith(".localdomain") ||
+    host.endsWith(".internal") || host.endsWith(".home.arpa") ||
+    host.endsWith(".test");
+}
+
+export function allowedUrl(raw, binding) {
   let url;
   try { url = new URL(raw); } catch { throw fail("A valid HTTPS URL is required"); }
+  const hostname = url.hostname.toLowerCase();
   const hosts = String(binding || "").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);
   if (url.protocol !== "https:" || url.username || url.password || (url.port && url.port !== "443") ||
-      url.hostname.endsWith(".") || !hosts.includes(url.hostname.toLowerCase())) {
-    throw fail("URL host is not on the configured HTTPS allowlist", 403);
+      hostname.endsWith(".") || isLocalOrIpLiteral(hostname) || !hosts.includes(hostname)) {
+    throw fail("URL host is not an approved public HTTPS allowlist host", 403);
   }
   return url;
 }
