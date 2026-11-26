@@ -99,3 +99,71 @@ The deployed dashboard form and create handler were inspected:
 - The placeholder URL is not media-rights or media-integrity evidence; the test must remain an internal draft and must not be submitted for review, approved, scheduled, or dispatched.
 
 No request was sent because the authenticated browser session could not be established. The live D1 content/revision/audit counts remain zero.
+
+
+## 2026-11-26 live re-inspection
+
+Captured: 2026-11-26 11:47 UTC. Read-only Cloudflare inspections were used for deployed Worker versions, bindings, D1 schema, migration ledger, safety controls, connection records, content records, backup records, observability issues, and rehearsal D1 history. No DDL, D1 data writes, secret writes, deployment, Meta request, or publishing operation was performed in this inspection.
+
+### Repository and PR
+
+- Repository: `clickerrish-art/nature-frontiers`.
+- PR #30 remains `open`, `draft=true`, `merged=false`.
+- Branch `codex/nf-durable-publisher-api` was 133 commits ahead and 0 behind its PR base before the latest regression-test commit; it is now 134 ahead and 0 behind.
+- Latest branch commit created during this inspection: `1b2f3fb3f383d0062543174bd1810ccdc5261575` (`test: guard Meta OAuth against automatic redirects`).
+- The added regression test asserts that all mocked Meta OAuth/Graph requests use `redirect: manual` and that an unexpected Graph redirect is rejected with HTTP 502. The updated file was fetched back and verified. CI for this new exact commit had not yet appeared at capture time.
+- No write to `main`, merge, close, ready-for-review transition, reset, rebase, force-push, or history rewrite was performed.
+
+### Staging Worker deployment and secret preservation
+
+- Worker: `nature-frontiers-staging`.
+- Active deployment: `078f055f-9178-4343-a75b-1598d68ee3fe`, routing 100% to version 42 (`2fa960eb-860f-4045-a160-93c21862917c`), annotated commit `5266e6604e38cf0531f17cafb3397e627dad3461`.
+- Version 42 has the seven expected `secret_text` bindings: `NF_BACKUP_ENCRYPTION_KEY`, `NF_META_APP_ID`, `NF_META_APP_SECRET`, `NF_META_TOKEN_ENCRYPTION_KEY`, `NF_META_WEBHOOK_VERIFY_TOKEN`, `NF_OPERATOR_PASSWORD_HASH`, `NF_SESSION_SECRET`.
+- Version 44 (`b228485e-a6f3-43ea-9549-fcc962826bb5`) is an uploaded, not active, version annotated with OAuth fix commit `45e0a548cdd2478f71233021017f685388f1102f`; its resource binding list is empty.
+- Version 42's source at commit `5266e660` uses `redirect: error` in the Meta OAuth and Graph API fetches. The version 44 source at `45e0a548` uses `redirect: manual` and explicitly rejects unexpected redirects.
+- Cloudflare's `bindings_inherit=strict` option only resolves `inherit` bindings against the latest uploaded version; it is not a general mechanism to recover version 42's secret values. `keep_bindings` retains types from the previous upload, which is version 44 and has no bindings. Secret values are not retrievable. Therefore no safe upload/deploy of the OAuth fix was performed.
+- Version 42's non-secret safety bindings were directly verified: `DRY_RUN=true`, `EMERGENCY_STOP=true`, `FACEBOOK_PUBLISH_ENABLED=NO`. D1 controls also read `dry_run=1`, `emergency_stop=1`, `publishing_enabled=0`.
+- The active version 42 binding list does not include `NF_MEDIA_ALLOWED_HOSTS` or `NF_EVIDENCE_ALLOWED_HOSTS`, although the recovered media-release code requires these allowlists. Media verification cannot be accepted as configured.
+
+### Live staging D1 observations
+
+- Staging D1: `89be73af-ebaf-4c19-b75a-9871adb8ba3c`.
+- Migration ledger contains exactly one row: `0009_meta_token_encryption.sql`.
+- `meta_connections`: 0; no Facebook Page or Instagram destination is connected or verified.
+- One internal draft exists: `413d44e3-2cad-4d46-bc6c-c0a29c75c0bf`, revision 1, status `draft`, with the explicitly placeholder `example.com` media URL. Its revision and `content.created` audit record are present. It is not production media and must never be approved or published.
+- Current counts: 1 content item, 1 revision, 1 audit event, 0 media assets, 0 rights-evidence records, 0 approval receipts, 0 schedule slots, 0 publication attempts, 0 worker runs.
+- Backup D1 `82f13712-6c0f-4d68-8a8d-b53c82fd13f5` contains 0 backup records. No backup/restore acceptance has occurred.
+
+### Other deployed Worker and rehearsal findings
+
+- `nature-frontiers-staging` has no Cloudflare Cron schedules. The recovered Worker export contains a `fetch` handler only. Its scheduling API explicitly returns `dispatchEnabled=false`; no dispatch/retry worker lifecycle is deployed.
+- `nature-frontiers-publisher` is active at version 1 and bound to `nature-frontiers-prod-state` (`9b2e439d-5fd4-4812-a938-e1739fbe8795`). Its settings expose only a D1 binding and no `PUBLISHER_API_TOKEN` binding. The bound D1 has the base publisher tables but lacks `media_evidence` and `review_evidence`, both required by PR #30's publisher Worker health check. PR #30's new publisher API is not deployed and must not be treated as live.
+- Disposable rehearsal Worker `nf-adapter-worker-rehearsal` has `AUTH_TOKEN` and its disposable D1 binding. Read-only D1 inspection confirms 44 run records, 125 run events, 38 lock events, and 0 unexpired locks. The Job 4C record documents plan/approval/lock/release/recovery lifecycle tests. The authenticated browser POST through the visible operator UI remains `NOT_TESTED`.
+
+### Runtime and CI evidence
+
+- Cloudflare observability contains a historical owner-login failure on `/api/auth/login`: HTTP 500 because an earlier version requested PBKDF2 600,000 iterations while the Workers runtime limit was 100,000. The current feature-branch Worker and hash generator use 100,000; the write-only `NF_OPERATOR_PASSWORD_HASH` value cannot be inspected, so the current configured hash format remains unverified and owner login is not accepted.
+- Previous exact-head PR checks on `45e0a548` passed: gated publishing safety run `45809926732`, Meta OAuth validation run `45809926678`, publisher Worker validation run `45809926527`. The publisher and Instagram publisher jobs were skipped; Meta and Instagram provider calls were mocked; publisher persistence tests used SQLite, not the deployed D1 adapter. These are CI passes, not live provider or deployed Worker acceptance.
+- A new redirect regression-test commit `1b2f3fb3f383d0062543174bd1810ccdc5261575` was added after those runs. Its exact-head CI is pending/not yet observed.
+
+### Updated acceptance register
+
+| Area | Status | Current evidence / blocker |
+|---|---|---|
+| Repository / PR preservation | PASS | PR #30 open, draft, unmerged; latest branch commit recorded above. |
+| Staging safety defaults | PASS | Active version 42 and D1 controls read fail-closed. |
+| OAuth redirect source fix | PASS (source only) | Manual redirect implementation and regression test present; not active. |
+| OAuth fix deployment | BLOCKED | Latest upload v44 has no bindings; seven secret values cannot be recovered. |
+| Owner authentication | BLOCKED | Historical PBKDF2 600,000 runtime failure; current secret hash format cannot be read/verified. |
+| Facebook OAuth / Page identity | BLOCKED | Zero connection rows; previous authorization-code exchange failed; fixed code not deployed. |
+| Instagram authorization / identity | BLOCKED | No independent Instagram Login flow or verified professional account; app login product not independently inspectable. |
+| D1 historical migration provenance | BLOCKED | Ledger only records 0009; original 0005–0009 chain remains incomplete and schema generations diverge. |
+| Durable publisher API | NOT_TESTED on deployed target | PR code passes mocked/SQLite CI; not deployed; production-state D1 lacks required evidence tables and API token binding. |
+| Job 4C plan-only rehearsal | PASS with limitation | Live D1 lifecycle evidence; browser-authenticated HTTP POST remains NOT_TESTED. |
+| Media / rights / approvals | BLOCKED | Only placeholder draft; no actual media, allowlist bindings, rights evidence or approval receipt. |
+| Scheduling / dispatch / retry | BLOCKED | No cron trigger or deployed dispatch handler; API explicitly reports dispatch disabled. |
+| Dashboard end-to-end | NOT_TESTED | No complete authenticated browser journey on the current deployed Worker. |
+| Backup / restore | NOT_TESTED | Backup D1 has zero records; no restore rehearsal. |
+| Full security / end-to-end acceptance | NOT_TESTED | Required real OAuth, identity, media, rights, provider and deployed adapter tests remain incomplete. |
+
+All production publishing remains disabled. No staging or production database writes were made during this re-inspection.
