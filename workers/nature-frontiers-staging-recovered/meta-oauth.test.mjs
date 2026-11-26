@@ -17,6 +17,7 @@ test("Facebook OAuth requests only Page permissions and leaves Instagram unverif
     NF_META_REDIRECT_URI: "https://nature-frontiers-staging.example.workers.dev/api/meta/oauth/callback",
     NF_ALLOWED_ORIGIN: "https://nature-frontiers-staging.example.workers.dev",
     NF_META_TOKEN_ENCRYPTION_KEY: "x".repeat(48),
+    NF_META_INSTAGRAM_API_ENABLED: "true",
     DB: db
   };
   const response = await handleMetaOAuth(
@@ -80,6 +81,7 @@ test("Facebook OAuth callback completes from one-time owner-bound state without 
     NF_META_REDIRECT_URI: "https://nature-frontiers-staging.example.workers.dev/api/meta/oauth/callback",
     NF_ALLOWED_ORIGIN: "https://nature-frontiers-staging.example.workers.dev",
     NF_META_TOKEN_ENCRYPTION_KEY: "x".repeat(48),
+    NF_META_INSTAGRAM_API_ENABLED: "true",
     DB: db
   };
   const originalFetch = globalThis.fetch;
