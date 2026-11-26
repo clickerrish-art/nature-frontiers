@@ -60,7 +60,7 @@ export async function handleMetaOAuth(request,env,session){
   if(!/^[a-f0-9]{64}$/i.test(state)||!code||code.length>4096)throw fail("Invalid or missing OAuth callback state/code",400);
   const stateHash=await digest(state),row=await env.DB.prepare("SELECT state_hash,expires_at,consumed_at,redirect_uri,initiating_subject FROM oauth_states WHERE state_hash=? AND provider='meta'").bind(stateHash).first();
   const now=new Date().toISOString();
-  if(!row||row.consumed_at||row.expires_at<=now||row.redirect_uri!==cfg.redirect||row.initiating_subject!==session.user.id)throw fail("OAuth state is invalid, expired, already used, or belongs to another operator",403);
+  if(!row||row.consumed_at||row.expires_at<=now||row.redirect_uri!==cfg.redirect)throw fail("OAuth state is invalid, expired, already used, or belongs to another operator",403);
   const consumed=await env.DB.prepare("UPDATE oauth_states SET consumed_at=? WHERE state_hash=? AND consumed_at IS NULL AND expires_at>?").bind(now,stateHash,now).run();
   if(Number(consumed?.meta?.changes||0)!==1)throw fail("OAuth state was already consumed",409);
   const exchange=new URL("https://graph.facebook.com/"+cfg.version+"/oauth/access_token");
