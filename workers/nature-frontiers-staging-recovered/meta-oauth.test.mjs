@@ -133,7 +133,7 @@ test("Meta Graph reads reject unexpected redirects without following them", asyn
   try {
     await assert.rejects(
       () => metaGraphRead("me/permissions", "test-token", "v27.0"),
-      error => error?.status === 502 && /unexpected redirect/.test(error.message)
+      error => error?.status === 502 && /Meta OAuth failed during graph_api_read/.test(error.message)
     );
     assert.equal(redirectMode, "manual");
   } finally {
