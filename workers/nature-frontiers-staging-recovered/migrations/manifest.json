@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "streamId": "nature-frontiers.staging.forward-v1",
+  "target": {
+    "environment": "staging",
+    "databaseId": "89be73af-ebaf-4c19-b75a-9871adb8ba3c",
+    "worker": "nature-frontiers-staging"
+  },
+  "migrations": []
+}

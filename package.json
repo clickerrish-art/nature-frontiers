@@ -14,6 +14,13 @@
     "test:instagram-api": "node scripts/test-instagram-api.mjs",
     "test:instagram-campaign": "node scripts/test-instagram-campaign.mjs",
     "test:instagram-media": "node scripts/test-check-instagram-media.mjs",
-    "test:instagram-live-readiness": "node scripts/test-check-instagram-live-readiness.mjs"
+    "test:instagram-live-readiness": "node scripts/test-check-instagram-live-readiness.mjs",
+    "migration:plan": "node scripts/migrations/plan.mjs",
+    "migration:run-plan": "node scripts/migrations/run-plan.mjs",
+    "test:migration-planner": "node --test scripts/migrations/planner.test.mjs",
+    "test:migration-lock-state": "node --test scripts/migrations/lock-state.test.mjs",
+    "test:migrations": "node --test scripts/migrations/*.test.mjs workers/nf-adapter-worker-rehearsal/*.test.mjs",
+    "test:migration-d1-lock": "node --test scripts/migrations/d1-lock-adapter.test.mjs",
+    "test:meta-oauth": "node --test workers/nature-frontiers-staging-recovered/meta-oauth.test.mjs workers/nature-frontiers-staging-recovered/auth-session.test.mjs"
   }
 }

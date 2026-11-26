@@ -1,0 +1,110 @@
+{
+  "captured_at": "2026-11-25",
+  "worker": "nature-frontiers-staging",
+  "versions": [
+    {
+      "number": 24,
+      "id": "a378aca2-5bbf-457c-832f-647c705dc0d2",
+      "created_on": "2026-11-25T10:07:12.730196Z",
+      "source_commit_annotation": "a69d5a5ef44cd2737c023d26deaeb5547cc8c9ed",
+      "etag": "7082c1cdf2d27f5a663039af78539ba3a5be42bc8272fd5ce109099dd9469d1f"
+    },
+    {
+      "number": 25,
+      "id": "98ba14e3-e5e2-490c-ba21-14615ffa23cc",
+      "created_on": "2026-11-25T10:23:01.300669Z",
+      "trigger": "secret",
+      "etag": "7082c1cdf2d27f5a663039af78539ba3a5be42bc8272fd5ce109099dd9469d1f"
+    }
+  ],
+  "source_commit_resolution": "The version 24 annotated SHA is not resolvable in the accessible GitHub repository (GitHub API 422). Version 25 has no commit annotation. Recovered module files are a byte-for-byte source snapshot retrieved from the deployed Worker API, not a claim that the original Git commit has been recovered.",
+  "module_names": [
+    "index.js",
+    "meta-oauth.js",
+    "meta-webhooks.js",
+    "scheduling.js",
+    "analytics.js",
+    "backups.js",
+    "media-release.js"
+  ],
+  "source_branch": "codex/nf-durable-publisher-api",
+  "branch_head_before_snapshot": "ebaf70ccc2ac1c2df5d05890dab0834f889bd4bc",
+  "main_head_at_capture": "678e3db436bb8e50c8e8d8aab48ef024e75fbdf0",
+  "safety": "Snapshot only. Not deployed. Does not modify production, D1, Worker settings, secrets, or publishing controls.",
+  "schema_snapshot": {
+    "file": "schema.snapshot.sql",
+    "tables": 25,
+    "indexes": 19,
+    "triggers": 31,
+    "data_rows_included": false,
+    "purpose": "Exact DDL snapshot of the live staging D1 sqlite_master at capture time. This is not an original numbered migration and must not be recorded as 0007, 0008, or 0009."
+  },
+  "migration_reconciliation": {
+    "repository_migrations_present": [
+      "0001_initial_schema.sql",
+      "0002_meta_webhook_events.sql",
+      "0003_media_evidence.sql",
+      "0004_review_evidence.sql"
+    ],
+    "repository_migrations_missing": [
+      "0007",
+      "0008",
+      "0009"
+    ],
+    "staging_ledger": [
+      "0009_meta_token_encryption.sql"
+    ],
+    "observations": [
+      "0007/0008 effects are present in staging tables and triggers but their original source files and ledger records are unavailable.",
+      "0009 token-encryption columns are present and its ledger record exists.",
+      "The current repository Worker migration generation expects media_evidence and review_evidence, which are absent from staging; staging instead has media_assets and media_rights_evidence."
+    ],
+    "action": "No migration applied. No migration ledger rows fabricated. Preserve active D1 until original migration lineage is recovered."
+  },
+  "snapshot_commits": {
+    "index_js": "51d997671055f0a08890c6278264de1bb01f4344",
+    "meta_oauth_js": "0a4024c9de327bac20bb285de854bfe464395bf8",
+    "meta_webhooks_js": "622e43aa1c54432fd53255fc9f51f62c3cf1e251",
+    "scheduling_js": "ff1833e5285686d93d29105be6b0195365279c51",
+    "analytics_js": "fb691080a59367f8f7a0f47fb208f4a569db3118",
+    "backups_js": "6e2db39d98a4a4ea948dd6a32c07edae6c576c57",
+    "media_release_js": "c657058daffefb49c617524ecfc776643618cde1",
+    "initial_schema_snapshot": "345c335eb4b745ec31d4c43ed8ea137468c63f1f",
+    "corrected_schema_snapshot": "514bdd8e488958d8a91240adb5af2d33a32b642b"
+  },
+  "source_lineage": {
+    "cloudflare_version_count": 25,
+    "active_version": 25,
+    "previous_source_version": 24,
+    "versions_24_25_script_etag": "7082c1cdf2d27f5a663039af78539ba3a5be42bc8272fd5ce109099dd9469d1f",
+    "version_25_change": "Secret-triggered version; same script ETag as version 24.",
+    "annotated_commit_shas_checked": [
+      "13cb5743ab8a01112e510de7dd0bdc381799b609",
+      "53cbae949bf125049e5f48d44407d34c7aa2c890",
+      "89fe441dbda0bed9755529844f915f6062aabcc0",
+      "5ab8561cc1bad9474665a3250ce74db1c38cf01e",
+      "60966aada116d6bba504fe32811d180a9bd3d523",
+      "6a628cb6bc8e6cef62d2ba006900c0c25e6f90b6",
+      "1da2803ea82a42d0fa2846264b4120a0e075fecd",
+      "a69d5a5ef44cd2737c023d26deaeb5547cc8c9ed"
+    ],
+    "git_resolution": "All eight annotated source commit SHAs were queried against clickerrish-art/nature-frontiers and each returned GitHub API 422 (No commit found). Global GitHub commit search also returned no matches for the version 24 SHA.",
+    "conclusion": "Cloudflare version annotations are not traceable to commits in the accessible project repository. The deployed source modules have been preserved in this branch as a new verified recovery snapshot; this restores source availability but does not retroactively establish original Git provenance."
+  },
+  "scheduling_runtime": {
+    "deployed_event_handlers": [
+      "fetch"
+    ],
+    "scheduled_handler_present": false,
+    "schedule_api_dispatch_enabled": false,
+    "evidence": "Version 25 resource metadata lists only fetch. Deployed scheduling.js returns dispatchEnabled:false and contains no scheduled handler or cron/retry worker implementation."
+  },
+  "provider_runtime": {
+    "meta_graph_read_helper": "GET only",
+    "meta_publish_adapter_present": false,
+    "webhook_post_requires": "NF_META_APP_SECRET",
+    "webhook_app_secret_configured": false,
+    "media_upload_or_r2_binding_present": false,
+    "evidence": "Deployed source inspection: Meta OAuth module uses GET-only Graph reads; no media_publish or Page publishing POST adapter; webhook POST returns 503 without NF_META_APP_SECRET; media verification fetches external URLs and writes D1 evidence but no upload/R2 binding exists."
+  }
+}
