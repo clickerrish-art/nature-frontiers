@@ -93,7 +93,7 @@ test("Unified Login callback stores only the exact expected Instagram username a
     const insert = writes.find(item => item.sql.includes("INSERT INTO meta_instagram_unified_connections"));
     assert.ok(insert);
     assert.equal(insert.values[3], "naturefrontieers2026");
-    assert.equal(insert.values[9], null);
+    assert.match(insert.sql, /identity_verified_at[^)]*VALUES[^)]*NULL/);
     assert.equal(requested.every(item => item.method === "GET"), true);
     assert.equal(requested.some(item => item.url.pathname.includes("/media_publish")), false);
   } finally {
