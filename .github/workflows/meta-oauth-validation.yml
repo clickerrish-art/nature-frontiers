@@ -8,6 +8,10 @@ on:
     paths:
       - "workers/nature-frontiers-staging-recovered/**"
       - "package.json"
+      - "scripts/**"
+      - "data/**"
+      - "workers/nature-frontiers-publisher/**"
+      - "workers/nf-adapter-worker-rehearsal/**"
       - ".github/workflows/meta-oauth-validation.yml"
   pull_request:
     branches:
@@ -15,6 +19,10 @@ on:
     paths:
       - "workers/nature-frontiers-staging-recovered/**"
       - "package.json"
+      - "scripts/**"
+      - "data/**"
+      - "workers/nature-frontiers-publisher/**"
+      - "workers/nf-adapter-worker-rehearsal/**"
       - ".github/workflows/meta-oauth-validation.yml"
 
 permissions:
@@ -36,3 +44,46 @@ jobs:
           done
       - name: Test Facebook OAuth, operator session/CSRF, and Instagram Unified Login
         run: npm run test:meta-oauth
+
+  platform-safety:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Validate catalogue
+        run: node scripts/validate-campaign.mjs
+      - name: Test migration planner and D1 adapter contracts (local mocks only)
+        run: npm run test:migrations
+      - name: Check migration and publisher Worker syntax
+        run: |
+          node --check scripts/migrations/planner.mjs
+          node --check scripts/migrations/plan.mjs
+          node --check scripts/migrations/d1-lock-adapter.mjs
+          node --check scripts/migrations/d1-run-store.mjs
+          node --check scripts/migrations/migration-runner.mjs
+          node --check workers/nature-frontiers-publisher/worker.js
+          node --check workers/nf-adapter-worker-rehearsal/worker.js
+          node --check workers/nf-adapter-worker-rehearsal/operator-interface.mjs
+      - name: Test publisher Worker health, media and signed webhook routes
+        run: node workers/nature-frontiers-publisher/worker.test.mjs
+      - name: Test SQLite-backed content, rights, approvals and reservation API
+        run: node workers/nature-frontiers-publisher/worker-api.test.mjs
+      - name: Test Meta webhook, API and campaign contracts
+        run: npm run test:meta-webhook && npm run test:instagram-api && npm run test:instagram-campaign
+      - name: Test Instagram media and read-only readiness contracts
+        run: npm run test:instagram-media && npm run test:instagram-live-readiness
+      - name: Test publishing readiness, Meta policy, and prepublish gates
+        run: npm run test:readiness && npm run test:meta-policy && npm run test:prepublish
+      - name: Test rights review and fail-closed publishing controls
+        run: node scripts/test-media-rights-review.mjs && npm run test:publishing
+      - name: Test Meta token health assessment
+        run: npm run test:meta-token
+      - name: Confirm no live Meta publishing credentials are exposed
+        run: |
+          test -z "${PUBLISHER_API_TOKEN:-}"
+          test -z "${META_PAGE_ACCESS_TOKEN:-}"
+          test -z "${INSTAGRAM_ACCESS_TOKEN:-}"
+          echo "No publisher or Meta credentials are exposed to this test job."
