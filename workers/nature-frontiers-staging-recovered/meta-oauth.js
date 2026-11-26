@@ -90,7 +90,7 @@ export async function handleMetaOAuth(request,env,session){
    saved.push({id,pageId:String(page.id),pageName:String(page.name||""),instagramAccountId:null,status:"unverified",pageTasks:tasks});
   }
   if(!saved.length)throw fail("Meta returned Pages without usable Page access tokens",409);
-  await audit(env.DB,session.user.id,"meta.oauth.completed",{pages:saved.map(x=>({id:x.id,pageId:x.pageId,instagramAccountId:x.instagramAccountId})),grantedPermissions:granted,missingPermissions:FACEBOOK_REQUIRED.filter(x=>!granted.includes(x))});
+  await audit(env.DB,row.initiating_subject,"meta.oauth.completed",{pages:saved.map(x=>({id:x.id,pageId:x.pageId,instagramAccountId:x.instagramAccountId})),grantedPermissions:granted,missingPermissions:FACEBOOK_REQUIRED.filter(x=>!granted.includes(x))});
   return Response.redirect(new URL("/?meta=connected",cfg.redirect).href,303);
  }
  if(path==="/api/meta/connections"&&method==="GET"){
