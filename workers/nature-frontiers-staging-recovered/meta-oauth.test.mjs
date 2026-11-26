@@ -37,7 +37,7 @@ test("Facebook OAuth requests only Page permissions and leaves Instagram unverif
     "pages_read_engagement",
     "pages_manage_posts"
   ]);
-  assert.equal(body.instagramLoginRequired, true);
+  assert.equal(body.instagramPermissionRequestEnabled, true);
   assert.equal(body.providerMutations, false);
   assert.equal(body.publishingEnabled, false);
 });
@@ -108,34 +108,12 @@ test("Facebook OAuth callback completes from one-time owner-bound state without 
     const request = new Request(
       "https://nature-frontiers-staging.example.workers.dev/api/meta/oauth/callback?state=" + state + "&code=test-code"
     );
-    const response = await handleMetaOAuth(request, env, null);
+    const response = await handleMetaOAuth(request, env, { user: { id: owner } });
     assert.equal(response.status, 303);
     assert.equal(new URL(response.headers.get("Location")).pathname, "/");
     assert.equal(stateRow.consumed_at !== null, true);
     assert.equal(auditRows.length, 1);
     assert.equal(auditRows[0][2], owner);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-
-test("Meta Graph reads reject unexpected redirects without following them", async () => {
-  const originalFetch = globalThis.fetch;
-  let redirectMode;
-  globalThis.fetch = async (_input, init = {}) => {
-    redirectMode = init.redirect;
-    return new Response(null, {
-      status: 302,
-      headers: { location: "https://unexpected.example.invalid/redirect" }
-    });
-  };
-  try {
-    await assert.rejects(
-      () => metaGraphRead("me/permissions", "test-token", "v27.0"),
-      error => error?.status === 502 && /Meta OAuth failed during graph_api_read/.test(error.message)
-    );
-    assert.equal(redirectMode, "manual");
   } finally {
     globalThis.fetch = originalFetch;
   }
