@@ -104,8 +104,8 @@ export async function handleMetaOAuth(request,env,session){
    const safeCauseCode=/^[A-Z0-9_]{1,40}$/.test(causeCode)?causeCode:undefined;
    const rawMessage=String(error?.message||"");
    const safeMessage=rawMessage
-    .replace(/https?:\\/\\/[^\\s"'<>]+/gi,"[url]")
-    .replace(/(?:access_token|client_secret|code|state|token)=([^&\\s]+)/gi,"$1=[redacted]")
+    .replace(/https?:\/\/[^\s"'<>]+/gi,"[url]")
+    .replace(/(?:access_token|client_secret|code|state|token)=([^&\s]+)/gi,"$1=[redacted]")
     .replace(/[A-Za-z0-9_-]{48,}/g,"[redacted]")
     .slice(0,180);
    console.error("Meta OAuth callback failed",{requestId,stage,errorName:String(error?.name||"Error"),causeCode:safeCauseCode,errorHint:safeMessage||undefined});
