@@ -100,7 +100,15 @@ export async function handleMetaOAuth(request,env,session){
   await audit(env.DB,row.initiating_subject,"meta.oauth.completed",{pages:saved.map(x=>({id:x.id,pageId:x.pageId,instagramAccountId:x.instagramAccountId})),grantedPermissions:granted,missingPermissions:FACEBOOK_REQUIRED.filter(x=>!granted.includes(x))});
   return Response.redirect(new URL("/?meta=connected",cfg.redirect).href,303);
   }catch(error){
-   console.error("Meta OAuth callback failed",{requestId,stage,errorName:String(error?.name||"Error")});
+   const causeCode=String(error?.cause?.code||"");
+   const safeCauseCode=/^[A-Z0-9_]{1,40}$/.test(causeCode)?causeCode:undefined;
+   const rawMessage=String(error?.message||"");
+   const safeMessage=rawMessage
+    .replace(/https?:\\/\\/[^\\s"'<>]+/gi,"[url]")
+    .replace(/(?:access_token|client_secret|code|state|token)=([^&\\s]+)/gi,"$1=[redacted]")
+    .replace(/[A-Za-z0-9_-]{48,}/g,"[redacted]")
+    .slice(0,180);
+   console.error("Meta OAuth callback failed",{requestId,stage,errorName:String(error?.name||"Error"),causeCode:safeCauseCode,errorHint:safeMessage||undefined});
    const status=Number.isInteger(error?.status)?error.status:500;
    return json({error:"Meta connection failed",stage,requestId,publishingEnabled:false},status);
   }
