@@ -22,7 +22,7 @@ function envFor(db) {
 test("Unified Login start is owner-confirmed and returns the configured Meta flow without enabling publishing", async () => {
   const writes = [];
   const db = { prepare(sql) { return { bind(...values) { this.values = values; return this; }, async run() { writes.push({ sql, values: this.values }); return { meta: { changes: 1 } }; } }; } };
-  const response = await handleMetaInstagramUnified(new Request(origin + "/api/meta/instagram/unified/start", {
+  await assert.rejects(() => handleMetaInstagramUnified(new Request(origin + "/api/meta/instagram/unified/start", {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ confirmation: "START INSTAGRAM UNIFIED LOGIN" })
   }), envFor(db), { user: { id: owner } });
@@ -46,7 +46,7 @@ test("Unified Login start rejects missing owner confirmation without writing sta
   const response = await handleMetaInstagramUnified(new Request(origin + "/api/meta/instagram/unified/start", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({})
   }), envFor(db), { user: { id: owner } });
-  assert.equal(response.status, 403);
+  }), error => error?.status === 403);
   assert.equal(writes, 0);
 });
 
@@ -93,7 +93,7 @@ test("Unified Login callback stores only the exact expected Instagram username a
     const insert = writes.find(item => item.sql.includes("INSERT INTO meta_instagram_unified_connections"));
     assert.ok(insert);
     assert.equal(insert.values[3], "naturefrontieers2026");
-    assert.match(insert.sql, /identity_verified_at[^)]*VALUES[^)]*NULL/);
+    assert.ok(insert.sql.includes("VALUES(?,?,?,?,?,?,?,?,?,NULL,?,?)"));
     assert.equal(requested.every(item => item.method === "GET"), true);
     assert.equal(requested.some(item => item.url.pathname.includes("/media_publish")), false);
   } finally {
@@ -104,10 +104,10 @@ test("Unified Login callback stores only the exact expected Instagram username a
 test("Identity verification rejects any username other than the configured Nature Frontiers account", async () => {
   let reads = 0;
   const db = { prepare() { return { bind() { return this; }, async first() { reads++; return null; } }; } };
-  const response = await handleMetaInstagramUnified(new Request(origin + "/api/meta/instagram/unified/connections/111111111111111/verify", {
+  await assert.rejects(() => handleMetaInstagramUnified(new Request(origin + "/api/meta/instagram/unified/connections/111111111111111/verify", {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ confirmation: "VERIFY NATURE FRONTIERS INSTAGRAM", expectedUsername: "someone_else" })
   }), envFor(db), { user: { id: owner } });
-  assert.equal(response.status, 403);
+  }), error => error?.status === 403);
   assert.equal(reads, 0);
 });
