@@ -37,7 +37,7 @@ test("Facebook OAuth requests only Page permissions and leaves Instagram unverif
     "pages_read_engagement",
     "pages_manage_posts"
   ]);
-  assert.equal(body.instagramPermissionRequestEnabled, true);
+  assert.equal(body.instagramPermissionRequestEnabled, false);
   assert.equal(body.providerMutations, false);
   assert.equal(body.publishingEnabled, false);
 });
