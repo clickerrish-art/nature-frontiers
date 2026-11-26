@@ -167,3 +167,13 @@ Captured: 2026-11-26 11:47 UTC. Read-only Cloudflare inspections were used for d
 | Full security / end-to-end acceptance | NOT_TESTED | Required real OAuth, identity, media, rights, provider and deployed adapter tests remain incomplete. |
 
 All production publishing remains disabled. No staging or production database writes were made during this re-inspection.
+
+### Follow-up exact-head CI result — 2026-11-26
+
+After the redirect regression test and live re-inspection register were committed, the workflows associated with exact head `324db3e31c68da1f154d228277e37d1c686163e4` completed successfully:
+
+- Meta OAuth validation run `45815008332` (run 31): PASS — Worker module syntax and Facebook OAuth scope-isolation/redirect regression tests.
+- Durable publisher Worker validation run `45815008192` (run 270): PASS — migration planner/D1 adapter contracts, Worker syntax, SQLite-backed publisher API tests, Meta webhook tests, Instagram policy/readiness tests, and fail-closed controls.
+- Gated publishing safety run `45815008216` (run 1033): safety-tests PASS. `facebook-publisher`, `instagram-preflight`, and `instagram-publisher` jobs were SKIPPED.
+
+These CI results are source-level, mocked, or SQLite-backed checks. They do not change the live deployment, establish real Meta authorization, validate the actual staging D1 adapter for the publisher API, or prove public provider publication. All corresponding live acceptance gates remain as recorded above.
