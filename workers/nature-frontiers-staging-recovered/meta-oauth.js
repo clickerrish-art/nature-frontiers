@@ -91,11 +91,10 @@ export async function handleMetaOAuth(request,env,session){
   await env.DB.prepare("INSERT INTO oauth_states(state_hash,provider,created_at,expires_at,consumed_at,redirect_uri,initiating_subject) VALUES(?,'meta',?,?,NULL,?,?)").bind(await digest(state),now.toISOString(),expires,cfg.redirect,session.user.id).run();
   const url=new URL("https://www.facebook.com/"+cfg.version+"/dialog/oauth");
   url.searchParams.set("client_id",cfg.appId);url.searchParams.set("redirect_uri",cfg.redirect);url.searchParams.set("state",state);
-  const requestInstagram=env.NF_META_INSTAGRAM_API_ENABLED==="true";
-  const requestedPermissions=[...PAGE_REQUIRED,...(requestInstagram?INSTAGRAM_REQUIRED:[])];
+  const requestedPermissions=[...PAGE_REQUIRED];
   url.searchParams.set("response_type","code");url.searchParams.set("scope",requestedPermissions.join(","));
   url.searchParams.set("auth_type","rerequest");
-  return json({authorizationUrl:url.href,stateExpiresAt:expires,requestedPermissions,instagramPermissionRequestEnabled:requestInstagram,providerMutations:false,publishingEnabled:false});
+  return json({authorizationUrl:url.href,stateExpiresAt:expires,requestedPermissions,instagramPermissionRequestEnabled:false,providerMutations:false,publishingEnabled:false});
  }
  if(path==="/api/meta/oauth/callback"&&method==="GET"){
   const cfg=config(env),u=new URL(request.url),state=u.searchParams.get("state")||"",code=u.searchParams.get("code")||"";
