@@ -86,7 +86,7 @@ export async function handleMetaInstagramUnified(request,env,session){
    permissions:{granted:scopes,required:REQUIRED,allRequiredGranted:REQUIRED.every(scope=>scopes.includes(scope))},
    profile:{accessible:true,matchesExpectedAccount:profileMatches},
    media:{accessible:true,sampleCount:mediaItems.length,latestSample:mediaItems[0]?{id:mediaItems[0].id,mediaType:mediaItems[0].media_type,timestamp:mediaItems[0].timestamp}:null},
-   safety:{publishingEnabled:false,dryRun:true,emergencyStop:true}},tokenValid&&profileMatches?200:409);
+   safety:{publishingEnabled:false,dryRun:true,emergencyStop:true}},tokenValid&&profileMatches&&REQUIRED.every(scope=>scopes.includes(scope))?200:409);
  }
  const match=path.match(/^\/api\/meta\/instagram\/unified\/connections\/(\d{5,30})\/verify$/);
  if(match&&method==="POST"){
