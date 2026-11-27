@@ -65,8 +65,8 @@ export async function handleMetaInstagramUnified(request,env,session){
   const rows=await env.DB.prepare("SELECT instagram_account_id,username,config_id,granted_permissions_json,token_expires_at,identity_verified_at,created_at,updated_at FROM meta_instagram_unified_connections ORDER BY updated_at DESC").all();
   return json({items:(rows.results||[]).map(row=>({instagramAccountId:row.instagram_account_id,username:row.username,configId:row.config_id,grantedPermissions:JSON.parse(row.granted_permissions_json||"[]"),identityVerified:Boolean(row.identity_verified_at),tokenExpiresAt:row.token_expires_at,createdAt:row.created_at,updatedAt:row.updated_at})),publishingEnabled:false,dryRun:true,emergencyStop:true});
  }
- if(path.match(/^\\/api\\/meta\\/instagram\\/unified\\/connections\\/(\\d{5,30})\\/health$/)&&method==="GET"){
-  const cfg=config(env),accountId=path.match(/^\\/api\\/meta\\/instagram\\/unified\\/connections\\/(\\d{5,30})\\/health$/)[1];
+ if(path.match(/^\/api\/meta\/instagram\/unified\/connections\/(\\d{5,30})\/health$/)&&method==="GET"){
+  const cfg=config(env),accountId=path.match(/^\/api\/meta\/instagram\/unified\/connections\/(\\d{5,30})\/health$/)[1];
   const row=await env.DB.prepare("SELECT * FROM meta_instagram_unified_connections WHERE instagram_account_id=?").bind(accountId).first();
   if(!row)return json({error:"Instagram account connection not found"},404);
   if(row.config_id!==cfg.configId||String(row.username||"").toLowerCase()!==EXPECTED_USERNAME)throw fail("Instagram connection does not match the configured Nature Frontiers account",409);
