@@ -44,6 +44,8 @@ test("Unified Login start creates owner-bound state and keeps publishing disable
   assert.equal(body.publishingEnabled, false);
   assert.equal(body.dryRun, true);
   assert.equal(body.emergencyStop, true);
+  const remainingMs = new Date(body.stateExpiresAt).getTime() - Date.now();
+  assert.ok(remainingMs > 29 * 60 * 1000 && remainingMs <= 30 * 60 * 1000, "state should remain valid for approximately 30 minutes");
   assert.equal(writes.length, 1);
   assert.match(writes[0].sql, /meta_instagram_unified_states/);
 });
