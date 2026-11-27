@@ -149,3 +149,51 @@ test("Unified Login callback saves only the exact expected account and does not 
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("Read-only token health check verifies token, scopes, profile and media without database writes", async () => {
+  const accountId = "17841413164146618";
+  const secret = envFor({}).NF_META_TOKEN_ENCRYPTION_KEY;
+  const businessId = "987654321";
+  const aad = accountId + ":" + businessId + ":" + configId;
+  const material = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret));
+  const key = await crypto.subtle.importKey("raw", material, { name: "AES-GCM" }, false, ["encrypt"]);
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce, additionalData: new TextEncoder().encode(aad) }, key, new TextEncoder().encode("test-instagram-token"));
+  const toB64 = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+  const row = { instagram_account_id: accountId, username: "naturefrontieers2026", config_id: configId, client_business_id: businessId,
+    access_token_ciphertext: toB64(encrypted), access_token_nonce: toB64(nonce), identity_verified_at: "2026-11-27T00:08:27.587Z" };
+  let writes = 0, reads = 0;
+  const db = { prepare(sql) { return { bind(...values) { this.values = values; return this; },
+    async first() { reads++; assert.match(sql, /SELECT \* FROM meta_instagram_unified_connections/); assert.deepEqual(this.values, [accountId]); return row; },
+    async run() { writes++; return { meta: { changes: 1 } }; } }; } };
+  const originalFetch = globalThis.fetch, requests = [];
+  globalThis.fetch = async (input, init = {}) => {
+    const url = new URL(String(input)); requests.push({ url, method: init.method || "GET", authorization: new Headers(init.headers).get("Authorization") });
+    if (url.pathname.endsWith("/debug_token")) return Response.json({ data: { is_valid: true, app_id: "test-app-id", scopes: ["instagram_basic", "instagram_content_publish"], expires_at: 1893456000, data_access_expires_at: 1893456000 } });
+    if (url.pathname.endsWith("/" + accountId)) return Response.json({ id: accountId, username: "naturefrontieers2026" });
+    if (url.pathname.endsWith("/" + accountId + "/media")) return Response.json({ data: [{ id: "media-1", media_type: "IMAGE", timestamp: "2026-11-26T10:00:00+0000" }] });
+    throw new Error("Unexpected Meta request " + url.pathname);
+  };
+  try {
+    const response = await handleMetaInstagramUnified(new Request(origin + "/api/meta/instagram/unified/connections/" + accountId + "/health"), envFor(db), { user: { id: owner } });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.readOnly, true);
+    assert.equal(body.databaseMutations, false);
+    assert.equal(body.token.valid, true);
+    assert.equal(body.permissions.allRequiredGranted, true);
+    assert.equal(body.profile.matchesExpectedAccount, true);
+    assert.equal(body.media.accessible, true);
+    assert.equal(body.media.sampleCount, 1);
+    assert.equal(body.safety.publishingEnabled, false);
+    assert.equal(body.safety.dryRun, true);
+    assert.equal(body.safety.emergencyStop, true);
+    assert.equal(reads, 1);
+    assert.equal(writes, 0);
+    assert.equal(requests.length, 3);
+    assert.ok(requests.every(request => request.method === "GET"));
+    assert.equal(requests[0].authorization, "Bearer test-app-id|test-app-secret");
+    assert.equal(requests.slice(1).every(request => request.authorization === "Bearer test-instagram-token"), true);
+  } finally { globalThis.fetch = originalFetch; }
+});
