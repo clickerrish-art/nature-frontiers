@@ -65,6 +65,29 @@ export async function handleMetaInstagramUnified(request,env,session){
   const rows=await env.DB.prepare("SELECT instagram_account_id,username,config_id,granted_permissions_json,token_expires_at,identity_verified_at,created_at,updated_at FROM meta_instagram_unified_connections ORDER BY updated_at DESC").all();
   return json({items:(rows.results||[]).map(row=>({instagramAccountId:row.instagram_account_id,username:row.username,configId:row.config_id,grantedPermissions:JSON.parse(row.granted_permissions_json||"[]"),identityVerified:Boolean(row.identity_verified_at),tokenExpiresAt:row.token_expires_at,createdAt:row.created_at,updatedAt:row.updated_at})),publishingEnabled:false,dryRun:true,emergencyStop:true});
  }
+ if(path.match(/^\\/api\\/meta\\/instagram\\/unified\\/connections\\/(\\d{5,30})\\/health$/)&&method==="GET"){
+  const cfg=config(env),accountId=path.match(/^\\/api\\/meta\\/instagram\\/unified\\/connections\\/(\\d{5,30})\\/health$/)[1];
+  const row=await env.DB.prepare("SELECT * FROM meta_instagram_unified_connections WHERE instagram_account_id=?").bind(accountId).first();
+  if(!row)return json({error:"Instagram account connection not found"},404);
+  if(row.config_id!==cfg.configId||String(row.username||"").toLowerCase()!==EXPECTED_USERNAME)throw fail("Instagram connection does not match the configured Nature Frontiers account",409);
+  const aad=accountId+":"+String(row.client_business_id)+":"+cfg.configId;
+  const token=await decryptToken(row.access_token_ciphertext,row.access_token_nonce,cfg.keySecret,aad);
+  const appToken=cfg.appId+"|"+cfg.appSecret;
+  const debug=await metaGet("debug_token?input_token="+encodeURIComponent(token),appToken,cfg.version,"instagram_token_debug");
+  const tokenInfo=debug.data||{},scopes=Array.isArray(tokenInfo.scopes)?tokenInfo.scopes:[];
+  const tokenValid=tokenInfo.is_valid===true&&String(tokenInfo.app_id||"")===cfg.appId;
+  const profile=await metaGet(accountId+"?fields=id,username",token,cfg.version,"instagram_readonly_profile");
+  const profileMatches=String(profile.id)===accountId&&String(profile.username||"").replace(/^@/,"").toLowerCase()===EXPECTED_USERNAME;
+  const media=await metaGet(accountId+"/media?fields=id,media_type,timestamp&limit=1",token,cfg.version,"instagram_readonly_media");
+  const mediaItems=Array.isArray(media.data)?media.data:[];
+  return json({readOnly:true,providerMutations:false,databaseMutations:false,
+   instagram:{instagramAccountId:accountId,username:EXPECTED_USERNAME,identityVerified:Boolean(row.identity_verified_at)},
+   token:{valid:tokenValid,appIdMatches:String(tokenInfo.app_id||"")===cfg.appId,expiresAt:Number(tokenInfo.expires_at)>0?new Date(Number(tokenInfo.expires_at)*1000).toISOString():null,dataAccessExpiresAt:Number(tokenInfo.data_access_expires_at)>0?new Date(Number(tokenInfo.data_access_expires_at)*1000).toISOString():null},
+   permissions:{granted:scopes,required:REQUIRED,allRequiredGranted:REQUIRED.every(scope=>scopes.includes(scope))},
+   profile:{accessible:true,matchesExpectedAccount:profileMatches},
+   media:{accessible:true,sampleCount:mediaItems.length,latestSample:mediaItems[0]?{id:mediaItems[0].id,mediaType:mediaItems[0].media_type,timestamp:mediaItems[0].timestamp}:null},
+   safety:{publishingEnabled:false,dryRun:true,emergencyStop:true}},tokenValid&&profileMatches?200:409);
+ }
  const match=path.match(/^\/api\/meta\/instagram\/unified\/connections\/(\d{5,30})\/verify$/);
  if(match&&method==="POST"){
   const cfg=config(env),body=await parseBody(request),accountId=match[1],expectedUsername=String(body.expectedUsername||"").replace(/^@/,"").trim().toLowerCase();
