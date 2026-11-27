@@ -24,7 +24,7 @@ export async function handleMetaInstagramUnified(request,env,session){
  const path=new URL(request.url).pathname,method=request.method;
  if(path==="/api/meta/instagram/unified/start"&&method==="POST"){
   const cfg=config(env),body=await parseBody(request);if(body.confirmation!=="START INSTAGRAM UNIFIED LOGIN")throw fail("Explicit operator confirmation is required",403);
-  const state=hex(crypto.getRandomValues(new Uint8Array(32))),now=new Date(),expires=new Date(now.getTime()+10*60*1000).toISOString();
+  const state=hex(crypto.getRandomValues(new Uint8Array(32))),now=new Date(),expires=new Date(now.getTime()+30*60*1000).toISOString();
   await env.DB.prepare("INSERT INTO meta_instagram_unified_states(state_hash,created_at,expires_at,consumed_at,redirect_uri,initiating_subject,config_id) VALUES(?,?,?,NULL,?,?,?)").bind(await digest(state),now.toISOString(),expires,cfg.redirect,session.user.id,cfg.configId).run();
   const url=new URL("https://www.facebook.com/dialog/oauth");url.searchParams.set("client_id",cfg.appId);url.searchParams.set("config_id",cfg.configId);url.searchParams.set("redirect_uri",cfg.redirect);url.searchParams.set("response_type","code");url.searchParams.set("state",state);url.searchParams.set("display","popup");url.searchParams.set("prompt","login");
   return json({authorizationUrl:url.href,stateExpiresAt:expires,configId:cfg.configId,providerMutations:false,publishingEnabled:false,dryRun:true,emergencyStop:true});
